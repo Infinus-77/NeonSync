@@ -15,7 +15,7 @@ let currentUser;
 let allUsers = {};
 let taskChatId = null;
 
-if (!taskId) window.location.href = '../public/tasks.html';
+if (!taskId) window.location.href = '/tasks.html';
 
 requireAuth(async (user) => {
   // Hide the page-level loading overlay now that auth has resolved
@@ -43,7 +43,7 @@ requireAuth(async (user) => {
 function loadTask() {
   const ref = doc(db, 'tasks', taskId);
   onSnapshot(ref, (snap) => {
-    if (!snap.exists()) { window.location.href = '../public/tasks.html'; return; }
+    if (!snap.exists()) { window.location.href = '/tasks.html'; return; }
     taskData = { id: snap.id, ...snap.data() };
 
     // ✅ FIX: Auto-mark overdue on load
@@ -96,7 +96,7 @@ function renderTask(t) {
 
   document.getElementById('task-assignees').innerHTML = (t.assignedTo || []).map(uid => {
     const u = allUsers[uid];
-    return `<a href="../public/profile.html?uid=${uid}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);"
+    return `<a href="/profile.html?uid=${uid}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);"
       onmouseover="this.style.borderColor='var(--accent-cyan)'" onmouseout="this.style.borderColor='var(--border-glass)'">
       <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;">${getInitials(u?.displayName)}</div>
       ${u?.displayName || uid}
@@ -259,19 +259,22 @@ window.addAttachment = async () => {
   } catch (err) { showToast('Failed to add attachment', 'error'); }
 };
 
-// Task Chat
+// Task Chat — no longer auto-creates a chat room on task view.
+// Chat rooms are only created explicitly by admins via the Chat page.
 async function loadTaskChat() {
   const q = query(collection(db, 'chats'), where('type', '==', 'task'), where('relatedId', '==', taskId));
   const snap = await getDocs(q);
 
   if (!snap.empty) {
     taskChatId = snap.docs[0].id;
+    listenMessages(taskChatId);
   } else {
-    const ref = await addDoc(collection(db, 'chats'), { type: 'task', relatedId: taskId, createdAt: serverTimestamp() });
-    taskChatId = ref.id;
+    // No chat room yet — show a placeholder; admins can create one from Chat page
+    const el = document.getElementById('task-messages');
+    if (el) {
+      el.innerHTML = '<div class="empty-state" style="padding:16px;"><i class="ph ph-chat-circle-dashed"></i><p style="margin-top:8px;">No discussion yet</p><p style="font-size:11px;color:var(--text-muted);margin-top:4px;">Admins can create a group for this task from the Chat page.</p></div>';
+    }
   }
-
-  listenMessages(taskChatId);
 }
 
 function listenMessages(chatId) {
@@ -426,7 +429,7 @@ window.deleteTask = async () => {
   try {
     await deleteDoc(doc(db, 'tasks', taskId));
     showToast('Task deleted', 'success');
-    setTimeout(() => window.location.href = '../public/tasks.html', 1000);
+    setTimeout(() => window.location.href = '/tasks.html', 1000);
   } catch (err) { showToast('Failed to delete', 'error'); }
 };
 

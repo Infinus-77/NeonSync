@@ -10,8 +10,9 @@ import {
   orderBy,
   limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getInitials, showToast, timeAgo } from "./utils.js";
+import { getInitials, showToast, timeAgo, sanitizeHtml } from "./utils.js";
 
+// ── Podium leaderboard renderer ───────────────────────────────────────────────
 let currentUser;
 let charts = {};
 let allTasks = [];
@@ -287,50 +288,195 @@ function renderTimeline(tasks, days) {
   });
 }
 
+// ── Podium leaderboard renderer ───────────────────────────────────────────────
+function buildPodiumHTML(sorted, subtitleFn) {
+  if (!sorted.length || sorted.every((u) => (u.score || 0) === 0)) {
+    return '<div class="empty-state" style="padding:24px;"><i class="ph ph-trophy"></i><p>No data yet</p></div>';
+  }
+
+  const cfg = {
+    0: {
+      bg: "linear-gradient(135deg,#FFD700,#FFA500)",
+      ring: "#FFD700",
+      size: "64px",
+      fs: "22px",
+      h: "90px",
+    },
+    1: {
+      bg: "linear-gradient(135deg,#C0C0C0,#9E9E9E)",
+      ring: "#C0C0C0",
+      size: "52px",
+      fs: "17px",
+      h: "68px",
+    },
+    2: {
+      bg: "linear-gradient(135deg,#CD7F32,#A0522D)",
+      ring: "#CD7F32",
+      size: "52px",
+      fs: "17px",
+      h: "52px",
+    },
+  };
+  const medals = ["🥇", "🥈", "🥉"];
+  // Display order: silver | gold | bronze
+  const order = [1, 0, 2].filter((i) => sorted[i]);
+
+  function avatar(u, size, fs) {
+    var inner = u.photoURL
+      ? '<img src="' +
+        u.photoURL +
+        '" style="width:100%;height:100%;object-fit:cover;">'
+      : getInitials(u.displayName);
+    return inner;
+  }
+
+  var podiumCols = order
+    .map(function (rank) {
+      var u = sorted[rank];
+      if (!u) return "";
+      var c = cfg[rank];
+      return (
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">' +
+        '<div style="position:relative;">' +
+        '<div style="width:' +
+        c.size +
+        ";height:" +
+        c.size +
+        ";border-radius:50%;" +
+        "background:" +
+        c.bg +
+        ";display:flex;align-items:center;justify-content:center;" +
+        "font-size:" +
+        c.fs +
+        ";font-weight:700;color:#000;" +
+        "border:3px solid " +
+        c.ring +
+        ";box-shadow:0 0 20px " +
+        c.ring +
+        "44;" +
+        'overflow:hidden;flex-shrink:0;">' +
+        avatar(u, c.size, c.fs) +
+        "</div>" +
+        '<div style="position:absolute;bottom:-4px;right:-4px;font-size:16px;line-height:1;">' +
+        medals[rank] +
+        "</div>" +
+        "</div>" +
+        '<div style="text-align:center;">' +
+        '<div style="font-size:12px;font-weight:700;color:var(--text-primary);' +
+        'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">' +
+        sanitizeHtml(u.displayName || "User") +
+        "</div>" +
+        '<div style="font-size:11px;color:' +
+        c.ring +
+        ';font-weight:700;margin-top:2px;">' +
+        u.score +
+        "pts</div>" +
+        '<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">' +
+        subtitleFn(u) +
+        "</div>" +
+        "</div>" +
+        '<div style="width:100%;height:' +
+        c.h +
+        ";background:" +
+        c.bg +
+        ";" +
+        'border-radius:8px 8px 0 0;opacity:0.2;margin-top:4px;"></div>' +
+        "</div>"
+      );
+    })
+    .join("");
+
+  var restRows = sorted
+    .slice(3)
+    .map(function (u, i) {
+      var inner = u.photoURL
+        ? '<img src="' +
+          u.photoURL +
+          '" style="width:100%;height:100%;object-fit:cover;">'
+        : getInitials(u.displayName);
+      return (
+        '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;' +
+        "border-radius:8px;background:rgba(255,255,255,0.03);" +
+        'border:1px solid rgba(255,255,255,0.05);" data-testid="leader-' +
+        u.id +
+        '">' +
+        '<div style="font-size:12px;font-weight:700;color:var(--text-muted);width:22px;text-align:center;">#' +
+        (i + 4) +
+        "</div>" +
+        '<div style="width:30px;height:30px;border-radius:50%;' +
+        "background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));" +
+        "display:flex;align-items:center;justify-content:center;" +
+        'font-size:11px;font-weight:700;color:#000;flex-shrink:0;overflow:hidden;">' +
+        inner +
+        "</div>" +
+        '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:12px;font-weight:600;">' +
+        sanitizeHtml(u.displayName || "User") +
+        "</div>" +
+        '<div style="font-size:10px;color:var(--text-muted);">' +
+        subtitleFn(u) +
+        "</div>" +
+        "</div>" +
+        '<div style="font-size:12px;font-weight:700;color:var(--accent-cyan);">' +
+        u.score +
+        "pts</div>" +
+        "</div>"
+      );
+    })
+    .join("");
+
+  var rest =
+    sorted.length > 3
+      ? '<div style="height:1px;background:rgba(255,255,255,0.06);margin:16px 0 12px;"></div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        restRows +
+        "</div>"
+      : "";
+
+  return (
+    '<div style="display:flex;align-items:flex-end;justify-content:center;gap:8px;padding:16px 8px 0;">' +
+    podiumCols +
+    "</div>" +
+    rest
+  );
+}
+
 function renderLeaderboard(tasks, users) {
+  // Score = number of tasks completed at 100%. Super admins excluded.
   const scores = {};
-  tasks.forEach((t) => {
-    if (t.status === "completed") {
-      (t.assignedTo || []).forEach((uid) => {
-        scores[uid] = (scores[uid] || 0) + 10;
+  tasks.forEach(function (t) {
+    if (t.completionPercentage === 100 && t.status === "completed") {
+      (t.assignedTo || []).forEach(function (uid) {
+        scores[uid] = (scores[uid] || 0) + 1;
       });
     }
-    (t.assignedTo || []).forEach((uid) => {
-      scores[uid] = (scores[uid] || 0) + 1;
-    });
   });
 
   const sorted = users
-    .map((u) => ({ ...u, score: scores[u.id] || 0 }))
-    .sort((a, b) => b.score - a.score)
+    .filter(function (u) {
+      return u.role !== "super_admin";
+    })
+    .map(function (u) {
+      return Object.assign({}, u, { score: scores[u.id] || 0 });
+    })
+    .sort(function (a, b) {
+      return b.score - a.score;
+    })
     .slice(0, 10);
 
   const el = document.getElementById("leaderboard");
-  if (!sorted.length || sorted.every((u) => u.score === 0)) {
-    el.innerHTML =
-      '<div class="empty-state" style="padding:24px;"><i class="ph ph-users"></i><p>No data in this period</p></div>';
-    return;
-  }
+  if (!el) return;
 
-  el.innerHTML = sorted
-    .map(
-      (u, i) => `
-    <div class="leaderboard-item" data-testid="leader-${u.id}">
-      <div class="leaderboard-rank ${i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : ""}">
-        ${i < 3 ? ["🥇", "🥈", "🥉"][i] : `#${i + 1}`}
-      </div>
-      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;overflow:hidden;">
-        ${u.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">` : getInitials(u.displayName)}
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;">${u.displayName || "User"}</div>
-        <div style="font-size:11px;color:var(--text-muted);">${u.role} · ${tasks.filter((t) => (t.assignedTo || []).includes(u.id)).length} tasks</div>
-      </div>
-      <div style="font-size:14px;font-weight:700;color:var(--accent-cyan);">${u.score}pts</div>
-    </div>
-  `,
-    )
-    .join("");
+  el.innerHTML = buildPodiumHTML(sorted, function (u) {
+    var n = tasks.filter(function (t) {
+      return (
+        (t.assignedTo || []).includes(u.id) &&
+        t.status === "completed" &&
+        t.completionPercentage === 100
+      );
+    }).length;
+    return u.role + " · " + n + " at 100%";
+  });
 }
 
 function renderRecentActivity(logs, users) {

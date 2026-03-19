@@ -61,8 +61,16 @@ service cloud.firestore {
 
     // ─── Chats ─────────────────────────────────────────────────────────────────
     match /chats/{chatId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
+      // Anyone authenticated can read chats they are a member of,
+      // or system/global chats. Super admins read everything.
+      allow read: if isSuperAdmin()
+        || isAdmin()
+        || (isAuthenticated() && (
+            resource.data.get('type', '') in ['global', 'role']
+            || currentUid() in resource.data.get('members', [])
+          ));
+      // Only admins and super_admins can create chat rooms/groups
+      allow create: if isAdmin();
       allow update: if isAdmin();
       allow delete: if isSuperAdmin();
     }
