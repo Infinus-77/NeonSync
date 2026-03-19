@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Analytics</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="/css/main.css" />
+  </head>
+
+  <body>
+    <!-- Loading -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading analytics...</span>
+    </div>
+
+    <div class="app-layout" id="app">
+      <div id="sidebar"></div>
+
+      <main class="main-content">
+        <!-- Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Analytics</h1>
+            <p class="page-subtitle">System-wide performance insights</p>
+          </div>
+
+          <select
+            id="analytics-range"
+            class="form-input form-select"
+            style="max-width: 160px"
+            onchange="loadAnalytics()"
+            data-testid="analytics-range"
+          >
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid mb-6 animate-in" data-testid="analytics-stats">
+          <div class="stat-card">
+            <div class="stat-icon cyan">
+              <i class="ph ph-check-square"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="a-total" data-testid="a-total">0</div>
+              <div class="stat-label">Total Tasks</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <i class="ph ph-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <div
+                class="stat-value"
+                id="a-completed"
+                data-testid="a-completed"
+              >
+                0
+              </div>
+              <div class="stat-label">Completed</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon danger">
+              <i class="ph ph-warning-circle"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="a-overdue" data-testid="a-overdue">
+                0
+              </div>
+              <div class="stat-label">Overdue</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <i class="ph ph-users"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="a-users" data-testid="a-users">0</div>
+              <div class="stat-label">Total Users</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid-2 mb-6">
+          <div class="card animate-in" style="animation-delay: 0.1s">
+            <div class="section-header">
+              <span class="section-title">Task Status Distribution</span>
+            </div>
+
+            <div class="chart-container">
+              <canvas
+                id="chart-status-pie"
+                data-testid="chart-status-pie"
+              ></canvas>
+            </div>
+          </div>
+
+          <div class="card animate-in" style="animation-delay: 0.15s">
+            <div class="section-header">
+              <span class="section-title">Priority Breakdown</span>
+            </div>
+
+            <div class="chart-container">
+              <canvas
+                id="chart-priority-bar"
+                data-testid="chart-priority-bar"
+              ></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card mb-6 animate-in" style="animation-delay: 0.2s">
+          <div class="section-header">
+            <span class="section-title">Task Completion Timeline</span>
+          </div>
+
+          <div style="height: 240px">
+            <canvas id="chart-timeline" data-testid="chart-timeline"></canvas>
+          </div>
+        </div>
+
+        <!-- Leaderboard + Activity -->
+        <div class="grid-2">
+          <div class="card animate-in" style="animation-delay: 0.25s">
+            <div class="section-header">
+              <span class="section-title">Leaderboard</span>
+            </div>
+
+            <div id="leaderboard" data-testid="leaderboard"></div>
+          </div>
+
+          <div class="card animate-in" style="animation-delay: 0.3s">
+            <div class="section-header">
+              <span class="section-title">Recent Activity</span>
+            </div>
+
+            <div
+              id="recent-activity"
+              data-testid="recent-activity"
+              style="max-height: 320px; overflow-y: auto"
+            ></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="/js/analytics.js"></script>
+  </body>
+</html>

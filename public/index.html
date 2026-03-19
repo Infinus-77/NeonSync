@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Team Management & Collaboration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg-body: #050505;
+        --accent-cyan: #00e5ff;
+        --accent-purple: #bd00ff;
+        --accent-pink: #ff007a;
+        --text-primary: #ffffff;
+        --text-secondary: #a1a1aa;
+        --text-muted: #52525b;
+        --border-glass: rgba(255, 255, 255, 0.08);
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg-body);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Animated background */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 20% 30%,
+            rgba(0, 229, 255, 0.08) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 80% 20%,
+            rgba(189, 0, 255, 0.07) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 60% 80%,
+            rgba(255, 0, 122, 0.05) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* Grid overlay */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 48px 48px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Nav */
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 48px;
+        border-bottom: 1px solid var(--border-glass);
+        background: rgba(5, 5, 5, 0.8);
+        backdrop-filter: blur(20px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+
+      .nav-logo-icon {
+        width: 34px;
+        height: 34px;
+        background: linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .nav-logo h1 {
+        font-family: "Outfit", sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        background: linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: "Inter", sans-serif;
+      }
+
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border-glass);
+        color: var(--text-secondary);
+      }
+
+      .btn-outline:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+        color: white;
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0 32px rgba(0, 229, 255, 0.3);
+      }
+
+      /* Hero */
+      .hero {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 80px 24px;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: rgba(0, 229, 255, 0.1);
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent-cyan);
+        margin-bottom: 32px;
+        animation: fadeInDown 0.6s ease both;
+      }
+
+      .hero-title {
+        font-family: "Outfit", sans-serif;
+        font-size: clamp(42px, 7vw, 84px);
+        font-weight: 900;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        margin-bottom: 24px;
+        animation: fadeInUp 0.6s ease 0.1s both;
+      }
+
+      .hero-title .gradient {
+        background: linear-gradient(
+          135deg,
+          var(--accent-cyan) 0%,
+          var(--accent-purple) 50%,
+          var(--accent-pink) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-subtitle {
+        font-size: 18px;
+        color: var(--text-secondary);
+        max-width: 540px;
+        line-height: 1.6;
+        margin-bottom: 40px;
+        animation: fadeInUp 0.6s ease 0.2s both;
+      }
+
+      .hero-cta {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.6s ease 0.3s both;
+      }
+
+      .btn-lg {
+        padding: 14px 32px;
+        font-size: 15px;
+      }
+
+      /* Features */
+      .features {
+        padding: 80px 48px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .features-title {
+        text-align: center;
+        font-family: "Outfit", sans-serif;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 48px;
+      }
+
+      .features-title span {
+        background: linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .feature-card {
+        background: rgba(20, 20, 23, 0.6);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border-glass);
+        border-radius: 16px;
+        padding: 28px;
+        transition: all 0.3s ease;
+      }
+
+      .feature-card:hover {
+        border-color: rgba(0, 229, 255, 0.2);
+        transform: translateY(-4px);
+        box-shadow:
+          0 16px 48px rgba(0, 0, 0, 0.4),
+          0 0 24px rgba(0, 229, 255, 0.05);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        margin-bottom: 16px;
+      }
+
+      .feature-icon.cyan {
+        background: rgba(0, 229, 255, 0.12);
+        color: var(--accent-cyan);
+      }
+      .feature-icon.purple {
+        background: rgba(189, 0, 255, 0.12);
+        color: var(--accent-purple);
+      }
+      .feature-icon.pink {
+        background: rgba(255, 0, 122, 0.12);
+        color: var(--accent-pink);
+      }
+      .feature-icon.green {
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+      }
+
+      .feature-title {
+        font-family: "Outfit", sans-serif;
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .feature-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      /* Roles section */
+      .roles {
+        padding: 60px 48px;
+        position: relative;
+        z-index: 1;
+        text-align: center;
+      }
+
+      .roles-title {
+        font-family: "Outfit", sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 40px;
+      }
+
+      .roles-grid {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .role-card {
+        flex: 1;
+        min-width: 220px;
+        max-width: 280px;
+        background: rgba(20, 20, 23, 0.6);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border-glass);
+        border-radius: 16px;
+        padding: 28px 24px;
+        transition: all 0.3s ease;
+      }
+
+      .role-card:hover {
+        transform: translateY(-3px);
+      }
+
+      .role-card.super-admin {
+        border-color: rgba(255, 0, 122, 0.2);
+      }
+      .role-card.admin {
+        border-color: rgba(0, 229, 255, 0.2);
+      }
+      .role-card.member {
+        border-color: rgba(34, 197, 94, 0.2);
+      }
+
+      .role-badge {
+        display: inline-flex;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 14px;
+      }
+
+      .role-badge.super-admin {
+        background: rgba(255, 0, 122, 0.15);
+        color: var(--accent-pink);
+        border: 1px solid rgba(255, 0, 122, 0.3);
+      }
+      .role-badge.admin {
+        background: rgba(0, 229, 255, 0.12);
+        color: var(--accent-cyan);
+        border: 1px solid rgba(0, 229, 255, 0.3);
+      }
+      .role-badge.member {
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+      }
+
+      .role-name {
+        font-family: "Outfit", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .role-perms {
+        list-style: none;
+        text-align: left;
+      }
+
+      .role-perms li {
+        font-size: 12px;
+        color: var(--text-secondary);
+        padding: 3px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .role-perms li::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        flex-shrink: 0;
+      }
+
+      /* Footer */
+      footer {
+        padding: 32px 48px;
+        border-top: 1px solid var(--border-glass);
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-muted);
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Glow orbs */
+      .glow-orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.12;
+        pointer-events: none;
+        z-index: 0;
+        animation: float 8s ease-in-out infinite;
+      }
+
+      .glow-orb-1 {
+        width: 400px;
+        height: 400px;
+        background: var(--accent-cyan);
+        top: -100px;
+        left: -100px;
+        animation-delay: 0s;
+      }
+      .glow-orb-2 {
+        width: 500px;
+        height: 500px;
+        background: var(--accent-purple);
+        top: 30%;
+        right: -150px;
+        animation-delay: -3s;
+      }
+      .glow-orb-3 {
+        width: 350px;
+        height: 350px;
+        background: var(--accent-pink);
+        bottom: -80px;
+        left: 30%;
+        animation-delay: -6s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-30px) scale(1.05);
+        }
+      }
+
+      @media (max-width: 768px) {
+        nav {
+          padding: 16px 20px;
+        }
+        .hero {
+          padding: 60px 20px;
+        }
+        .features,
+        .roles {
+          padding: 48px 20px;
+        }
+        .hero-title {
+          font-size: 42px;
+        }
+        footer {
+          padding: 24px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+
+    <div class="container">
+      <!-- Nav -->
+      <nav>
+        <a href="/" class="nav-logo">
+          <div class="nav-logo-icon">
+            <i
+              class="ph ph-circles-four"
+              style="color: white; font-size: 17px"
+            ></i>
+          </div>
+          <h1>NeonSync</h1>
+        </a>
+        <div class="nav-actions">
+          <a href="login.html" class="btn btn-outline">Sign In</a>
+          <a
+            href="login.html"
+            class="btn btn-primary"
+            onclick="
+              setTimeout(
+                () => document.querySelector('.login-tab:last-child')?.click(),
+                100,
+              )
+            "
+          >
+            <i class="ph ph-rocket-launch"></i> Get Started
+          </a>
+        </div>
+      </nav>
+
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-badge">
+          <i class="ph ph-sparkle"></i>
+          Real-time Team Collaboration Platform
+        </div>
+        <h1 class="hero-title">
+          Sync your team.<br />
+          <span class="gradient">Ship faster.</span>
+        </h1>
+        <p class="hero-subtitle">
+          NeonSync brings together task management, real-time chat, role-based
+          dashboards, and powerful analytics — all in a beautiful dark interface
+          built for modern teams.
+        </p>
+        <div class="hero-cta">
+          <a href="login.html" class="btn btn-primary btn-lg">
+            <i class="ph ph-rocket-launch"></i> Launch App
+          </a>
+          <a href="login.html" class="btn btn-outline btn-lg">
+            <i class="ph ph-sign-in"></i> Sign In
+          </a>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section class="features">
+        <h2 class="features-title">
+          Everything your team needs, <span>beautifully unified</span>
+        </h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon cyan">
+              <i class="ph ph-check-square"></i>
+            </div>
+            <div class="feature-title">Task Management</div>
+            <div class="feature-desc">
+              Full CRUD task system with priorities, deadlines, assignees,
+              progress tracking, tags, attachments, and remarks.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon purple">
+              <i class="ph ph-chat-circle-dots"></i>
+            </div>
+            <div class="feature-title">Real-time Chat</div>
+            <div class="feature-desc">
+              Global, role-based, and task-specific chat channels powered by
+              Firebase Firestore live listeners.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon pink"><i class="ph ph-chart-bar"></i></div>
+            <div class="feature-title">Analytics Dashboard</div>
+            <div class="feature-desc">
+              Visual charts for task distribution, completion timelines,
+              priority breakdown, and team leaderboards.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon green">
+              <i class="ph ph-user-circle"></i>
+            </div>
+            <div class="feature-title">GitHub-style Profiles</div>
+            <div class="feature-desc">
+              User profiles with contribution heatmaps, task history timelines,
+              skills, and productivity scores.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon cyan"><i class="ph ph-bell"></i></div>
+            <div class="feature-title">Notification System</div>
+            <div class="feature-desc">
+              Real-time notifications for task assignments, status changes,
+              remarks, and deadline alerts.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon purple"><i class="ph ph-shield"></i></div>
+            <div class="feature-title">Role-based Access</div>
+            <div class="feature-desc">
+              Three-tier permission system: Super Admin, Admin, and Member —
+              each with tailored dashboards and controls.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Roles -->
+      <section class="roles">
+        <h2 class="roles-title">Built for teams of all sizes</h2>
+        <div class="roles-grid">
+          <div class="role-card super-admin">
+            <div class="role-badge super-admin">Super Admin</div>
+            <div class="role-name">Full Control</div>
+            <ul class="role-perms">
+              <li>Manage all users & roles</li>
+              <li>Create & delete any task</li>
+              <li>Access all analytics</li>
+              <li>All chat channels</li>
+              <li>System-wide oversight</li>
+            </ul>
+          </div>
+          <div class="role-card admin">
+            <div class="role-badge admin">Admin</div>
+            <div class="role-name">Team Manager</div>
+            <ul class="role-perms">
+              <li>Manage team members</li>
+              <li>Create & assign tasks</li>
+              <li>Team analytics</li>
+              <li>Admin chat channel</li>
+              <li>Role-based filtering</li>
+            </ul>
+          </div>
+          <div class="role-card member">
+            <div class="role-badge member">Member</div>
+            <div class="role-name">Contributor</div>
+            <ul class="role-perms">
+              <li>View assigned tasks</li>
+              <li>Update task progress</li>
+              <li>Add remarks</li>
+              <li>Global chat access</li>
+              <li>Personal profile & heatmap</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer>
+        <p>Built with Firebase · Pure HTML/CSS/Vanilla JS · No frameworks</p>
+        <p style="margin-top: 6px">
+          NeonSync &copy; 2025 — Team Management &amp; Collaboration Platform
+        </p>
+      </footer>
+    </div>
+
+    <!-- Auto-redirect if already logged in -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+      // Only redirect if firebase is configured (not placeholder)
+      try {
+        const { auth, db } = await import("/js/firebase-config.js");
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if (snap.exists()) window.location.href = "dashboard.html";
+          }
+        });
+      } catch (e) {
+        // Firebase not configured yet - stay on landing page
+      }
+    </script>
+  </body>
+</html>

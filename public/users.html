@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Users</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <link rel="stylesheet" href="/css/main.css" />
+  </head>
+
+  <body>
+    <!-- Loading -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading users...</span>
+    </div>
+
+    <div class="app-layout" id="app">
+      <div id="sidebar"></div>
+
+      <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">User Management</h1>
+            <p class="page-subtitle" id="users-subtitle">
+              Manage team members and roles
+            </p>
+          </div>
+
+          <button
+            class="btn btn-primary"
+            id="create-user-btn"
+            data-testid="create-user-btn"
+            onclick="openCreateUser()"
+          >
+            <i class="ph ph-user-plus"></i>
+            Add User
+          </button>
+        </div>
+
+        <!-- Search + Filter -->
+        <div
+          style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap"
+        >
+          <input
+            type="text"
+            id="user-search"
+            class="form-input"
+            placeholder="Search users..."
+            style="max-width: 280px"
+            oninput="filterUsers()"
+            data-testid="user-search"
+          />
+
+          <select
+            id="role-filter"
+            class="form-input form-select"
+            style="max-width: 160px"
+            onchange="filterUsers()"
+            data-testid="role-filter"
+          >
+            <option value="">All Roles</option>
+            <option value="super_admin">Super Admin</option>
+            <option value="admin">Admin</option>
+            <option value="member">Member</option>
+          </select>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card animate-in" style="overflow: hidden; padding: 0">
+          <table class="data-table" data-testid="users-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Tasks</th>
+                <th>Last Active</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="users-tbody" data-testid="users-tbody">
+              <tr>
+                <td
+                  colspan="6"
+                  style="
+                    text-align: center;
+                    padding: 40px;
+                    color: var(--text-muted);
+                  "
+                >
+                  Loading...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <!-- Create User Modal -->
+
+    <div
+      class="modal-overlay"
+      id="create-user-modal"
+      data-testid="create-user-modal"
+    >
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title" id="user-modal-title">Add New User</span>
+          <button class="modal-close" onclick="closeModal('create-user-modal')">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <form
+          id="create-user-form"
+          onsubmit="submitUser(event)"
+          data-testid="create-user-form"
+        >
+          <input type="hidden" id="edit-user-id" />
+
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input
+              type="text"
+              id="cu-name"
+              class="form-input"
+              required
+              data-testid="cu-name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input
+              type="email"
+              id="cu-email"
+              class="form-input"
+              required
+              data-testid="cu-email"
+            />
+          </div>
+
+          <div class="form-group" id="cu-password-group">
+            <label class="form-label">Password *</label>
+            <input
+              type="password"
+              id="cu-password"
+              class="form-input"
+              placeholder="Min 6 characters"
+              data-testid="cu-password"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Role *</label>
+            <select
+              id="cu-role"
+              class="form-input form-select"
+              required
+              data-testid="cu-role"
+            >
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+              <option value="super_admin" id="cu-super-admin-opt">
+                Super Admin
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Bio</label>
+            <textarea
+              id="cu-bio"
+              class="form-input"
+              rows="2"
+              placeholder="Short bio..."
+              data-testid="cu-bio"
+            ></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeModal('create-user-modal')"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="cu-submit"
+              data-testid="cu-submit"
+            >
+              <i class="ph ph-user-plus"></i>
+              <span id="cu-submit-label">Create User</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Change Role Modal -->
+
+    <div class="modal-overlay" id="role-modal" data-testid="role-modal">
+      <div class="modal" style="max-width: 400px">
+        <div class="modal-header">
+          <span class="modal-title">Change Role</span>
+          <button class="modal-close" onclick="closeModal('role-modal')">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <div
+          style="
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+          "
+        >
+          Changing role for:
+          <strong
+            id="role-modal-user"
+            style="color: var(--text-primary)"
+          ></strong>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">New Role</label>
+          <select
+            id="new-role-select"
+            class="form-input form-select"
+            data-testid="new-role-select"
+          >
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+            <option value="super_admin" id="role-super-admin-opt">
+              Super Admin
+            </option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="closeModal('role-modal')"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="btn btn-primary"
+            onclick="confirmRoleChange()"
+            data-testid="confirm-role-btn"
+          >
+            <i class="ph ph-check"></i>
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="/js/users.js"></script>
+  </body>
+</html>

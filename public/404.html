@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 — Page Not Found · NeonSync</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --accent-cyan: #00e5ff;
+        --accent-purple: #bd00ff;
+        --text-primary: #ffffff;
+        --text-secondary: #a1a1aa;
+        --text-muted: #52525b;
+        --border-glass: rgba(255, 255, 255, 0.08);
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: #050505;
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        overflow: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 30% 40%,
+            rgba(0, 229, 255, 0.07) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse at 70% 60%,
+            rgba(189, 0, 255, 0.06) 0%,
+            transparent 55%
+          );
+        pointer-events: none;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+          linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.015) 1px,
+            transparent 1px
+          );
+        background-size: 48px 48px;
+        pointer-events: none;
+      }
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 480px;
+      }
+      .code {
+        font-family: "Outfit", sans-serif;
+        font-size: clamp(80px, 20vw, 140px);
+        font-weight: 900;
+        line-height: 1;
+        background: linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+        animation: glitch 4s ease infinite;
+      }
+      @keyframes glitch {
+        0%,
+        90%,
+        100% {
+          filter: none;
+          transform: none;
+        }
+        92% {
+          filter: blur(1px);
+          transform: skew(-1deg);
+        }
+        94% {
+          filter: none;
+          transform: none;
+        }
+        96% {
+          filter: blur(1px);
+          transform: skew(1deg) translateX(2px);
+        }
+        98% {
+          filter: none;
+          transform: none;
+        }
+      }
+      .icon {
+        font-size: 52px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        display: block;
+      }
+      h1 {
+        font-family: "Outfit", sans-serif;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 32px;
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        font-family: "Inter", sans-serif;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+      }
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--accent-cyan),
+          var(--accent-purple)
+        );
+        color: white;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 229, 255, 0.2);
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border-glass);
+        color: var(--text-secondary);
+      }
+      .btn-outline:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+      }
+      .countdown {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 20px;
+      }
+      .countdown span {
+        color: var(--accent-cyan);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="code">404</div>
+      <i class="ph ph-ghost icon"></i>
+      <h1>Page Not Found</h1>
+      <p>
+        The page you're looking for doesn't exist or may have been moved. Let's
+        get you back on track.
+      </p>
+      <div class="actions">
+        <a href="dashboard.html" class="btn btn-primary">
+          <i class="ph ph-house"></i> Go to Dashboard
+        </a>
+        <a href="tasks.html" class="btn btn-outline">
+          <i class="ph ph-check-square"></i> View Tasks
+        </a>
+      </div>
+      <div class="countdown">
+        Redirecting to dashboard in <span id="countdown">10</span>s
+      </div>
+    </div>
+
+    <script>
+      let n = 10;
+      const el = document.getElementById("countdown");
+      const interval = setInterval(() => {
+        n--;
+        el.textContent = n;
+        if (n <= 0) {
+          clearInterval(interval);
+          window.location.href = "dashboard.html";
+        }
+      }, 1000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Chat</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <link rel="stylesheet" href="/css/main.css" />
+  </head>
+
+  <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading chat...</span>
+    </div>
+
+    <div class="app-layout" id="app">
+      <div id="sidebar"></div>
+
+      <main
+        class="main-content"
+        style="
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+        "
+      >
+        <!-- Page Header -->
+        <div class="page-header" style="margin-bottom: 16px">
+          <div>
+            <h1 class="page-title">Chat</h1>
+            <p class="page-subtitle">Real-time team communication</p>
+          </div>
+        </div>
+
+        <div class="chat-layout" style="flex: 1">
+          <!-- Rooms List -->
+          <div class="chat-rooms">
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                padding: 0 6px;
+                margin-bottom: 10px;
+              "
+            >
+              CHANNELS
+            </div>
+
+            <div id="chat-rooms-list" data-testid="chat-rooms-list"></div>
+          </div>
+
+          <!-- Messages Area -->
+          <div class="chat-messages">
+            <!-- Active Chat Header -->
+            <div class="chat-header" id="chat-active-header">
+              <div
+                style="
+                  width: 34px;
+                  height: 34px;
+                  border-radius: 50%;
+                  background: rgba(0, 229, 255, 0.15);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: var(--accent-cyan);
+                "
+              >
+                <i
+                  class="ph ph-chats-circle"
+                  id="chat-room-icon-header"
+                  style="font-size: 18px"
+                ></i>
+              </div>
+
+              <div>
+                <div
+                  style="font-weight: 600; font-size: 15px"
+                  id="chat-room-name-header"
+                >
+                  Select a channel
+                </div>
+                <div
+                  style="font-size: 11px; color: var(--text-muted)"
+                  id="chat-room-desc-header"
+                >
+                  Choose a room from the left
+                </div>
+              </div>
+            </div>
+
+            <!-- Messages -->
+            <div
+              id="messages-list"
+              class="messages-list"
+              data-testid="messages-list"
+            >
+              <div class="empty-state">
+                <i class="ph ph-chat-circle"></i>
+                <p>Select a chat room to start messaging</p>
+              </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-area" id="chat-input-area">
+              <input
+                type="text"
+                id="msg-input"
+                class="chat-input"
+                placeholder="Type a message... (Enter to send)"
+                onkeydown="
+                  if (event.key === 'Enter' && !event.shiftKey) sendMessage();
+                "
+                data-testid="msg-input"
+              />
+
+              <button
+                class="btn btn-primary btn-sm"
+                onclick="sendMessage()"
+                data-testid="send-msg-btn"
+              >
+                <i class="ph ph-paper-plane-tilt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="/js/chat.js"></script>
+  </body>
+</html>
