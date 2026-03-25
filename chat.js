@@ -1,8 +1,8 @@
 // chat.js — Groups only (no auto task rooms). Admins/super_admins can create groups.
-import { db } from "firebase-config.js";
-import { requireAuth } from "auth-guard.js";
-import { renderSidebar } from "sidebar.js";
-import { initNotifications } from "notifications.js";
+import { db } from "./firebase-config.js";
+import { requireAuth } from "./auth-guard.js";
+import { renderSidebar } from "./sidebar.js";
+import { initNotifications } from "./notifications.js";
 import {
   collection,
   query,
@@ -18,7 +18,7 @@ import {
   updateDoc,
   arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getInitials, timeAgo, showToast, sanitizeHtml } from "utils.js";
+import { getInitials, timeAgo, showToast, sanitizeHtml } from "./utils.js";
 
 let currentUser;
 let activeChatId = null;

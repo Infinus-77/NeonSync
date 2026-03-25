@@ -1,5 +1,5 @@
 // auth-guard.js — FIXED: shows loading overlay until auth resolves, prevents content flash
-import { auth, db } from "firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc,

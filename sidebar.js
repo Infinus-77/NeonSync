@@ -1,7 +1,7 @@
 // sidebar.js — FIXED: notification bell binds after DOM ready, mobile close-on-navigate
-import { auth, db } from "firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { showToast } from "utils.js";
+import { showToast } from "./utils.js";
 
 export function renderSidebar(activeItem, user) {
   const sidebar = document.getElementById("sidebar");

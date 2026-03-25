@@ -733,7 +733,7 @@
 
       // Only redirect if firebase is configured (not placeholder)
       try {
-        const { auth, db } = await import("firebase-config.js");
+        const { auth, db } = await import("./firebase-config.js");
         onAuthStateChanged(auth, async (user) => {
           if (user) {
             const snap = await getDoc(doc(db, "users", user.uid));

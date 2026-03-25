@@ -1,8 +1,8 @@
 // Task Detail page — FIXED: consistent activityLog writes, overdue auto-detect, all actions logged
-import { db } from "firebase-config.js";
-import { requireAuth } from "auth-guard.js";
-import { renderSidebar } from "sidebar.js";
-import { initNotifications, createNotification } from "notifications.js";
+import { db } from "./firebase-config.js";
+import { requireAuth } from "./auth-guard.js";
+import { renderSidebar } from "./sidebar.js";
+import { initNotifications, createNotification } from "./notifications.js";
 import {
   doc,
   getDoc,
@@ -28,7 +28,7 @@ import {
   showToast,
   sanitizeHtml,
   showConfirm,
-} from "utils.js";
+} from "./utils.js";
 
 const taskId = new URLSearchParams(location.search).get("id");
 let taskData = null;

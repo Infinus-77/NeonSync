@@ -1,8 +1,8 @@
 // profile.js — FIXED: heatmap aggregates activityLogs by date, loading skeletons, consistent lastActive writes
-import { db } from "firebase-config.js";
-import { requireAuth } from "auth-guard.js";
-import { renderSidebar } from "sidebar.js";
-import { initNotifications } from "notifications.js";
+import { db } from "./firebase-config.js";
+import { requireAuth } from "./auth-guard.js";
+import { renderSidebar } from "./sidebar.js";
+import { initNotifications } from "./notifications.js";
 import {
   doc,
   getDoc,
@@ -24,7 +24,7 @@ import {
   roleBadge,
   showToast,
   sanitizeHtml,
-} from "utils.js";
+} from "./utils.js";
 
 let currentUser;
 let profileUser;

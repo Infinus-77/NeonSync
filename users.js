@@ -1,8 +1,8 @@
 // Users management page
-import { auth, db } from "firebase-config.js";
-import { requireAuth } from "auth-guard.js";
-import { renderSidebar } from "sidebar.js";
-import { initNotifications, createNotification } from "notifications.js";
+import { auth, db } from "./firebase-config.js";
+import { requireAuth } from "./auth-guard.js";
+import { renderSidebar } from "./sidebar.js";
+import { initNotifications, createNotification } from "./notifications.js";
 import {
   collection,
   query,
@@ -22,7 +22,7 @@ import {
   showToast,
   sanitizeHtml,
   showConfirm,
-} from "utils.js";
+} from "./utils.js";
 
 // ─── FIX: Use a secondary Firebase app to create users without signing out current admin ───
 import {
@@ -34,7 +34,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as secondarySignOut,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { firebaseConfig } from "firebase-config.js";
+import { firebaseConfig } from "./firebase-config.js";
 
 let secondaryApp = null;
 let secondaryAuth = null;

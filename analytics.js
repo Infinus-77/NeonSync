@@ -1,8 +1,8 @@
 // Analytics page — FIXED: date range now filters ALL stats, not just the timeline chart
-import { db } from "firebase-config.js";
-import { requireAuth } from "auth-guard.js";
-import { renderSidebar } from "sidebar.js";
-import { initNotifications } from "notifications.js";
+import { db } from "./firebase-config.js";
+import { requireAuth } from "./auth-guard.js";
+import { renderSidebar } from "./sidebar.js";
+import { initNotifications } from "./notifications.js";
 import {
   collection,
   query,
@@ -10,7 +10,7 @@ import {
   orderBy,
   limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getInitials, showToast, timeAgo, sanitizeHtml } from "utils.js";
+import { getInitials, showToast, timeAgo, sanitizeHtml } from "./utils.js";
 
 // ── Podium leaderboard renderer ───────────────────────────────────────────────
 let currentUser;

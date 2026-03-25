@@ -1,8 +1,8 @@
 // tasks.js — FIXED: onSnapshot error callbacks, role-scoped queries, overdue detection
-import { db } from "firebase-config.js";
-import { requireAuth } from "auth-guard.js";
-import { renderSidebar } from "sidebar.js";
-import { initNotifications, createNotification } from "notifications.js";
+import { db } from "./firebase-config.js";
+import { requireAuth } from "./auth-guard.js";
+import { renderSidebar } from "./sidebar.js";
+import { initNotifications, createNotification } from "./notifications.js";
 import {
   collection,
   query,
@@ -25,7 +25,7 @@ import {
   showToast,
   sanitizeHtml,
   showConfirm,
-} from "utils.js";
+} from "./utils.js";
 
 let allTasks = [];
 let allUsers = [];

@@ -1,5 +1,5 @@
 // notifications.js — FIXED: role_changed type, badge updates reliably after sidebar render
-import { db } from "firebase-config.js";
+import { db } from "./firebase-config.js";
 import {
   collection,
   query,
@@ -13,7 +13,7 @@ import {
   serverTimestamp,
   limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { timeAgo, showToast, sanitizeHtml } from "utils.js";
+import { timeAgo, showToast, sanitizeHtml } from "./utils.js";
 
 let unsubNotifications = null;
 
