@@ -1,16 +1,21 @@
 // auth-guard.js — FIXED: shows loading overlay until auth resolves, prevents content flash
-import { auth, db } from './firebase-config.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { auth, db } from "firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ✅ Inject loading overlay immediately (before auth resolves)
 injectLoadingOverlay();
 
 function injectLoadingOverlay() {
-  if (document.getElementById('auth-loading-overlay')) return;
+  if (document.getElementById("auth-loading-overlay")) return;
 
-  const overlay = document.createElement('div');
-  overlay.id = 'auth-loading-overlay';
+  const overlay = document.createElement("div");
+  overlay.id = "auth-loading-overlay";
   overlay.style.cssText = `
     position:fixed;inset:0;background:#050505;z-index:9999;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
@@ -33,14 +38,16 @@ function injectLoadingOverlay() {
   if (document.body) {
     document.body.appendChild(overlay);
   } else {
-    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(overlay));
+    document.addEventListener("DOMContentLoaded", () =>
+      document.body.appendChild(overlay),
+    );
   }
 }
 
 function hideLoadingOverlay() {
-  const overlay = document.getElementById('auth-loading-overlay');
+  const overlay = document.getElementById("auth-loading-overlay");
   if (!overlay) return;
-  overlay.style.opacity = '0';
+  overlay.style.opacity = "0";
   setTimeout(() => overlay.remove(), 320);
 }
 
@@ -53,15 +60,15 @@ export function requireAuth(callback, allowedRoles = []) {
   onAuthStateChanged(auth, async (firebaseUser) => {
     if (!firebaseUser) {
       hideLoadingOverlay();
-      window.location.href = '../public/login.html';
+      window.location.href = "login.html";
       return;
     }
 
     try {
-      const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+      const snap = await getDoc(doc(db, "users", firebaseUser.uid));
       if (!snap.exists()) {
         hideLoadingOverlay();
-        window.location.href = '../public/login.html';
+        window.location.href = "login.html";
         return;
       }
 
@@ -70,7 +77,7 @@ export function requireAuth(callback, allowedRoles = []) {
       // Role check
       if (allowedRoles.length && !allowedRoles.includes(user.role)) {
         hideLoadingOverlay();
-        window.location.href = '../public/dashboard.html';
+        window.location.href = "dashboard.html";
         return;
       }
 
@@ -79,15 +86,16 @@ export function requireAuth(callback, allowedRoles = []) {
       window.currentUser = user;
 
       // ✅ Update lastActive silently
-      updateDoc(doc(db, 'users', firebaseUser.uid), { lastActive: serverTimestamp() }).catch(() => {});
+      updateDoc(doc(db, "users", firebaseUser.uid), {
+        lastActive: serverTimestamp(),
+      }).catch(() => {});
 
       hideLoadingOverlay();
       callback(user);
-
     } catch (err) {
-      console.error('Auth guard error:', err);
+      console.error("Auth guard error:", err);
       hideLoadingOverlay();
-      window.location.href = '../public/login.html';
+      window.location.href = "login.html";
     }
   });
 }

@@ -1,8 +1,8 @@
 // Task Detail page — FIXED: consistent activityLog writes, overdue auto-detect, all actions logged
-import { db } from "./firebase-config.js";
-import { requireAuth } from "./auth-guard.js";
-import { renderSidebar } from "./sidebar.js";
-import { initNotifications, createNotification } from "./notifications.js";
+import { db } from "firebase-config.js";
+import { requireAuth } from "auth-guard.js";
+import { renderSidebar } from "sidebar.js";
+import { initNotifications, createNotification } from "notifications.js";
 import {
   doc,
   getDoc,
@@ -28,7 +28,7 @@ import {
   showToast,
   sanitizeHtml,
   showConfirm,
-} from "./utils.js";
+} from "utils.js";
 
 const taskId = new URLSearchParams(location.search).get("id");
 let taskData = null;
@@ -36,7 +36,7 @@ let currentUser;
 let allUsers = {};
 let taskChatId = null;
 
-if (!taskId) window.location.href = "../public/tasks.html";
+if (!taskId) window.location.href = "tasks.html";
 
 requireAuth(async (user) => {
   // Hide the page-level loading overlay now that auth has resolved
@@ -67,7 +67,7 @@ function loadTask() {
   const ref = doc(db, "tasks", taskId);
   onSnapshot(ref, (snap) => {
     if (!snap.exists()) {
-      window.location.href = "../public/tasks.html";
+      window.location.href = "tasks.html";
       return;
     }
     taskData = { id: snap.id, ...snap.data() };
@@ -135,7 +135,7 @@ function renderTask(t) {
   document.getElementById("task-assignees").innerHTML = (t.assignedTo || [])
     .map((uid) => {
       const u = allUsers[uid];
-      return `<a href="../public/profile.html?uid=${uid}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);"
+      return `<a href="profile.html?uid=${uid}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);"
       onmouseover="this.style.borderColor='var(--accent-cyan)'" onmouseout="this.style.borderColor='var(--border-glass)'">
       <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;">${getInitials(u?.displayName)}</div>
       ${u?.displayName || uid}
@@ -604,7 +604,7 @@ window.deleteTask = async () => {
   try {
     await deleteDoc(doc(db, "tasks", taskId));
     showToast("Task deleted", "success");
-    setTimeout(() => (window.location.href = "../public/tasks.html"), 1000);
+    setTimeout(() => (window.location.href = "tasks.html"), 1000);
   } catch (err) {
     showToast("Failed to delete", "error");
   }

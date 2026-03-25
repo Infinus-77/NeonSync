@@ -138,7 +138,7 @@
                 ></div>
               </div>
 
-              <div id="completion-control" style="display:none;">
+              <div id="completion-control" style="display: none">
                 <div
                   style="
                     display: flex;
@@ -156,7 +156,10 @@
                   </span>
                 </div>
 
-                <div class="progress-bar-wrap" style="height: 8px; margin-bottom:8px;">
+                <div
+                  class="progress-bar-wrap"
+                  style="height: 8px; margin-bottom: 8px"
+                >
                   <div
                     class="progress-bar-fill"
                     id="completion-bar"
@@ -167,8 +170,10 @@
                 <input
                   type="range"
                   id="completion-slider"
-                  min="0" max="100" value="0"
-                  style="width:100%;cursor:pointer;"
+                  min="0"
+                  max="100"
+                  value="0"
+                  style="width: 100%; cursor: pointer"
                   oninput="updateCompletionPreview(this.value)"
                   onchange="saveCompletion(this.value)"
                 />
@@ -176,18 +181,35 @@
             </div>
 
             <!-- TAGS -->
-            <div id="tags-card" class="card mb-4 animate-in" style="display:none;">
+            <div
+              id="tags-card"
+              class="card mb-4 animate-in"
+              style="display: none"
+            >
               <div class="section-header">
                 <span class="section-title">Tags</span>
               </div>
-              <div id="task-tags-display" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+              <div
+                id="task-tags-display"
+                style="display: flex; flex-wrap: wrap; gap: 6px"
+              ></div>
             </div>
 
             <!-- REMARKS -->
 
             <div class="card mb-4 animate-in">
               <div class="section-header">
-                <span class="section-title">Remarks <span id="remarks-count" style="font-size:12px;color:var(--text-muted);font-weight:400;"></span></span>
+                <span class="section-title"
+                  >Remarks
+                  <span
+                    id="remarks-count"
+                    style="
+                      font-size: 12px;
+                      color: var(--text-muted);
+                      font-weight: 400;
+                    "
+                  ></span
+                ></span>
               </div>
 
               <div id="remarks-list"></div>
@@ -244,13 +266,13 @@
             </div>
           </div>
 
-            <!-- ACTIVITY LOG -->
-            <div class="card animate-in" style="margin-top:16px;">
-              <div class="section-header">
-                <span class="section-title">Activity Log</span>
-              </div>
-              <div id="task-logs"></div>
+          <!-- ACTIVITY LOG -->
+          <div class="card animate-in" style="margin-top: 16px">
+            <div class="section-header">
+              <span class="section-title">Activity Log</span>
             </div>
+            <div id="task-logs"></div>
+          </div>
 
           <!-- RIGHT SIDE CHAT -->
 
@@ -296,10 +318,9 @@
       </main>
     </div>
 
-
     <!-- Edit Task Modal -->
     <div class="modal-overlay" id="edit-task-modal">
-      <div class="modal" style="max-width:520px;">
+      <div class="modal" style="max-width: 520px">
         <div class="modal-header">
           <h3 class="modal-title">Edit Task</h3>
           <button class="modal-close" onclick="closeModal('edit-task-modal')">
@@ -307,16 +328,32 @@
           </button>
         </div>
         <form onsubmit="submitEditTask(event)">
-          <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+          <div
+            class="modal-body"
+            style="display: flex; flex-direction: column; gap: 14px"
+          >
             <div class="form-group">
               <label class="form-label">Title</label>
-              <input id="edit-title" type="text" class="form-input" placeholder="Task title" required />
+              <input
+                id="edit-title"
+                type="text"
+                class="form-input"
+                placeholder="Task title"
+                required
+              />
             </div>
             <div class="form-group">
               <label class="form-label">Description</label>
-              <textarea id="edit-desc" class="form-input" rows="3" placeholder="Description..."></textarea>
+              <textarea
+                id="edit-desc"
+                class="form-input"
+                rows="3"
+                placeholder="Description..."
+              ></textarea>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
+            >
               <div class="form-group">
                 <label class="form-label">Priority</label>
                 <select id="edit-priority" class="form-input form-select">
@@ -328,12 +365,22 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Deadline</label>
-                <input id="edit-deadline" type="datetime-local" class="form-input" />
+                <input
+                  id="edit-deadline"
+                  type="datetime-local"
+                  class="form-input"
+                />
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('edit-task-modal')">Cancel</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeModal('edit-task-modal')"
+            >
+              Cancel
+            </button>
             <button type="submit" class="btn btn-primary">Save Changes</button>
           </div>
         </form>

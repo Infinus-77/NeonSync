@@ -1,8 +1,8 @@
 // profile.js — FIXED: heatmap aggregates activityLogs by date, loading skeletons, consistent lastActive writes
-import { db } from "./firebase-config.js";
-import { requireAuth } from "./auth-guard.js";
-import { renderSidebar } from "./sidebar.js";
-import { initNotifications } from "./notifications.js";
+import { db } from "firebase-config.js";
+import { requireAuth } from "auth-guard.js";
+import { renderSidebar } from "sidebar.js";
+import { initNotifications } from "notifications.js";
 import {
   doc,
   getDoc,
@@ -24,7 +24,7 @@ import {
   roleBadge,
   showToast,
   sanitizeHtml,
-} from "./utils.js";
+} from "utils.js";
 
 let currentUser;
 let profileUser;
@@ -238,7 +238,7 @@ async function loadTimeline(targetUid) {
     <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
       <div style="width:10px;height:10px;border-radius:50%;background:${getStatusColor(t.status)};margin-top:4px;flex-shrink:0;box-shadow:0 0 6px ${getStatusColor(t.status)};"></div>
       <div style="flex:1;min-width:0;">
-        <a href="../public/task-detail.html?id=${t.id}" style="font-size:13px;font-weight:600;color:var(--text-primary);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;"
+        <a href="task-detail.html?id=${t.id}" style="font-size:13px;font-weight:600;color:var(--text-primary);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;"
           onmouseover="this.style.color='var(--accent-cyan)'" onmouseout="this.style.color='var(--text-primary)'">${sanitizeHtml(t.title)}</a>
         <div style="display:flex;gap:6px;margin-top:3px;align-items:center;">
           ${statusBadge(t.status)}
@@ -286,7 +286,7 @@ async function loadRecentRemarks(targetUid) {
     .map(
       (r) => `
     <div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-      <a href="../public/task-detail.html?id=${r.taskId}" style="font-size:11px;color:var(--accent-cyan);text-decoration:none;">${sanitizeHtml(r.taskTitle)}</a>
+      <a href="task-detail.html?id=${r.taskId}" style="font-size:11px;color:var(--accent-cyan);text-decoration:none;">${sanitizeHtml(r.taskTitle)}</a>
       <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;line-height:1.5;">"${sanitizeHtml(r.message)}"</div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${timeAgo({ toDate: () => new Date(r.timestamp) })}</div>
     </div>

@@ -1,7 +1,7 @@
 // sidebar.js — FIXED: notification bell binds after DOM ready, mobile close-on-navigate
-import { auth, db } from "./firebase-config.js";
+import { auth, db } from "firebase-config.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { showToast } from "./utils.js";
+import { showToast } from "utils.js";
 
 export function renderSidebar(activeItem, user) {
   const sidebar = document.getElementById("sidebar");
@@ -12,19 +12,19 @@ export function renderSidebar(activeItem, user) {
       id: "dashboard",
       label: "Dashboard",
       icon: "ph-squares-four",
-      href: "../public/dashboard.html",
+      href: "dashboard.html",
     },
     {
       id: "tasks",
       label: "Tasks",
       icon: "ph-check-square",
-      href: "../public/tasks.html",
+      href: "tasks.html",
     },
     {
       id: "chat",
       label: "Chat",
       icon: "ph-chat-circle-dots",
-      href: "../public/chat.html",
+      href: "chat.html",
     },
     ...(user.role === "admin" || user.role === "super_admin"
       ? [
@@ -32,7 +32,7 @@ export function renderSidebar(activeItem, user) {
             id: "users",
             label: "Users",
             icon: "ph-users",
-            href: "../public/users.html",
+            href: "users.html",
           },
         ]
       : []),
@@ -42,7 +42,7 @@ export function renderSidebar(activeItem, user) {
             id: "analytics",
             label: "Analytics",
             icon: "ph-chart-bar",
-            href: "../public/analytics.html",
+            href: "analytics.html",
           },
         ]
       : []),
@@ -50,13 +50,13 @@ export function renderSidebar(activeItem, user) {
       id: "profile",
       label: "Profile",
       icon: "ph-user-circle",
-      href: `../public/profile.html?uid=${user.id}`,
+      href: `profile.html?uid=${user.id}`,
     },
   ];
 
   sidebar.innerHTML = `
     <div class="sidebar-header">
-      <a href="../public/dashboard.html" class="sidebar-logo">
+      <a href="dashboard.html" class="sidebar-logo">
         <div class="sidebar-logo-icon">
           <i class="ph ph-circles-four"></i>
         </div>
@@ -129,7 +129,7 @@ function bindSidebarEvents(user) {
   document.getElementById("logout-btn")?.addEventListener("click", async () => {
     try {
       await signOut(auth);
-      window.location.href = "../public/login.html";
+      window.location.href = "login.html";
     } catch (err) {
       showToast("Failed to sign out", "error");
     }

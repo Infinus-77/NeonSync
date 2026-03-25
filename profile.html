@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NeonSync - Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
     <link rel="stylesheet" href="/css/main.css" />
     <style>
@@ -27,15 +30,30 @@
         gap: 14px;
         margin-bottom: 24px;
       }
-      .heatmap-grid { display: flex; flex-wrap: wrap; gap: 3px; }
+      .heatmap-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+      }
       .heatmap-cell {
-        width: 12px; height: 12px;
+        width: 12px;
+        height: 12px;
         border-radius: 2px;
-        background: rgba(255,255,255,0.04);
+        background: rgba(255, 255, 255, 0.04);
         transition: background 0.2s;
       }
-      .heatmap-cell:hover { outline: 1px solid var(--accent-cyan); }
-      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+      .heatmap-cell:hover {
+        outline: 1px solid var(--accent-cyan);
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
     </style>
   </head>
   <body>
@@ -60,43 +78,62 @@
 
         <!-- Profile header — filled by profile.js -->
         <div class="profile-header-card">
-          <div id="profile-header-inner" style="display:flex;align-items:flex-start;gap:20px;flex:1;flex-wrap:wrap;"></div>
+          <div
+            id="profile-header-inner"
+            style="
+              display: flex;
+              align-items: flex-start;
+              gap: 20px;
+              flex: 1;
+              flex-wrap: wrap;
+            "
+          ></div>
         </div>
 
         <!-- Stats -->
         <div class="profile-stats-row">
           <div class="stat-card animate-in">
-            <div class="stat-icon green"><i class="ph ph-check-circle"></i></div>
+            <div class="stat-icon green">
+              <i class="ph ph-check-circle"></i>
+            </div>
             <div class="stat-info">
               <div class="stat-value" id="stat-completed">—</div>
               <div class="stat-label">Completed</div>
             </div>
           </div>
-          <div class="stat-card animate-in" style="animation-delay:.05s">
-            <div class="stat-icon cyan"><i class="ph ph-arrows-clockwise"></i></div>
+          <div class="stat-card animate-in" style="animation-delay: 0.05s">
+            <div class="stat-icon cyan">
+              <i class="ph ph-arrows-clockwise"></i>
+            </div>
             <div class="stat-info">
               <div class="stat-value" id="stat-active">—</div>
               <div class="stat-label">Active Tasks</div>
             </div>
           </div>
-          <div class="stat-card animate-in" style="animation-delay:.1s">
+          <div class="stat-card animate-in" style="animation-delay: 0.1s">
             <div class="stat-icon purple"><i class="ph ph-percent"></i></div>
             <div class="stat-info">
               <div class="stat-value" id="stat-rate">—</div>
               <div class="stat-label">Completion Rate</div>
             </div>
           </div>
-          <div class="stat-card animate-in" style="animation-delay:.15s">
+          <div class="stat-card animate-in" style="animation-delay: 0.15s">
             <div class="stat-icon warning"><i class="ph ph-clock"></i></div>
             <div class="stat-info">
-              <div class="stat-value" id="stat-last-active" style="font-size:15px">—</div>
+              <div
+                class="stat-value"
+                id="stat-last-active"
+                style="font-size: 15px"
+              >
+                —
+              </div>
               <div class="stat-label">Last Active</div>
             </div>
           </div>
         </div>
 
         <!-- Heatmap -->
-        <div class="card mb-6 animate-in" style="animation-delay:.2s">
+        <div class="card mb-6 animate-in" style="animation-delay: 0.2s">
           <div class="section-header">
             <span class="section-title">Activity Heatmap</span>
             <span class="text-sm text-muted">Last 12 weeks</span>
@@ -106,20 +143,26 @@
 
         <!-- Timeline + Remarks -->
         <div class="grid-2 mb-6">
-          <div class="card animate-in" style="animation-delay:.25s">
+          <div class="card animate-in" style="animation-delay: 0.25s">
             <div class="section-header">
               <span class="section-title">Task Timeline</span>
             </div>
             <div id="task-timeline">
-              <div class="empty-state"><i class="ph ph-list-checks"></i><p>No task history yet</p></div>
+              <div class="empty-state">
+                <i class="ph ph-list-checks"></i>
+                <p>No task history yet</p>
+              </div>
             </div>
           </div>
-          <div class="card animate-in" style="animation-delay:.3s">
+          <div class="card animate-in" style="animation-delay: 0.3s">
             <div class="section-header">
               <span class="section-title">Recent Remarks</span>
             </div>
             <div id="recent-remarks">
-              <div class="empty-state"><i class="ph ph-chat-circle-dots"></i><p>No remarks yet</p></div>
+              <div class="empty-state">
+                <i class="ph ph-chat-circle-dots"></i>
+                <p>No remarks yet</p>
+              </div>
             </div>
           </div>
         </div>
@@ -131,26 +174,63 @@
       <div class="modal">
         <div class="modal-header">
           <span class="modal-title">Edit Profile</span>
-          <button class="modal-close" onclick="closeModal('edit-profile-modal')"><i class="ph ph-x"></i></button>
+          <button
+            class="modal-close"
+            onclick="closeModal('edit-profile-modal')"
+          >
+            <i class="ph ph-x"></i>
+          </button>
         </div>
         <div class="form-group">
           <label class="form-label">Display Name</label>
-          <input type="text" id="ep-name" class="form-input" placeholder="Your name" />
+          <input
+            type="text"
+            id="ep-name"
+            class="form-input"
+            placeholder="Your name"
+          />
         </div>
         <div class="form-group">
           <label class="form-label">Bio</label>
-          <textarea id="ep-bio" class="form-input" rows="3" placeholder="A short bio..."></textarea>
+          <textarea
+            id="ep-bio"
+            class="form-input"
+            rows="3"
+            placeholder="A short bio..."
+          ></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Skills (comma separated)</label>
-          <input type="text" id="ep-skills" class="form-input" placeholder="JavaScript, React, Firebase" />
+          <input
+            type="text"
+            id="ep-skills"
+            class="form-input"
+            placeholder="JavaScript, React, Firebase"
+          />
         </div>
         <div class="form-group">
           <label class="form-label">Photo URL</label>
-          <input type="text" id="ep-photo" class="form-input" placeholder="https://..." />
+          <input
+            type="text"
+            id="ep-photo"
+            class="form-input"
+            placeholder="https://..."
+          />
         </div>
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
-          <button class="btn btn-secondary" onclick="closeModal('edit-profile-modal')">Cancel</button>
+        <div
+          style="
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 8px;
+          "
+        >
+          <button
+            class="btn btn-secondary"
+            onclick="closeModal('edit-profile-modal')"
+          >
+            Cancel
+          </button>
           <button class="btn btn-primary" id="ep-save" onclick="saveProfile()">
             <i class="ph ph-check"></i> Save Changes
           </button>
