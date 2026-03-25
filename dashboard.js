@@ -197,7 +197,7 @@ function renderRecentTasks(tasks, now) {
 
       return `
       <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;"
-        onclick="window.location.href='../public/task-detail.html?id=${t.id}'"
+        onclick="window.location.href='task-detail.html?id=${t.id}'"
         data-testid="dash-task-${t.id}"
         onmouseover="this.style.background='rgba(255,255,255,0.02)'"
         onmouseout="this.style.background='transparent'">
@@ -257,7 +257,7 @@ function renderUpcomingDeadlines(tasks, now) {
 
       return `
       <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;"
-        onclick="window.location.href='../public/task-detail.html?id=${t.id}'"
+        onclick="window.location.href='task-detail.html?id=${t.id}'"
         data-testid="deadline-${t.id}">
         <div style="width:4px;height:36px;border-radius:2px;background:${urgentColor};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
