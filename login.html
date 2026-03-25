@@ -6,7 +6,7 @@
     <title>NeonSync — Sign In</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
       rel="stylesheet"
     />
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
@@ -30,10 +30,11 @@
         --text-muted: #52525b;
         --border-glass: rgba(255, 255, 255, 0.08);
         --radius-lg: 16px;
+        --radius-xl: 22px;
         --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       body {
-        font-family: "Inter", sans-serif;
+        font-family: 'DM Sans', system-ui, sans-serif;
         background: var(--bg-body);
         color: var(--text-primary);
         min-height: 100vh;
@@ -86,7 +87,7 @@
         background: rgba(14, 14, 17, 0.85);
         backdrop-filter: blur(24px);
         border: 1px solid var(--border-glass);
-        border-radius: 24px;
+        border-radius: 20px;
         padding: 40px;
         box-shadow:
           0 32px 80px rgba(0, 0, 0, 0.5),
@@ -124,7 +125,7 @@
         justify-content: center;
       }
       .logo h1 {
-        font-family: "Outfit", sans-serif;
+        font-family: 'Syne', sans-serif;
         font-size: 22px;
         font-weight: 700;
         background: linear-gradient(
@@ -154,7 +155,7 @@
         font-weight: 600;
         cursor: pointer;
         transition: var(--transition);
-        font-family: "Inter", sans-serif;
+        font-family: 'DM Sans', system-ui, sans-serif;
       }
       .tab-btn.active {
         background: rgba(255, 255, 255, 0.08);
@@ -181,12 +182,12 @@
       .form-input {
         width: 100%;
         padding: 11px 14px;
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.04);
         border: 1px solid var(--border-glass);
         border-radius: 10px;
         color: var(--text-primary);
         font-size: 14px;
-        font-family: "Inter", sans-serif;
+        font-family: 'DM Sans', system-ui, sans-serif;
         transition: var(--transition);
         outline: none;
       }
@@ -209,7 +210,7 @@
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
-        font-family: "Inter", sans-serif;
+        font-family: 'DM Sans', system-ui, sans-serif;
         transition: var(--transition);
         margin-top: 4px;
         display: flex;
@@ -267,7 +268,7 @@
         cursor: pointer;
         background: none;
         border: none;
-        font-family: "Inter", sans-serif;
+        font-family: 'DM Sans', system-ui, sans-serif;
         text-decoration: none;
       }
       .forgot-link:hover {
@@ -290,7 +291,7 @@
         cursor: pointer;
         background: none;
         border: none;
-        font-family: "Inter", sans-serif;
+        font-family: 'DM Sans', system-ui, sans-serif;
         margin-bottom: 16px;
         padding: 0;
         transition: color 0.2s;

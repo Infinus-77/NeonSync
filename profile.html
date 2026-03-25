@@ -6,7 +6,7 @@
     <title>NeonSync - Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
       rel="stylesheet"
     />
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
@@ -60,6 +60,21 @@
     <div id="loading-overlay" class="loading-overlay">
       <div class="spinner"></div>
       <span class="loading-text">Loading profile...</span>
+    </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar" id="mobile-topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="ph ph-list"></i>
+      </button>
+      <div class="mobile-logo">
+        <div class="mobile-logo-icon"><i class="ph ph-circles-four"></i></div>
+        <span class="mobile-logo-text">NeonSync</span>
+      </div>
+      <div style="width:36px"></div>
     </div>
 
     <div class="app-layout" id="app">
@@ -240,5 +255,33 @@
 
     <div id="toast-container" class="toast-container"></div>
     <script type="module" src="./profile.js"></script>
+  
+    <!-- Mobile sidebar toggle -->
+    <script>
+      (function() {
+        const btn = document.getElementById('mobile-menu-btn');
+        const overlay = document.getElementById('sidebar-overlay');
+        function openSidebar() {
+          const sb = document.getElementById('sidebar');
+          if (sb) { sb.classList.add('open'); }
+          if (overlay) { overlay.classList.add('active'); }
+          document.body.style.overflow = 'hidden';
+        }
+        function closeSidebar() {
+          const sb = document.getElementById('sidebar');
+          if (sb) { sb.classList.remove('open'); }
+          if (overlay) { overlay.classList.remove('active'); }
+          document.body.style.overflow = '';
+        }
+        if (btn) btn.addEventListener('click', openSidebar);
+        if (overlay) overlay.addEventListener('click', closeSidebar);
+        // Also wire sidebar close btn after DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+          const closeBtn = document.getElementById('sidebar-close-btn');
+          if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+        });
+      })();
+    </script>
+
   </body>
 </html>
