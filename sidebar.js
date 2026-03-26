@@ -3,6 +3,18 @@ import { auth, db } from "./firebase-config.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showToast } from "./utils.js";
 
+function openSidebar() {
+  document.getElementById("sidebar")?.classList.add("open");
+  document.getElementById("sidebar-overlay")?.classList.add("active");
+  document.body.classList.add("no-scroll");
+}
+
+function closeSidebar() {
+  document.getElementById("sidebar")?.classList.remove("open");
+  document.getElementById("sidebar-overlay")?.classList.remove("active");
+  document.body.classList.remove("no-scroll");
+}
+
 export function renderSidebar(activeItem, user) {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
@@ -138,11 +150,7 @@ function bindSidebarEvents(user) {
   // ✅ FIX: Mobile sidebar close button
   document
     .getElementById("sidebar-close-btn")
-    ?.addEventListener("click", () => {
-      document.getElementById("sidebar")?.classList.remove("open");
-      document.getElementById("sidebar-overlay")?.classList.remove("active");
-      document.body.style.overflow = "";
-    });
+    ?.addEventListener("click", closeSidebar);
 
   // Notification bell toggle
   document.getElementById("notif-bell-btn")?.addEventListener("click", (e) => {
@@ -169,11 +177,7 @@ function bindSidebarEvents(user) {
 
   // ✅ FIX: Mobile — close sidebar when a nav link is clicked
   document.querySelectorAll(".sidebar-nav-item").forEach((link) => {
-    link.addEventListener("click", () => {
-      document.getElementById("sidebar")?.classList.remove("open");
-      document.getElementById("sidebar-overlay")?.classList.remove("active");
-      document.body.style.overflow = "";
-    });
+    link.addEventListener("click", closeSidebar);
   });
 }
 
@@ -191,3 +195,15 @@ function formatRole(role) {
   const m = { super_admin: "Super Admin", admin: "Admin", member: "Member" };
   return m[role] || role || "Member";
 }
+
+document
+  .getElementById("sidebar-overlay")
+  ?.addEventListener("click", closeSidebar);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSidebar();
+});
+
+document
+  .querySelector(".mobile-menu-btn")
+  ?.addEventListener("click", openSidebar);
