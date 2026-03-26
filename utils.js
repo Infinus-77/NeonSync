@@ -48,7 +48,7 @@ export function showConfirm(message, confirmLabel = "Delete", danger = true) {
           ">Cancel</button>
           <button id="ns-confirm-ok" style="
             padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;
-            background:${danger ? "var(--danger,#ef4444)" : "var(--accent-cyan,#00e5ff)"};
+            background:${danger ? "var(--danger,#ef4444)" : "var(--accent-cyan,#00dcff)"};
             color:${danger ? "#fff" : "#000"};
           ">${sanitizeHtml(confirmLabel)}</button>
         </div>

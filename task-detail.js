@@ -108,7 +108,7 @@ function renderTask(t) {
   document.getElementById("task-badges").innerHTML = `
     ${statusBadge(overdue ? "overdue" : t.status)}
     ${priorityBadge(t.priority || "medium")}
-    ${t.isCommonTask ? '<span class="badge" style="background:rgba(189,0,255,0.14);color:var(--accent-purple);border:1px solid rgba(189,0,255,0.3);">Common Task</span>' : ""}
+    ${t.isCommonTask ? '<span class="badge" style="background:rgba(176,64,255,0.14);color:var(--accent-purple);border:1px solid rgba(176,64,255,0.3);">Common Task</span>' : ""}
   `;
 
   const statusSel = document.getElementById("status-select");
@@ -168,7 +168,7 @@ function renderTask(t) {
     document.getElementById("task-tags-display").innerHTML = t.tags
       .map(
         (tag) =>
-          `<span style="padding:4px 12px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);border-radius:999px;font-size:12px;color:var(--accent-cyan);">${sanitizeHtml(tag)}</span>`,
+          `<span style="padding:4px 12px;background:rgba(0,220,255,0.1);border:1px solid rgba(0,220,255,0.2);border-radius:999px;font-size:12px;color:var(--accent-cyan);">${sanitizeHtml(tag)}</span>`,
       )
       .join("");
   }
@@ -506,7 +506,7 @@ function renderLogs(logs) {
       const u = allUsers[l.updatedBy];
       return `
       <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;">
-        <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,229,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent-cyan);">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,220,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent-cyan);">
           <i class="ph ${icons[l.actionType] || icons.default}"></i>
         </div>
         <div style="flex:1;">

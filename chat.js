@@ -392,9 +392,9 @@ function renderMessages(msgs) {
           <div class="message-text" style="
             max-width:420px;word-break:break-word;
             padding:9px 13px;
-            background:${isMe ? "rgba(0,229,255,0.12)" : "rgba(255,255,255,0.06)"};
+            background:${isMe ? "rgba(0,220,255,0.12)" : "rgba(255,255,255,0.06)"};
             border-radius:${isMe ? "14px 4px 14px 14px" : "4px 14px 14px 14px"};
-            border:1px solid ${isMe ? "rgba(0,229,255,0.2)" : "rgba(255,255,255,0.08)"};
+            border:1px solid ${isMe ? "rgba(0,220,255,0.2)" : "rgba(255,255,255,0.08)"};
             font-size:13px;line-height:1.5;
           ">${escapeHtml(m.message)}</div>
         </div>
@@ -523,7 +523,7 @@ function renderGroupMemberChips() {
     .map((uid) => {
       const u = allUsers[uid];
       return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
-      background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25);
+      background:rgba(0,220,255,0.1);border:1px solid rgba(0,220,255,0.25);
       border-radius:999px;font-size:11px;color:var(--accent-cyan);">
       ${sanitizeHtml(u?.displayName || uid)}
       <button onclick="removeGroupMember('${uid}')"

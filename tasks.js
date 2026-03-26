@@ -614,7 +614,7 @@ function renderSelectedAssigneesEl() {
   el.innerHTML = selectedAssignees
     .map((uid) => {
       const u = assigneeMap[uid];
-      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);border-radius:999px;font-size:11px;">
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(0,220,255,0.1);border:1px solid rgba(0,220,255,0.2);border-radius:999px;font-size:11px;">
       ${sanitizeHtml(u?.displayName || uid)}
       <button onclick="removeAssignee('${uid}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;">×</button>
     </span>`;

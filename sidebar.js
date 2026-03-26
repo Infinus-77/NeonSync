@@ -112,7 +112,7 @@ export function renderSidebar(activeItem, user) {
     <div class="notif-panel" id="notif-panel" style="display:none;">
       <div class="notif-panel-header">
         <span>Notifications</span>
-        <button onclick="markAllRead()" style="font-size:11px;color:var(--accent-cyan);background:none;border:none;cursor:pointer;">Mark all read</button>
+        <button onclick="markAllRead()" style="font-size:11px;color:var(--cyan);background:none;border:none;cursor:pointer;">Mark all read</button>
       </div>
       <div class="notif-list" id="notif-list">
         <div class="empty-state" style="padding:24px;"><i class="ph ph-bell-slash"></i><p>No notifications</p></div>
@@ -141,6 +141,7 @@ function bindSidebarEvents(user) {
     ?.addEventListener("click", () => {
       document.getElementById("sidebar")?.classList.remove("open");
       document.getElementById("sidebar-overlay")?.classList.remove("active");
+      document.body.style.overflow = "";
     });
 
   // Notification bell toggle
@@ -171,63 +172,9 @@ function bindSidebarEvents(user) {
     link.addEventListener("click", () => {
       document.getElementById("sidebar")?.classList.remove("open");
       document.getElementById("sidebar-overlay")?.classList.remove("active");
+      document.body.style.overflow = "";
     });
   });
-
-  // Ensure mobile hamburger exists and works
-  ensureMobileHamburger();
-}
-
-function ensureMobileHamburger() {
-  // Only inject once
-  if (document.getElementById("hamburger-btn")) return;
-
-  const btn = document.createElement("button");
-  btn.id = "hamburger-btn";
-  btn.className = "hamburger-btn";
-  btn.setAttribute("aria-label", "Open menu");
-  btn.innerHTML = '<i class="ph ph-list"></i>';
-  btn.style.cssText = `
-    display:none;position:fixed;top:16px;left:16px;z-index:200;
-    background:rgba(20,20,23,0.9);border:1px solid var(--border-glass);
-    color:var(--text-primary);width:40px;height:40px;border-radius:var(--radius-md);
-    cursor:pointer;font-size:20px;align-items:center;justify-content:center;
-    backdrop-filter:blur(12px);
-  `;
-
-  // Show on mobile
-  const style = document.createElement("style");
-  style.textContent = `
-    @media (max-width: 1024px) {
-      #hamburger-btn { display: flex !important; }
-    }
-  `;
-  document.head.appendChild(style);
-
-  // Overlay
-  let overlay = document.getElementById("sidebar-overlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "sidebar-overlay";
-    overlay.style.cssText = `
-      display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
-      z-index:149;backdrop-filter:blur(2px);
-    `;
-    overlay.addEventListener("click", () => {
-      document.getElementById("sidebar")?.classList.remove("open");
-      overlay.style.display = "none";
-      overlay.classList.remove("active");
-    });
-    document.body.appendChild(overlay);
-  }
-
-  btn.addEventListener("click", () => {
-    document.getElementById("sidebar")?.classList.add("open");
-    overlay.style.display = "block";
-    overlay.classList.add("active");
-  });
-
-  document.body.appendChild(btn);
 }
 
 function getInitialsFallback(name) {

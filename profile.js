@@ -108,7 +108,7 @@ function renderProfileHeader(u) {
         (u.skills || []).length
           ? `
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
-          ${u.skills.map((s) => `<span style="padding:3px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);border-radius:999px;font-size:11px;color:var(--accent-cyan);">${sanitizeHtml(s)}</span>`).join("")}
+          ${u.skills.map((s) => `<span style="padding:3px 10px;background:rgba(0,220,255,0.1);border:1px solid rgba(0,220,255,0.2);border-radius:999px;font-size:11px;color:var(--accent-cyan);">${sanitizeHtml(s)}</span>`).join("")}
         </div>`
           : ""
       }
@@ -198,10 +198,10 @@ async function loadHeatmap(targetUid) {
     .map(({ dateStr, count, intensity }) => {
       const colors = [
         "rgba(255,255,255,0.05)",
-        "rgba(0,229,255,0.2)",
-        "rgba(0,229,255,0.4)",
-        "rgba(0,229,255,0.65)",
-        "rgba(0,229,255,0.9)",
+        "rgba(0,220,255,0.2)",
+        "rgba(0,220,255,0.4)",
+        "rgba(0,220,255,0.65)",
+        "rgba(0,220,255,0.9)",
       ];
       const color = colors[intensity] || colors[0];
       return `<div title="${dateStr}: ${count} action${count !== 1 ? "s" : ""}"

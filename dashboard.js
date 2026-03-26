@@ -364,7 +364,7 @@ function renderCharts(tasks, now) {
             label: "Created",
             data: createdData,
             borderColor: "#BD00FF",
-            backgroundColor: "rgba(189,0,255,0.08)",
+            backgroundColor: "rgba(176,64,255,0.08)",
             tension: 0.4,
             fill: true,
             pointRadius: 3,
@@ -614,7 +614,7 @@ function getPriorityBg(p) {
   const m = {
     low: "rgba(161,161,170,0.1)",
     medium: "rgba(245,158,11,0.12)",
-    high: "rgba(255,0,122,0.12)",
+    high: "rgba(255,45,138,0.12)",
     critical: "rgba(239,68,68,0.12)",
   };
   return m[p] || m.medium;
@@ -768,7 +768,7 @@ function renderSelectedDashAssignees() {
   el.innerHTML = selectedAssignees
     .map((uid) => {
       const u = assigneeMap[uid];
-      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);border-radius:999px;font-size:11px;">
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(0,220,255,0.1);border:1px solid rgba(0,220,255,0.2);border-radius:999px;font-size:11px;">
       ${sanitizeHtml(u?.displayName || uid)}
       <button onclick="removeDashAssignee('${uid}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;line-height:1;">×</button>
     </span>`;

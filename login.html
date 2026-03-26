@@ -19,19 +19,20 @@
         padding: 0;
       }
       :root {
-        --bg-body: #050505;
-        --accent-cyan: #00e5ff;
-        --accent-purple: #bd00ff;
-        --accent-pink: #ff007a;
-        --accent-green: #22c55e;
-        --danger: #ef4444;
-        --text-primary: #ffffff;
-        --text-secondary: #a1a1aa;
-        --text-muted: #52525b;
-        --border-glass: rgba(255, 255, 255, 0.08);
-        --radius-lg: 16px;
-        --radius-xl: 22px;
-        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --bg-body:          #030308;
+        --cyan:             #00dcff;
+        --purple:           #b040ff;
+        --pink:             #ff2d8a;
+        --green:            #1fcc7a;
+        --danger:           #ff4560;
+        --text-primary:     #f0f0ff;
+        --text-secondary:   #8888aa;
+        --text-muted:       #44445a;
+        --border-glass:     rgba(255, 255, 255, 0.08);
+        --radius-lg:        16px;
+        --radius-xl:        22px;
+        --transition:       all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        --gradient-brand:   linear-gradient(135deg, #00dcff 0%, #b040ff 100%);
       }
       body {
         font-family: 'DM Sans', system-ui, sans-serif;
@@ -50,17 +51,17 @@
         background:
           radial-gradient(
             ellipse at 20% 40%,
-            rgba(0, 229, 255, 0.07) 0%,
+            rgba(0, 220, 255, 0.07) 0%,
             transparent 55%
           ),
           radial-gradient(
             ellipse at 80% 30%,
-            rgba(189, 0, 255, 0.06) 0%,
+            rgba(176, 64, 255, 0.06) 0%,
             transparent 55%
           ),
           radial-gradient(
             ellipse at 50% 90%,
-            rgba(255, 0, 122, 0.05) 0%,
+            rgba(255, 45, 138, 0.05) 0%,
             transparent 50%
           );
         pointer-events: none;
@@ -116,8 +117,8 @@
         height: 38px;
         background: linear-gradient(
           135deg,
-          var(--accent-cyan),
-          var(--accent-purple)
+          var(--cyan),
+          var(--purple)
         );
         border-radius: 10px;
         display: flex;
@@ -130,8 +131,8 @@
         font-weight: 700;
         background: linear-gradient(
           135deg,
-          var(--accent-cyan),
-          var(--accent-purple)
+          var(--cyan),
+          var(--purple)
         );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -192,17 +193,17 @@
         outline: none;
       }
       .form-input:focus {
-        border-color: var(--accent-cyan);
-        background: rgba(0, 229, 255, 0.04);
-        box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+        border-color: var(--cyan);
+        background: rgba(0, 220, 255, 0.04);
+        box-shadow: 0 0 0 3px rgba(0, 220, 255, 0.08);
       }
       .btn-submit {
         width: 100%;
         padding: 13px;
         background: linear-gradient(
           135deg,
-          var(--accent-cyan),
-          var(--accent-purple)
+          var(--cyan),
+          var(--purple)
         );
         border: none;
         border-radius: 10px;
@@ -220,7 +221,7 @@
       }
       .btn-submit:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 24px rgba(0, 229, 255, 0.2);
+        box-shadow: 0 8px 24px rgba(0, 220, 255, 0.2);
       }
       .btn-submit:disabled {
         opacity: 0.6;
@@ -262,7 +263,7 @@
         display: block;
         text-align: right;
         font-size: 11px;
-        color: var(--accent-cyan);
+        color: var(--cyan);
         margin-top: -8px;
         margin-bottom: 14px;
         cursor: pointer;
@@ -451,7 +452,7 @@
         <div style="margin-bottom: 18px">
           <div
             style="
-              font-family: &quot;Outfit&quot;, sans-serif;
+              font-family: 'Syne', sans-serif;
               font-size: 18px;
               font-weight: 700;
               margin-bottom: 6px;

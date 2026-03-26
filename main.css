@@ -39,6 +39,12 @@
 
   --gradient-brand:   linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
 
+  /* Aliases — kept for backward compat with any inline references */
+  --accent-cyan:    var(--cyan);
+  --accent-purple:  var(--purple);
+  --accent-pink:    var(--pink);
+  --accent-green:   var(--green);
+
   --shadow-sm:        0 2px 8px rgba(0,0,0,0.3);
   --shadow-md:        0 8px 28px rgba(0,0,0,0.45);
   --shadow-lg:        0 20px 60px rgba(0,0,0,0.6);
@@ -286,14 +292,22 @@ body::after {
 
 /* Sidebar overlay (mobile) */
 .sidebar-overlay {
-  display: none;
+  display: block;
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.65);
-  backdrop-filter: blur(4px);
-  z-index: 99; opacity: 0;
-  transition: opacity 0.3s ease;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 99;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
-.sidebar-overlay.active { opacity: 1; }
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
 
 /* Mobile topbar */
 .mobile-topbar {
@@ -743,12 +757,19 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 @media (max-width: 1024px) {
   .app-layout { grid-template-columns: 1fr; }
   .sidebar {
-    position: fixed; left: -270px; height: 100vh;
-    z-index: 1000; box-shadow: none;
+    position: fixed;
+    left: 0;
+    transform: translateX(-100%);
+    height: 100vh;
+    z-index: 1000;
+    box-shadow: none;
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s ease;
   }
-  .sidebar.open { left: 0; box-shadow: 6px 0 40px rgba(0,0,0,0.6); }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 6px 0 40px rgba(0,0,0,0.6);
+  }
   .sidebar-close { display: flex !important; }
-  .sidebar-overlay { display: block; }
   .mobile-topbar { display: flex; }
   .main-content { padding: 76px 20px 22px; width: 100%; }
 }

@@ -248,7 +248,7 @@ function renderTimeline(tasks, days) {
           label: "Created",
           data: createdData,
           borderColor: "#BD00FF",
-          backgroundColor: "rgba(189,0,255,0.06)",
+          backgroundColor: "rgba(176,64,255,0.06)",
           tension: 0.4,
           fill: true,
           pointRadius: 3,
@@ -507,7 +507,7 @@ function renderRecentActivity(logs, users) {
       const u = userMap[l.updatedBy];
       return `
       <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);" data-testid="log-${l.id}">
-        <div style="width:32px;height:32px;border-radius:50%;background:rgba(0,229,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent-cyan);">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(0,220,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent-cyan);">
           <i class="ph ${icons[l.actionType] || icons.default}" style="font-size:15px;"></i>
         </div>
         <div style="flex:1;">
