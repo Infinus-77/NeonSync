@@ -774,6 +774,13 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   .main-content { padding: 76px 20px 22px; width: 100%; }
 }
 
+/* Prevent sidebar flash on mobile before JS loads */
+@media (max-width: 1024px) {
+  #sidebar:not(.open) {
+    transform: translateX(-100%) !important;
+  }
+}
+
 @media (max-width: 768px) {
   .grid-2 { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: 1fr; }
