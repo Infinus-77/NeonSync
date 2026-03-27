@@ -259,26 +259,34 @@
     <!-- Mobile sidebar toggle -->
     <script>
       (function() {
-        const btn = document.getElementById('mobile-menu-btn');
-        const overlay = document.getElementById('sidebar-overlay');
         function openSidebar() {
-          const sb = document.getElementById('sidebar');
-          if (sb) { sb.classList.add('open'); }
-          if (overlay) { overlay.classList.add('active'); }
-          document.body.style.overflow = 'hidden';
+          var sb = document.getElementById('sidebar');
+          var overlay = document.getElementById('sidebar-overlay');
+          if (sb) sb.classList.add('open');
+          if (overlay) overlay.classList.add('active');
+          document.body.classList.add('no-scroll');
         }
         function closeSidebar() {
-          const sb = document.getElementById('sidebar');
-          if (sb) { sb.classList.remove('open'); }
-          if (overlay) { overlay.classList.remove('active'); }
-          document.body.style.overflow = '';
+          var sb = document.getElementById('sidebar');
+          var overlay = document.getElementById('sidebar-overlay');
+          if (sb) sb.classList.remove('open');
+          if (overlay) overlay.classList.remove('active');
+          document.body.classList.remove('no-scroll');
         }
-        if (btn) btn.addEventListener('click', openSidebar);
-        if (overlay) overlay.addEventListener('click', closeSidebar);
-        // Also wire sidebar close btn after DOM ready
         document.addEventListener('DOMContentLoaded', function() {
-          const closeBtn = document.getElementById('sidebar-close-btn');
+          var btn = document.getElementById('mobile-menu-btn');
+          var overlay = document.getElementById('sidebar-overlay');
+          var closeBtn = document.getElementById('sidebar-close-btn');
+          if (btn) btn.addEventListener('click', openSidebar);
+          if (overlay) overlay.addEventListener('click', closeSidebar);
           if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+          // Close sidebar when nav links are clicked on mobile
+          document.querySelectorAll('.sidebar-nav-item').forEach(function(link) {
+            link.addEventListener('click', closeSidebar);
+          });
+        });
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') closeSidebar();
         });
       })();
     </script>

@@ -4,14 +4,18 @@ import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth
 import { showToast } from "./utils.js";
 
 function openSidebar() {
-  document.getElementById("sidebar")?.classList.add("open");
-  document.getElementById("sidebar-overlay")?.classList.add("active");
+  const sb = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+  if (sb) sb.classList.add("open");
+  if (overlay) overlay.classList.add("active");
   document.body.classList.add("no-scroll");
 }
 
 function closeSidebar() {
-  document.getElementById("sidebar")?.classList.remove("open");
-  document.getElementById("sidebar-overlay")?.classList.remove("active");
+  const sb = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+  if (sb) sb.classList.remove("open");
+  if (overlay) overlay.classList.remove("active");
   document.body.classList.remove("no-scroll");
 }
 
@@ -196,14 +200,16 @@ function formatRole(role) {
   return m[role] || role || "Member";
 }
 
-document
-  .getElementById("sidebar-overlay")
-  ?.addEventListener("click", closeSidebar);
+document.addEventListener("DOMContentLoaded", () => {
+  document
+    .getElementById("sidebar-overlay")
+    ?.addEventListener("click", closeSidebar);
+
+  document
+    .querySelector(".mobile-menu-btn")
+    ?.addEventListener("click", openSidebar);
+});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeSidebar();
 });
-
-document
-  .querySelector(".mobile-menu-btn")
-  ?.addEventListener("click", openSidebar);

@@ -82,7 +82,6 @@ body {
   font-family: "DM Sans", system-ui, sans-serif;
   background: var(--bg-body);
   color: var(--text-primary);
-  min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
@@ -147,7 +146,6 @@ body::after {
 /* ── Layout ── */
 .app-layout {
   display: flex;
-  min-height: 100vh;
   position: relative;
   z-index: 1;
 }
@@ -165,7 +163,6 @@ body::after {
   flex-direction: column;
   position: sticky;
   top: 0;
-  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 100;
@@ -779,6 +776,7 @@ textarea.form-input {
   padding: 18px 20px;
   backdrop-filter: blur(12px);
   transition: border-color 0.2s;
+  width: 100%;
 }
 .card:hover {
   border-color: rgba(255, 255, 255, 0.1);
@@ -1220,14 +1218,10 @@ textarea.form-input {
 }
 
 /* ── Grid helpers ── */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
+.grid-2,
 .grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 12px;
 }
 
@@ -1245,8 +1239,8 @@ textarea.form-input {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  height: calc(100vh - 180px);
   min-height: 420px;
+  height: auto;
 }
 .chat-rooms {
   border-right: 1px solid var(--border-subtle);
@@ -1525,16 +1519,17 @@ textarea.form-input {
 
 @media (max-width: 1024px) {
   .app-layout {
-    grid-template-columns: 1fr;
+    display: block;
   }
   .sidebar {
     position: fixed;
     top: 0;
-    left: -100%;
+    left: 0;
     width: var(--sidebar-width);
     height: 100vh;
     z-index: 1000;
-    transition: left 0.3s ease;
+    transform: translateX(-100%);
+    transition: transform 0.3s var(--ease-out);
     box-shadow: none;
   }
   .sidebar.open {
@@ -1551,13 +1546,18 @@ textarea.form-input {
     padding: 76px 20px 28px;
     width: 100%;
     min-height: unset;
+    margin-left: 0;
+  }
+  /* Overlay only covers content, never blocks sidebar nav */
+  .sidebar-overlay {
+    z-index: 99;
   }
 }
 
 /* Prevent sidebar flash on mobile before JS loads */
 @media (max-width: 1024px) {
   #sidebar:not(.open) {
-    transform: translateX(-100%) !important;
+    transform: translateX(-100%);
   }
 }
 
