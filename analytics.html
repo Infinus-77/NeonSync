@@ -182,41 +182,6 @@
     <div id="toast-container" class="toast-container"></div>
 
     <script type="module" src="./analytics.js"></script>
-  
-    <!-- Mobile sidebar toggle -->
-    <script>
-      (function() {
-        function openSidebar() {
-          var sb = document.getElementById('sidebar');
-          var overlay = document.getElementById('sidebar-overlay');
-          if (sb) sb.classList.add('open');
-          if (overlay) overlay.classList.add('active');
-          document.body.classList.add('no-scroll');
-        }
-        function closeSidebar() {
-          var sb = document.getElementById('sidebar');
-          var overlay = document.getElementById('sidebar-overlay');
-          if (sb) sb.classList.remove('open');
-          if (overlay) overlay.classList.remove('active');
-          document.body.classList.remove('no-scroll');
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-          var btn = document.getElementById('mobile-menu-btn');
-          var overlay = document.getElementById('sidebar-overlay');
-          var closeBtn = document.getElementById('sidebar-close-btn');
-          if (btn) btn.addEventListener('click', openSidebar);
-          if (overlay) overlay.addEventListener('click', closeSidebar);
-          if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
-          // Close sidebar when nav links are clicked on mobile
-          document.querySelectorAll('.sidebar-nav-item').forEach(function(link) {
-            link.addEventListener('click', closeSidebar);
-          });
-        });
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape') closeSidebar();
-        });
-      })();
-    </script>
 
   </body>
 </html>
