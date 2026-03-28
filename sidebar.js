@@ -1,23 +1,47 @@
-// sidebar.js — FIXED: notification bell binds after DOM ready, mobile close-on-navigate
-import { auth, db } from "./firebase-config.js";
+/**
+ * sidebar.js — NeonSync
+ *
+ * Fix #1  — Navigation works reliably via standard href links (no JS page-switch override)
+ * Fix #11 — Single centralized open/close API, no patched duplicate logic
+ * Fix #13 — One event binding path, no scattered or duplicate listeners
+ * Fix #15 — aria-expanded synced, Escape key, overlay, mobile menu all use same fns
+ */
+import { auth } from "./firebase-config.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { showToast } from "./utils.js";
 
+// ─── Centralized sidebar state ────────────────────────────────────────────────
+// Single source of truth — no checking classList in multiple places
+
+let _sidebarOpen = false;
+
 function openSidebar() {
+  _sidebarOpen = true;
   const sb = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebar-overlay");
-  if (sb) sb.classList.add("open");
-  if (overlay) overlay.classList.add("active");
+  const menuBtn = document.querySelector(".mobile-menu-btn");
+  sb?.classList.add("open");
+  overlay?.classList.add("active");
   document.body.classList.add("no-scroll");
+  // Fix #15: sync aria state
+  menuBtn?.setAttribute("aria-expanded", "true");
+  sb?.setAttribute("aria-hidden", "false");
 }
 
 function closeSidebar() {
+  _sidebarOpen = false;
   const sb = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebar-overlay");
-  if (sb) sb.classList.remove("open");
-  if (overlay) overlay.classList.remove("active");
+  const menuBtn = document.querySelector(".mobile-menu-btn");
+  sb?.classList.remove("open");
+  overlay?.classList.remove("active");
   document.body.classList.remove("no-scroll");
+  // Fix #15: sync aria state
+  menuBtn?.setAttribute("aria-expanded", "false");
+  sb?.setAttribute("aria-hidden", "true");
 }
+
+export { openSidebar, closeSidebar };
 
 export function renderSidebar(activeItem, user) {
   const sidebar = document.getElementById("sidebar");
@@ -95,7 +119,7 @@ export function renderSidebar(activeItem, user) {
         <div class="sidebar-user-name">${user.displayName || user.name || "User"}</div>
         <div class="sidebar-user-role">${formatRole(user.role)}</div>
       </div>
-      <button class="sidebar-notif-btn" id="notif-bell-btn" aria-label="Notifications">
+      <button class="sidebar-notif-btn" id="notif-bell-btn" aria-label="Notifications" aria-expanded="false">
         <i class="ph ph-bell"></i>
         <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
       </button>
@@ -108,8 +132,9 @@ export function renderSidebar(activeItem, user) {
         <a href="${item.href}"
           class="sidebar-nav-item ${activeItem === item.id ? "active" : ""}"
           data-nav="${item.id}"
-          data-testid="nav-${item.id}">
-          <i class="ph ${item.icon}"></i>
+          data-testid="nav-${item.id}"
+          ${activeItem === item.id ? 'aria-current="page"' : ""}>
+          <i class="ph ${item.icon}" aria-hidden="true"></i>
           <span>${item.label}</span>
         </a>
       `,
@@ -125,10 +150,10 @@ export function renderSidebar(activeItem, user) {
     </div>
 
     <!-- Notifications Panel -->
-    <div class="notif-panel" id="notif-panel" style="display:none;">
+    <div class="notif-panel" id="notif-panel" hidden>
       <div class="notif-panel-header">
         <span>Notifications</span>
-        <button onclick="markAllRead()" style="font-size:11px;color:var(--cyan);background:none;border:none;cursor:pointer;">Mark all read</button>
+        <button id="mark-all-read-btn" style="font-size:11px;color:var(--cyan);background:none;border:none;cursor:pointer;">Mark all read</button>
       </div>
       <div class="notif-list" id="notif-list">
         <div class="empty-state" style="padding:24px;"><i class="ph ph-bell-slash"></i><p>No notifications</p></div>
@@ -136,52 +161,52 @@ export function renderSidebar(activeItem, user) {
     </div>
   `;
 
-  // ✅ FIX: Bind events after innerHTML is set — no race condition
+  // ── Bind events after innerHTML is set ──────────────────────────────────────
   bindSidebarEvents(user);
 }
 
 function bindSidebarEvents(user) {
+  // Close button
+  document.getElementById("sidebar-close-btn")
+    ?.addEventListener("click", closeSidebar);
+
   // Logout
   document.getElementById("logout-btn")?.addEventListener("click", async () => {
     try {
       await signOut(auth);
       window.location.href = "login.html";
-    } catch (err) {
+    } catch {
       showToast("Failed to sign out", "error");
     }
   });
 
-  // ✅ FIX: Mobile sidebar close button
-  document
-    .getElementById("sidebar-close-btn")
-    ?.addEventListener("click", closeSidebar);
+  // Mark all read — bound via id, no inline onclick
+  document.getElementById("mark-all-read-btn")
+    ?.addEventListener("click", () => {
+      if (typeof markAllRead === "function") markAllRead();
+    });
 
-  // Notification bell toggle
-  document.getElementById("notif-bell-btn")?.addEventListener("click", (e) => {
+  // Notification bell — toggle panel with proper aria state
+  const bellBtn = document.getElementById("notif-bell-btn");
+  const notifPanel = document.getElementById("notif-panel");
+  bellBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
-    const panel = document.getElementById("notif-panel");
-    if (!panel) return;
-    const isOpen = panel.style.display !== "none";
-    panel.style.display = isOpen ? "none" : "block";
-  });
-
-  // Close notif panel when clicking outside
-  document.addEventListener("click", (e) => {
-    const panel = document.getElementById("notif-panel");
-    const bell = document.getElementById("notif-bell-btn");
-    if (
-      panel &&
-      !panel.contains(e.target) &&
-      e.target !== bell &&
-      !bell?.contains(e.target)
-    ) {
-      panel.style.display = "none";
+    if (!notifPanel) return;
+    const opening = notifPanel.hasAttribute("hidden");
+    if (opening) {
+      notifPanel.removeAttribute("hidden");
+      bellBtn.setAttribute("aria-expanded", "true");
+    } else {
+      notifPanel.setAttribute("hidden", "");
+      bellBtn.setAttribute("aria-expanded", "false");
     }
   });
 
-  // ✅ FIX: Mobile — close sidebar when a nav link is clicked
+  // Fix #1: nav links use their natural href — only close sidebar on mobile
   document.querySelectorAll(".sidebar-nav-item").forEach((link) => {
-    link.addEventListener("click", closeSidebar);
+    link.addEventListener("click", () => {
+      if (window.innerWidth <= 1024) closeSidebar();
+    });
   });
 }
 
@@ -200,16 +225,36 @@ function formatRole(role) {
   return m[role] || role || "Member";
 }
 
+// ─── Global listeners — attached once at module load, never duplicated ────────
+
 document.addEventListener("DOMContentLoaded", () => {
-  document
-    .getElementById("sidebar-overlay")
+  // Overlay click closes sidebar
+  document.getElementById("sidebar-overlay")
     ?.addEventListener("click", closeSidebar);
 
-  document
-    .querySelector(".mobile-menu-btn")
+  // Mobile hamburger opens sidebar
+  document.querySelector(".mobile-menu-btn")
     ?.addEventListener("click", openSidebar);
+
+  // Fix #13: notif panel outside-click lives here (once), not inside bindSidebarEvents
+  // which would re-add it every time renderSidebar is called
+  document.addEventListener("click", (e) => {
+    const panel = document.getElementById("notif-panel");
+    const bell = document.getElementById("notif-bell-btn");
+    if (panel && !panel.hidden && !panel.contains(e.target) && !bell?.contains(e.target)) {
+      panel.setAttribute("hidden", "");
+      bell?.setAttribute("aria-expanded", "false");
+    }
+  });
 });
 
+// Escape closes sidebar and notif panel
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeSidebar();
+  if (e.key !== "Escape") return;
+  closeSidebar();
+  const panel = document.getElementById("notif-panel");
+  if (panel && !panel.hidden) {
+    panel.setAttribute("hidden", "");
+    document.getElementById("notif-bell-btn")?.setAttribute("aria-expanded", "false");
+  }
 });

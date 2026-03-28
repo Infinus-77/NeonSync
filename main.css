@@ -83,6 +83,8 @@ body {
   background: var(--bg-body);
   color: var(--text-primary);
   overflow-x: hidden;
+  /* Reserve scrollbar gutter to prevent layout shift when sidebar opens (no-scroll toggle) */
+  scrollbar-gutter: stable;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
 }
@@ -154,14 +156,14 @@ body::after {
 .main-content {
   flex: 1 1 0%;
   min-width: 0;
-  padding: 32px 36px;
+  /* Fix #8: consistent vertical + horizontal padding */
+  padding: 32px 40px;
 }
 
 /* ── Sidebar ── */
 .sidebar {
   background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-glass);
-  display: flex;
+  border-right: 1px solid var(--border-glass);\n  display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
@@ -175,13 +177,13 @@ body::after {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
   flex-shrink: 0;
+  /* Fix #12: promote to GPU layer to prevent repaint on open/close */
+  will-change: transform;
 }
 .sidebar::-webkit-scrollbar {
   display: none;
 }
-#sidebar {
-  width: var(--sidebar-width);
-}
+/* #sidebar width is inherited from .sidebar — no override needed */
 
 .sidebar-header {
   padding: 16px 14px 14px;
@@ -449,15 +451,16 @@ body::after {
   display: block;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  /* Fix #3: opacity reduced from 0.55 → 0.32 for lighter, more premium feel */
+  background: rgba(0, 0, 0, 0.32);
   z-index: 999; /* above all content (topbar: 80) but below sidebar (1000) */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  /* Fix #12: no backdrop-filter on overlay — it triggers GPU repaint on open */
   transition:
-    opacity 0.3s ease,
-    visibility 0.3s ease;
-  backdrop-filter: none;
+    opacity 0.25s var(--ease-out),
+    visibility 0.25s var(--ease-out);
 }
 .sidebar-overlay.active {
   opacity: 1;
@@ -691,6 +694,8 @@ textarea.form-input {
   gap: 14px;
   margin-bottom: 24px;
   width: 100%;
+  /* Fix #5: stretch so all stat cards are equal height */
+  align-items: stretch;
 }
 .stat-card {
   background: var(--bg-panel);
@@ -784,8 +789,13 @@ textarea.form-input {
   padding: 20px 22px;
   backdrop-filter: blur(12px);
   transition: border-color 0.2s;
+  /* Fix #5: always fill container — both width and height in grid contexts */
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
+  /* Fix #5: flex column so internal content can space itself */
+  display: flex;
+  flex-direction: column;
 }
 .card:hover {
   border-color: rgba(255, 255, 255, 0.1);
@@ -853,6 +863,7 @@ textarea.form-input {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 14px;
+  /* Fix #5: stretch ensures cards fill their cell evenly */
   align-items: stretch;
   width: 100%;
 }
@@ -1256,7 +1267,8 @@ textarea.form-input {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  height: calc(100vh - 140px);
+  /* Fix #10: use flex-based height tied to viewport minus header, not a fixed calc */
+  height: calc(100vh - var(--header-height) - 64px);
   min-height: 480px;
   width: 100%;
 }
@@ -1433,7 +1445,8 @@ textarea.form-input {
 /* ── Task detail ── */
 .task-detail-grid {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  /* Fix #4: fluid sidebar column — shrinks gracefully, never forces overflow */
+  grid-template-columns: 1fr clamp(240px, 28%, 320px);
   gap: 16px;
   align-items: start;
 }
@@ -1534,11 +1547,10 @@ textarea.form-input {
   .tasks-grid {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
   }
-  .task-detail-grid {
-    grid-template-columns: 1fr 260px;
-  }
+  /* task-detail-grid uses clamp() — no override needed at 1280px */
   .chat-layout {
-    height: calc(100vh - 120px);
+    /* Fix #10: use variable at 1280px too */
+    height: calc(100vh - var(--header-height) - 60px);
   }
 }
 
@@ -1554,12 +1566,13 @@ textarea.form-input {
     height: 100vh;
     z-index: 1000;
     transform: translateX(-100%);
-    transition: transform 0.3s var(--ease-out);
+    /* Fix #12: snappier spring curve */
+    transition: transform 0.28s var(--ease-out);
     box-shadow: none;
   }
   .sidebar.open {
     transform: translateX(0);
-    box-shadow: 6px 0 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 8px 0 48px rgba(0, 0, 0, 0.55);
   }
   .sidebar-close {
     display: flex !important;
@@ -1568,31 +1581,38 @@ textarea.form-input {
     display: flex;
   }
   .main-content {
-    padding: 80px 24px 32px;
+    /* Fix #7 #8: full width, spacing relative to topbar height variable */
+    padding: calc(var(--header-height) + 20px) 28px 32px;
     width: 100%;
   }
   .sidebar-overlay {
     z-index: 999; /* above content/topbar (80), below sidebar (1000) */
   }
+  /* Fix #10: chat height uses header variable, not magic number */
   .chat-layout {
-    height: calc(100vh - 150px);
+    height: calc(100vh - var(--header-height) - 80px);
     min-height: 420px;
   }
 }
 
-/* Prevent sidebar flash on mobile before JS loads */
+/* Prevent sidebar flash on mobile before JS loads — transform only, no width change */
 @media (max-width: 1024px) {
   #sidebar:not(.open) {
     transform: translateX(-100%);
-    width: 0;
-    min-width: 0;
-    overflow: hidden;
+    /* Do NOT set width:0 here — it forces layout recalculation and causes jank */
+    pointer-events: none;
+    visibility: hidden;
+  }
+  #sidebar.open {
+    pointer-events: auto;
+    visibility: visible;
   }
 }
 
 @media (max-width: 768px) {
   .main-content {
-    padding: 74px 16px 28px;
+    /* Fix #7 #8: consistent spacing based on header height variable */
+    padding: calc(var(--header-height) + 14px) 20px 28px;
   }
   .grid-2 {
     grid-template-columns: 1fr;
@@ -1617,8 +1637,9 @@ textarea.form-input {
   .chat-layout {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
+    /* Fix #10: let it size naturally on mobile, give it room to breathe */
     height: auto;
-    min-height: unset;
+    min-height: calc(100vh - var(--header-height) - 48px);
   }
   .chat-rooms {
     max-height: 160px;
@@ -1626,7 +1647,9 @@ textarea.form-input {
     border-bottom: 1px solid var(--border-subtle);
   }
   .chat-messages {
-    height: calc(100vh - 320px);
+    /* Fix #10: flex-grow so chat messages expand naturally */
+    flex: 1;
+    height: auto;
     min-height: 300px;
   }
   .task-detail-grid {
@@ -1651,7 +1674,7 @@ textarea.form-input {
   }
   .modal {
     padding: 16px;
-    max-width: calc(100vw - 28px);
+    max-width: min(520px, calc(100% - 28px));
   }
   .card {
     padding: 16px 18px;
@@ -1660,7 +1683,8 @@ textarea.form-input {
 
 @media (max-width: 480px) {
   .main-content {
-    padding: 68px 12px 24px;
+    /* Fix #8: variable-driven, consistent with other breakpoints */
+    padding: calc(var(--header-height) + 8px) 12px 24px;
   }
   .tasks-grid {
     grid-template-columns: 1fr;
@@ -1709,8 +1733,10 @@ textarea.form-input {
   .page-subtitle {
     font-size: 12px;
   }
+  /* Fix #10: chat messages grow naturally at small sizes */
   .chat-messages {
-    height: calc(100vh - 300px);
+    flex: 1;
+    height: auto;
     min-height: 260px;
   }
   .card {
@@ -1723,7 +1749,8 @@ textarea.form-input {
     grid-template-columns: 1fr;
   }
   .main-content {
-    padding: 66px 10px 20px;
+    /* Fix #8: consistent with other breakpoints */
+    padding: calc(var(--header-height) + 6px) 10px 20px;
   }
   .page-title {
     font-size: 17px;
