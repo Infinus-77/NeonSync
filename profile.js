@@ -87,7 +87,7 @@ async function loadUserTasks(targetUid) {
 
 function renderProfileHeader(u) {
   const isOwn = u.id === currentUser.id;
-  const canEdit = isOwn || currentUser.role === "admin" || currentUser.role === "super_admin";
+  const canEdit = isOwn;
 
   document.getElementById("profile-header-inner").innerHTML = `
     <div style="position:relative;flex-shrink:0;">
@@ -114,10 +114,12 @@ function renderProfileHeader(u) {
         ${u.lastActive ? `<span><i class="ph ph-clock"></i> Last active ${timeAgo(u.lastActive)}</span>` : ""}
       </div>
     </div>
+    ${isOwn ? `
     <div class="profile-actions" style="display:flex; flex-direction:column; gap:8px; flex-shrink:0; min-width:115px;">
-      ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="openEditProfile()" style="width:100%;"><i class="ph ph-pencil"></i> Edit Profile</button>` : ""}
-      ${isOwn ? `<button class="btn btn-outline btn-sm" onclick="logoutFromProfile()" style="width:100%;color:var(--rose);border-color:rgba(244,63,94,0.3);background:rgba(244,63,94,0.04);"><i class="ph ph-sign-out"></i> Sign Out</button>` : ""}
+      <button class="btn btn-secondary btn-sm" onclick="openEditProfile()" style="width:100%;"><i class="ph ph-pencil"></i> Edit Profile</button>
+      <button class="btn btn-outline btn-sm" onclick="logoutFromProfile()" style="width:100%;color:var(--rose);border-color:rgba(244,63,94,0.3);background:rgba(244,63,94,0.04);"><i class="ph ph-sign-out"></i> Sign Out</button>
     </div>
+    ` : ""}
   `;
 }
 
