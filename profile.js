@@ -1,6 +1,7 @@
 // profile.js — Enhanced: full analytics section, charts, priority performance, tag analysis
-import { db } from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications } from "./notifications.js";
 import {
@@ -113,7 +114,10 @@ function renderProfileHeader(u) {
         ${u.lastActive ? `<span><i class="ph ph-clock"></i> Last active ${timeAgo(u.lastActive)}</span>` : ""}
       </div>
     </div>
-    ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="openEditProfile()" style="align-self:flex-start;flex-shrink:0;"><i class="ph ph-pencil"></i> Edit Profile</button>` : ""}
+    <div class="profile-actions" style="display:flex; flex-direction:column; gap:8px; flex-shrink:0; min-width:115px;">
+      ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="openEditProfile()" style="width:100%;"><i class="ph ph-pencil"></i> Edit Profile</button>` : ""}
+      ${isOwn ? `<button class="btn btn-outline btn-sm" onclick="logoutFromProfile()" style="width:100%;color:var(--rose);border-color:rgba(244,63,94,0.3);background:rgba(244,63,94,0.04);"><i class="ph ph-sign-out"></i> Sign Out</button>` : ""}
+    </div>
   `;
 }
 
@@ -472,3 +476,14 @@ document.addEventListener("click", (e) => {
     e.target.classList.remove("active");
   }
 });
+
+window.logoutFromProfile = async () => {
+  try {
+    const btn = document.querySelector('button[onclick="logoutFromProfile()"]');
+    if (btn) btn.innerHTML = '<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite"></i> Signing Out...';
+    await signOut(auth);
+    window.location.href = "login.html";
+  } catch (err) {
+    if (typeof showToast === "function") showToast("Failed to sign out", "error");
+  }
+};
