@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Chat</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <link rel="stylesheet" href="./main.css" />
+    <style>
+      /* Force light loader */
+      .loading-overlay { background: #ffffff !important; color: #111827 !important; }
+      .loading-text { color: #9ca3af !important; }
+
+      /* Chat group modal: member results dropdown */
+      #group-member-results {
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important;
+      }
+
+      /* Mobile: fix chat layout height */
+      @media (max-width: 1023px) {
+        .chat-main {
+          height: calc(100vh - var(--header-height)) !important;
+        }
+      }
+      @media (max-width: 767px) {
+        /* Create group modal member chips wrap */
+        #group-selected-members { min-height: 28px; }
+        /* Ensure chat rooms don't take too much vertical space */
+        .chat-rooms { max-height: 120px !important; }
+        .chat-layout { min-height: calc(100vh - var(--header-height) - 36px) !important; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading chat...</span>
+    </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar" id="mobile-topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="ph ph-list"></i>
+      </button>
+      <div class="mobile-logo">
+        <div class="mobile-logo-icon"><i class="ph ph-circles-four"></i></div>
+        <span class="mobile-logo-text">NeonSync</span>
+      </div>
+      <div style="width:36px"></div>
+    </div>
+
+    <div class="app-layout" id="app">
+      <div id="sidebar" class="sidebar"></div>
+
+      <main
+        class="main-content chat-main"
+        style="
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <!-- Page Header -->
+        <div class="page-header" style="margin-bottom: 16px">
+          <div>
+            <h1 class="page-title">Chat</h1>
+            <p class="page-subtitle">Real-time team communication</p>
+          </div>
+        </div>
+
+        <div class="chat-layout" style="flex: 1">
+          <!-- Rooms List -->
+          <div class="chat-rooms">
+            <!-- Sidebar header with create group button -->
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 4px;
+                margin-bottom: 12px;
+              "
+            >
+              <div
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  letter-spacing: 0.12em;
+                  text-transform: uppercase;
+                  color: var(--text-muted);
+                "
+              >
+                ROOMS
+              </div>
+              <button
+                id="create-group-btn"
+                onclick="openCreateGroup()"
+                title="Create Group"
+                style="
+                  display: none;
+                  align-items: center;
+                  gap: 5px;
+                  padding: 4px 10px;
+                  background: var(--blue-light);
+                  border: 1px solid rgba(79,110,247,0.2);
+                  border-radius: 999px;
+                  font-size: 11px;
+                  font-weight: 600;
+                  color: var(--blue);
+                  cursor: pointer;
+                  transition: all 0.2s;
+                  white-space: nowrap;
+                "
+                onmouseover="this.style.background = 'var(--blue-mid)'"
+                onmouseout="this.style.background = 'var(--blue-light)'"
+              >
+                <i class="ph ph-plus"></i> New Group
+              </button>
+            </div>
+
+            <div id="chat-rooms-list" data-testid="chat-rooms-list"></div>
+          </div>
+
+          <!-- Messages Area -->
+          <div class="chat-messages">
+            <!-- Active Chat Header -->
+            <div class="chat-header" id="chat-active-header">
+              <div
+                style="
+                  width: 34px;
+                  height: 34px;
+                  border-radius: 50%;
+                  background: rgba(0, 229, 255, 0.15);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: var(--cyan);
+                "
+              >
+                <i
+                  class="ph ph-chats-circle"
+                  id="chat-room-icon-header"
+                  style="font-size: 18px"
+                ></i>
+              </div>
+
+              <div>
+                <div
+                  style="font-weight: 600; font-size: 15px"
+                  id="chat-room-name-header"
+                >
+                  Select a channel
+                </div>
+                <div
+                  style="font-size: 11px; color: var(--text-muted)"
+                  id="chat-room-desc-header"
+                >
+                  Choose a room from the left
+                </div>
+              </div>
+            </div>
+
+            <!-- Messages -->
+            <div
+              id="messages-list"
+              class="messages-list"
+              data-testid="messages-list"
+            >
+              <div class="empty-state">
+                <i class="ph ph-chat-circle"></i>
+                <p>Select a chat room to start messaging</p>
+              </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-area" id="chat-input-area">
+              <input
+                type="text"
+                id="msg-input"
+                class="chat-input"
+                placeholder="Type a message... (Enter to send)"
+                onkeydown="
+                  if (event.key === 'Enter' && !event.shiftKey) sendMessage();
+                "
+                data-testid="msg-input"
+              />
+
+              <button
+                class="btn btn-primary btn-sm"
+                onclick="sendMessage()"
+                data-testid="send-msg-btn"
+              >
+                <i class="ph ph-paper-plane-tilt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div class="modal-overlay" id="group-modal">
+      <div class="modal" style="max-width: 480px; width: 90%">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <div
+              style="
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: rgba(0, 229, 255, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--cyan);
+              "
+            >
+              <i class="ph ph-users-three" style="font-size: 18px"></i>
+            </div>
+            <div>
+              <h3 class="modal-title" style="margin: 0">Create Group</h3>
+              <p style="font-size: 11px; color: var(--text-muted); margin: 0">
+                Add members to start a group chat
+              </p>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeGroupModal()">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <form id="group-form" onsubmit="submitCreateGroup(event)">
+          <div
+            class="modal-body"
+            style="display: flex; flex-direction: column; gap: 16px"
+          >
+            <!-- Group name -->
+            <div class="form-group">
+              <label class="form-label">Group Name</label>
+              <input
+                id="group-name-input"
+                type="text"
+                class="form-input"
+                placeholder="e.g. Design Sprint, Q2 Planning..."
+                required
+                style="font-size: 13px"
+              />
+            </div>
+
+            <!-- Member search -->
+            <div class="form-group">
+              <label class="form-label">Add Members</label>
+              <div style="position: relative">
+                <input
+                  id="group-search-input"
+                  type="text"
+                  class="form-input"
+                  placeholder="Search by name..."
+                  oninput="searchGroupMembers(this.value)"
+                  onfocus="searchGroupMembers(this.value)"
+                  autocomplete="off"
+                  style="font-size: 13px"
+                />
+                <div
+                  id="group-member-results"
+                  style="
+                    display: none;
+                    position: absolute;
+                    top: calc(100% + 4px);
+                    left: 0;
+                    right: 0;
+                    z-index: 100;
+                    background: var(--bg-panel);
+                    border: 1px solid var(--border-glass);
+                    border-radius: 10px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                    max-height: 200px;
+                    overflow-y: auto;
+                    padding: 6px;
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <!-- Selected members chips -->
+            <div>
+              <label
+                class="form-label"
+                style="margin-bottom: 8px; display: block"
+              >
+                Selected Members
+                <span
+                  id="member-count"
+                  style="color: var(--text-muted); font-weight: 400"
+                ></span>
+              </label>
+              <div
+                id="group-selected-members"
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 6px;
+                  min-height: 32px;
+                  padding: 6px;
+                  background: rgba(255, 255, 255, 0.02);
+                  border: 1px solid var(--border-glass);
+                  border-radius: 8px;
+                "
+              ></div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeGroupModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" id="group-submit-btn" class="btn btn-primary">
+              <i class="ph ph-users-three"></i> Create Group
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="./chat.js"></script>
+
+  </body>
+</html>

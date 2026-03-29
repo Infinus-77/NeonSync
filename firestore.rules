@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ───────────────────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function currentUid() {
+      return request.auth.uid;
+    }
+
+    // Safely fetch the caller's role. Returns '' if the doc doesn't exist,
+    // preventing the entire rule from erroring out and silently denying access.
+    function getRole() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userData.data.get('role', '');
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && getRole() == 'super_admin';
+    }
+
+    // isAdmin() is true for both 'super_admin' and 'admin' roles.
+    function isAdmin() {
+      return isAuthenticated() && getRole() in ['super_admin', 'admin'];
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && currentUid() == userId;
+    }
+
+    // ─── Users ─────────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── Tasks ─────────────────────────────────────────────────────────────────
+    match /tasks/{taskId} {
+      // Admins see everything.
+      // Members can only read tasks they are assigned to, or common tasks.
+      allow read: if isAdmin()
+        || (isAuthenticated() && (
+          resource.data.get('isCommonTask', false) == true
+          || currentUid() in resource.data.get('assignedTo', [])
+        ));
+
+      allow create: if isAdmin();
+
+      // Members can update tasks they are assigned to (progress, remarks, etc.)
+      allow update: if isAdmin()
+        || (isAuthenticated() && currentUid() in resource.data.get('assignedTo', []));
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── Chats ─────────────────────────────────────────────────────────────────
+    match /chats/{chatId} {
+      // Anyone authenticated can read chats they are a member of,
+      // or system/global chats. Super admins read everything.
+      allow read: if isSuperAdmin()
+        || isAdmin()
+        || (isAuthenticated() && (
+            resource.data.get('type', '') in ['global', 'role']
+            || currentUid() in resource.data.get('members', [])
+          ));
+      // Only admins and super_admins can create chat rooms/groups
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── Messages ──────────────────────────────────────────────────────────────
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.senderId == currentUid();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // ─── Notifications ─────────────────────────────────────────────────────────
+    match /notifications/{notifId} {
+      // Only the recipient can read their own notifications
+      allow read: if isAuthenticated()
+        && resource.data.userId == currentUid();
+
+      // Only admins can create cross-user notifications (task assignments, role changes).
+      // This prevents members from spamming other users' notification feeds.
+      allow create: if isAdmin();
+
+      // Only the recipient can mark notifications as read
+      allow update: if isAuthenticated()
+        && resource.data.userId == currentUid()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+
+      allow delete: if isSuperAdmin()
+        || (isAuthenticated() && resource.data.userId == currentUid());
+    }
+
+    // ─── Task Logs (audit trail) ───────────────────────────────────────────────
+    match /taskLogs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // ─── Activity Logs (heatmap) ───────────────────────────────────────────────
+    match /activityLogs/{logId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == currentUid();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // ─── Typing indicators ─────────────────────────────────────────────────────
+    match /typing/{chatId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ─── Last-seen (cross-device unread tracking) ──────────────────────────────
+    match /lastSeen/{userId} {
+      allow read, write: if isAuthenticated() && currentUid() == userId;
+    }
+
+    // ─── Default deny ──────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

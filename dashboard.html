@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="./main.css" />
+    <style>
+      /* Force light loader */
+      .loading-overlay { background: #ffffff !important; color: #111827 !important; }
+      .loading-text { color: #9ca3af !important; }
+
+      /* Chart canvases always contained */
+      .chart-container { position: relative; overflow: hidden; min-width: 0; }
+      .chart-container canvas { max-width: 100% !important; }
+
+      /* Dashboard charts row: collapses on tablet */
+      @media (max-width: 767px) {
+        #charts-row { grid-template-columns: 1fr !important; }
+      }
+      /* Modal internal grid: stack on mobile */
+      @media (max-width: 479px) {
+        #create-task-form .grid-2,
+        #task-form .grid-2 {
+          grid-template-columns: 1fr !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Loading -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading dashboard...</span>
+    </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar" id="mobile-topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="ph ph-list"></i>
+      </button>
+      <div class="mobile-logo">
+        <div class="mobile-logo-icon"><i class="ph ph-circles-four"></i></div>
+        <span class="mobile-logo-text">NeonSync</span>
+      </div>
+      <div style="width:36px"></div>
+    </div>
+
+    <div class="app-layout" id="app">
+      <div id="sidebar" class="sidebar"></div>
+
+      <main class="main-content" id="main-content">
+        <!-- Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title" id="dash-greeting">Dashboard</h1>
+            <p class="page-subtitle" id="dash-subtitle">Welcome back!</p>
+          </div>
+
+          <button
+            class="btn btn-primary"
+            id="create-task-btn"
+            data-testid="create-task-btn"
+            style="display: none"
+            onclick="openCreateTaskModal()"
+          >
+            <i class="ph ph-plus"></i>
+            New Task
+          </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="stats-grid" data-testid="stats-grid">
+          <div class="stat-card animate-in">
+            <div class="stat-icon cyan">
+              <i class="ph ph-check-square"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-total" data-testid="stat-total">
+                0
+              </div>
+              <div class="stat-label">Total Tasks</div>
+            </div>
+          </div>
+
+          <div class="stat-card animate-in" style="animation-delay: 0.05s">
+            <div class="stat-icon purple">
+              <i class="ph ph-arrows-clockwise"></i>
+            </div>
+            <div class="stat-info">
+              <div
+                class="stat-value"
+                id="stat-active"
+                data-testid="stat-active"
+              >
+                0
+              </div>
+              <div class="stat-label">Active Tasks</div>
+            </div>
+          </div>
+
+          <div class="stat-card animate-in" style="animation-delay: 0.1s">
+            <div class="stat-icon danger">
+              <i class="ph ph-warning-circle"></i>
+            </div>
+            <div class="stat-info">
+              <div
+                class="stat-value"
+                id="stat-overdue"
+                data-testid="stat-overdue"
+              >
+                0
+              </div>
+              <div class="stat-label">Overdue</div>
+            </div>
+          </div>
+
+          <div class="stat-card animate-in" style="animation-delay: 0.15s">
+            <div class="stat-icon green">
+              <i class="ph ph-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <div
+                class="stat-value"
+                id="stat-completed"
+                data-testid="stat-completed"
+              >
+                0
+              </div>
+              <div class="stat-label">Completed</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts (Admin Only) -->
+        <div class="grid-2 mb-6" id="charts-row" style="display: none">
+          <div class="card animate-in" style="animation-delay: 0.2s">
+            <div class="section-header">
+              <span class="section-title">Task Distribution</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-pie"></canvas>
+            </div>
+          </div>
+
+          <div class="card animate-in" style="animation-delay: 0.25s">
+            <div class="section-header">
+              <span class="section-title">Activity Timeline</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-line"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid-2">
+          <!-- Recent Tasks -->
+          <div class="card animate-in" style="animation-delay: 0.3s">
+            <div class="section-header">
+              <span class="section-title">Recent Tasks</span>
+              <a
+                href="tasks.html"
+                style="font-size: 12px; color: var(--cyan)"
+              >
+                View all
+              </a>
+            </div>
+
+            <div id="recent-tasks" data-testid="recent-tasks">
+              <div class="empty-state">
+                <i class="ph ph-check-square"></i>
+                <p>No tasks yet</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deadlines + Leaderboard -->
+          <div>
+            <div class="card mb-4 animate-in" style="animation-delay: 0.35s">
+              <div class="section-header">
+                <span class="section-title">Upcoming Deadlines</span>
+              </div>
+
+              <div id="upcoming-deadlines" data-testid="upcoming-deadlines">
+                <div class="empty-state">
+                  <i class="ph ph-calendar"></i>
+                  <p>No upcoming deadlines</p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="card animate-in"
+              id="leaderboard-card"
+              style="animation-delay: 0.4s; display: none"
+            >
+              <div class="section-header">
+                <span class="section-title">Top Performers</span>
+              </div>
+
+              <div id="leaderboard-list" data-testid="leaderboard-list"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Create Task Modal -->
+
+    <div
+      class="modal-overlay"
+      id="create-task-modal"
+      data-testid="create-task-modal"
+    >
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">Create New Task</span>
+          <button class="modal-close" onclick="closeModal('create-task-modal')">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <form
+          id="create-task-form"
+          onsubmit="submitCreateTask(event)"
+          data-testid="create-task-form"
+        >
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input
+              type="text"
+              id="task-title"
+              class="form-input"
+              placeholder="Task title..."
+              required
+              data-testid="task-title-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea
+              id="task-desc"
+              class="form-input"
+              placeholder="Describe the task..."
+              data-testid="task-desc-input"
+            ></textarea>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Priority *</label>
+              <select
+                id="task-priority"
+                class="form-input form-select"
+                data-testid="task-priority-select"
+              >
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Deadline *</label>
+              <input
+                type="datetime-local"
+                id="task-deadline"
+                class="form-input"
+                required
+                data-testid="task-deadline-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Assign To (search users)</label>
+
+            <input
+              type="text"
+              id="task-assign-search"
+              class="form-input"
+              placeholder="Type name to search..."
+              data-testid="task-assign-search"
+              oninput="searchAssignees(this.value)"
+            />
+
+            <div
+              id="assignee-results"
+              style="
+                max-height: 160px;
+                overflow-y: auto;
+                margin-top: 6px;
+                border: 1px solid var(--border-glass);
+                border-radius: var(--radius-md);
+                display: none;
+                background: #fff; border-color: var(--border-hover) !important;
+              "
+            ></div>
+
+            <div
+              id="selected-assignees"
+              style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px"
+              data-testid="selected-assignees"
+            ></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tags (comma separated)</label>
+            <input
+              type="text"
+              id="task-tags"
+              class="form-input"
+              placeholder="design, frontend, urgent"
+              data-testid="task-tags-input"
+            />
+          </div>
+
+          <div
+            class="form-group"
+            style="display: flex; align-items: center; gap: 10px"
+          >
+            <input
+              type="checkbox"
+              id="task-common"
+              style="
+                width: 16px;
+                height: 16px;
+                accent-color: var(--cyan);
+              "
+              data-testid="task-common-check"
+            />
+
+            <label
+              for="task-common"
+              class="form-label"
+              style="margin: 0; cursor: pointer"
+            >
+              Common Task (visible to all)
+            </label>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              justify-content: flex-end;
+              margin-top: 8px;
+            "
+          >
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeModal('create-task-modal')"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              data-testid="create-task-submit"
+            >
+              <i class="ph ph-check"></i>
+              Create Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="./dashboard.js"></script>
+
+  </body>
+</html>

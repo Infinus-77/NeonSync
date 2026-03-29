@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Team Management & Collaboration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <style>
+      *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+      :root {
+        --bg-body: #f5f6fa;
+        --blue: #4f6ef7;
+        --purple: #8b5cf6;
+        --rose: #f43f5e;
+        --green: #10b981;
+        --teal: #0ea5e9;
+        --text-primary: #111827;
+        --text-secondary: #4b5563;
+        --text-muted: #9ca3af;
+        --border-glass: rgba(0,0,0,0.07);
+        --border-subtle: rgba(0,0,0,0.06);
+        --gradient-brand: linear-gradient(135deg, #4f6ef7 0%, #8b5cf6 100%);
+        --shadow-sm: 0 1px 4px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.05);
+      }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--bg-body);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+      body::before {
+        content: ''; position: fixed; inset: 0;
+        background:
+          radial-gradient(ellipse 70% 50% at 10% 20%, rgba(79,110,247,0.06) 0%, transparent 55%),
+          radial-gradient(ellipse 50% 40% at 90% 10%, rgba(139,92,246,0.05) 0%, transparent 50%);
+        pointer-events: none; z-index: 0;
+      }
+      .container { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+      /* Nav */
+      nav {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 48px;
+        height: 60px;
+        border-bottom: 1px solid var(--border-subtle);
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        position: sticky; top: 0; z-index: 100;
+      }
+      .nav-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+      .nav-logo-icon {
+        width: 30px; height: 30px;
+        background: var(--gradient-brand);
+        border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .nav-logo h1 {
+        font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+      }
+      .nav-actions { display: flex; gap: 8px; align-items: center; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 7px 16px; border-radius: 9px;
+        font-size: 13px; font-weight: 600;
+        border: none; cursor: pointer; text-decoration: none;
+        transition: all 0.18s ease;
+        font-family: 'Inter', sans-serif; white-space: nowrap;
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border-glass);
+        color: var(--text-secondary);
+      }
+      .btn-outline:hover { border-color: rgba(0,0,0,0.15); color: var(--text-primary); background: rgba(0,0,0,0.03); }
+      .btn-primary { background: var(--blue); color: white; box-shadow: 0 1px 6px rgba(79,110,247,0.25); }
+      .btn-primary:hover { background: #3d5ce8; box-shadow: 0 4px 16px rgba(79,110,247,0.3); }
+      .btn-lg { padding: 10px 22px; font-size: 14px; border-radius: 10px; }
+
+      /* Hero */
+      .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 72px 24px; }
+      .hero-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 4px 13px; background: rgba(79,110,247,0.08);
+        border: 1px solid rgba(79,110,247,0.18); border-radius: 9999px;
+        font-size: 11.5px; font-weight: 600; color: var(--blue);
+        margin-bottom: 24px; animation: fadeInDown 0.5s ease both;
+      }
+      .hero-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: clamp(32px, 5.5vw, 64px);
+        font-weight: 800; line-height: 1.06;
+        letter-spacing: -0.03em; margin-bottom: 18px;
+        color: var(--text-primary);
+        animation: fadeInUp 0.5s ease 0.1s both;
+      }
+      .hero-title .gradient {
+        background: var(--gradient-brand);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      }
+      .hero-subtitle {
+        font-size: 16px; color: var(--text-secondary);
+        max-width: 500px; line-height: 1.65; margin-bottom: 32px;
+        animation: fadeInUp 0.5s ease 0.2s both;
+      }
+      .hero-cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.5s ease 0.3s both; }
+
+      /* Features */
+      .features { padding: 72px 48px; position: relative; z-index: 1; }
+      .features-title {
+        text-align: center;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 26px; font-weight: 800; margin-bottom: 36px; letter-spacing: -0.02em;
+        color: var(--text-primary);
+      }
+      .features-title span { background: var(--gradient-brand); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; max-width: 1100px; margin: 0 auto; }
+      .feature-card {
+        background: #fff;
+        border: 1px solid var(--border-glass); border-radius: 12px;
+        padding: 20px; transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+      }
+      .feature-card:hover { border-color: rgba(79,110,247,0.2); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+      .feature-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 12px; }
+      .feature-icon.cyan   { background: rgba(14,165,233,0.10);  color: var(--teal); }
+      .feature-icon.purple { background: rgba(139,92,246,0.10);  color: var(--purple); }
+      .feature-icon.pink   { background: rgba(244,63,94,0.10);   color: var(--rose); }
+      .feature-icon.green  { background: rgba(16,185,129,0.10);  color: var(--green); }
+      .feature-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
+      .feature-desc  { font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; }
+
+      /* Roles */
+      .roles { padding: 56px 48px; position: relative; z-index: 1; text-align: center; background: #fff; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+      .roles-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 32px; letter-spacing: -0.02em; color: var(--text-primary); }
+      .roles-grid { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; max-width: 840px; margin: 0 auto; }
+      .role-card {
+        flex: 1; min-width: 200px; max-width: 260px;
+        background: #fff;
+        border: 1px solid var(--border-glass); border-radius: 12px;
+        padding: 20px 18px; transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+        text-align: left;
+      }
+      .role-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+      .role-card.super-admin { border-top: 2px solid var(--rose); }
+      .role-card.admin       { border-top: 2px solid var(--blue); }
+      .role-card.member      { border-top: 2px solid var(--green); }
+      .role-badge { display: inline-flex; padding: 2px 9px; border-radius: 9999px; font-size: 10px; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.04em; }
+      .role-badge.super-admin { background: rgba(244,63,94,0.10); color: var(--rose); border: 1px solid rgba(244,63,94,0.22); }
+      .role-badge.admin       { background: rgba(79,110,247,0.10); color: var(--blue); border: 1px solid rgba(79,110,247,0.22); }
+      .role-badge.member      { background: rgba(16,185,129,0.10); color: var(--green); border: 1px solid rgba(16,185,129,0.22); }
+      .role-name  { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); }
+      .role-perms { list-style: none; }
+      .role-perms li { font-size: 12px; color: var(--text-secondary); padding: 3px 0; display: flex; align-items: center; gap: 6px; }
+      .role-perms li::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+
+      /* Footer */
+      footer { padding: 24px 48px; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 12px; color: var(--text-muted); position: relative; z-index: 1; }
+
+      @keyframes fadeInUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes fadeInDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+      @media (max-width: 768px) {
+        nav { padding: 0 16px; }
+        .hero { padding: 52px 16px; }
+        .features, .roles { padding: 48px 16px; }
+        footer { padding: 20px 16px; }
+        .nav-actions .btn-outline { display: none; }
+        .hero-subtitle { font-size: 15px; }
+      }
+      @media (max-width: 480px) {
+        nav { padding: 0 12px; }
+        .hero { padding: 40px 12px; }
+        .hero-title { font-size: 30px !important; }
+        .features, .roles { padding: 36px 12px; }
+        .features-title, .roles-title { font-size: 20px; }
+        .roles-grid { flex-direction: column; align-items: stretch; }
+        .role-card { max-width: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <nav>
+        <a href="/" class="nav-logo">
+          <div class="nav-logo-icon"><i class="ph ph-circles-four" style="color:white;font-size:15px"></i></div>
+          <h1>NeonSync</h1>
+        </a>
+        <div class="nav-actions">
+          <a href="login.html" class="btn btn-outline">Sign In</a>
+          <a href="login.html" class="btn btn-primary">
+            <i class="ph ph-rocket-launch"></i> Get Started
+          </a>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div class="hero-badge"><i class="ph ph-sparkle"></i> Real-time Team Collaboration</div>
+        <h1 class="hero-title">Sync your team.<br /><span class="gradient">Ship faster.</span></h1>
+        <p class="hero-subtitle">NeonSync brings together task management, real-time chat, role-based dashboards, and analytics — all in a beautiful interface built for modern teams.</p>
+        <div class="hero-cta">
+          <a href="login.html" class="btn btn-primary btn-lg"><i class="ph ph-rocket-launch"></i> Launch App</a>
+          <a href="login.html" class="btn btn-outline btn-lg"><i class="ph ph-sign-in"></i> Sign In</a>
+        </div>
+      </section>
+
+      <section class="features">
+        <h2 class="features-title">Everything your team needs, <span>beautifully unified</span></h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon cyan"><i class="ph ph-check-square"></i></div>
+            <div class="feature-title">Task Management</div>
+            <div class="feature-desc">Full CRUD task system with priorities, deadlines, assignees, progress tracking, tags, attachments, and remarks.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon purple"><i class="ph ph-chat-circle-dots"></i></div>
+            <div class="feature-title">Real-time Chat</div>
+            <div class="feature-desc">Global, role-based, and task-specific chat channels powered by Firebase Firestore live listeners.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon pink"><i class="ph ph-chart-bar"></i></div>
+            <div class="feature-title">Analytics Dashboard</div>
+            <div class="feature-desc">Visual charts for task distribution, completion timelines, priority breakdown, and team leaderboards.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon green"><i class="ph ph-user-circle"></i></div>
+            <div class="feature-title">GitHub-style Profiles</div>
+            <div class="feature-desc">User profiles with contribution heatmaps, task history timelines, skills, and productivity scores.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon cyan"><i class="ph ph-bell"></i></div>
+            <div class="feature-title">Notification System</div>
+            <div class="feature-desc">Real-time notifications for task assignments, status changes, remarks, and deadline alerts.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon purple"><i class="ph ph-shield"></i></div>
+            <div class="feature-title">Role-based Access</div>
+            <div class="feature-desc">Three-tier permission system: Super Admin, Admin, and Member — each with tailored dashboards and controls.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="roles">
+        <h2 class="roles-title">Built for teams of all sizes</h2>
+        <div class="roles-grid">
+          <div class="role-card super-admin">
+            <div class="role-badge super-admin">Super Admin</div>
+            <div class="role-name">Full Control</div>
+            <ul class="role-perms">
+              <li>Manage all users & roles</li><li>Create & delete any task</li>
+              <li>Access all analytics</li><li>All chat channels</li><li>System-wide oversight</li>
+            </ul>
+          </div>
+          <div class="role-card admin">
+            <div class="role-badge admin">Admin</div>
+            <div class="role-name">Team Manager</div>
+            <ul class="role-perms">
+              <li>Manage team members</li><li>Create & assign tasks</li>
+              <li>Team analytics</li><li>Admin chat channel</li><li>Role-based filtering</li>
+            </ul>
+          </div>
+          <div class="role-card member">
+            <div class="role-badge member">Member</div>
+            <div class="role-name">Contributor</div>
+            <ul class="role-perms">
+              <li>View assigned tasks</li><li>Update task progress</li>
+              <li>Add remarks</li><li>Global chat access</li><li>Personal profile & heatmap</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>Built with Firebase · Pure HTML/CSS/Vanilla JS · No frameworks</p>
+        <p style="margin-top:5px">NeonSync &copy; 2025 — Team Management &amp; Collaboration Platform</p>
+      </footer>
+    </div>
+
+    <script type="module">
+      try {
+        const { auth, db } = await import("./firebase-config.js");
+        const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+        const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if (snap.exists()) window.location.href = "dashboard.html";
+          }
+        });
+      } catch (e) {}
+    </script>
+  </body>
+</html>

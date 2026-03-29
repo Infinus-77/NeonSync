@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Tasks</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <link rel="stylesheet" href="./main.css" />
+    <style>
+      /* Force light loader */
+      .loading-overlay { background: #ffffff !important; color: #111827 !important; }
+      .loading-text { color: #9ca3af !important; }
+
+      /* Task modal: priority+status grid collapses on small screens */
+      @media (max-width: 479px) {
+        #task-form .grid-2 { grid-template-columns: 1fr !important; }
+        .toolbar { flex-direction: column; }
+        .toolbar .form-input,
+        .toolbar .form-select { width: 100%; max-width: none !important; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Loading -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <span class="loading-text">Loading tasks...</span>
+    </div>
+
+    <!-- Layout -->
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar" id="mobile-topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="ph ph-list"></i>
+      </button>
+      <div class="mobile-logo">
+        <div class="mobile-logo-icon"><i class="ph ph-circles-four"></i></div>
+        <span class="mobile-logo-text">NeonSync</span>
+      </div>
+      <div style="width:36px"></div>
+    </div>
+
+    <div class="app-layout" id="app">
+      <!-- Sidebar -->
+      <div id="sidebar" class="sidebar"></div>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Tasks</h1>
+            <p class="page-subtitle" id="tasks-subtitle">
+              Manage and track all tasks
+            </p>
+          </div>
+
+          <button
+            class="btn btn-primary"
+            id="new-task-btn"
+            style="display: none"
+            onclick="openTaskModal()"
+          >
+            <i class="ph ph-plus"></i> New Task
+          </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <input
+            type="text"
+            id="search-input"
+            class="form-input"
+            placeholder="Search tasks..."
+            oninput="applyFilters()"
+          />
+
+          <select
+            id="filter-status"
+            class="form-input form-select"
+            onchange="applyFilters()"
+          >
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="review">Review</option>
+            <option value="completed">Completed</option>
+            <option value="overdue">Overdue</option>
+          </select>
+
+          <select
+            id="filter-priority"
+            class="form-input form-select"
+            onchange="applyFilters()"
+          >
+            <option value="">All Priority</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="filter-bar">
+          <button
+            class="filter-btn active"
+            onclick="setViewFilter(this, 'all')"
+          >
+            All Tasks
+          </button>
+          <button class="filter-btn" onclick="setViewFilter(this, 'mine')">
+            Assigned to Me
+          </button>
+          <button class="filter-btn" onclick="setViewFilter(this, 'common')">
+            Common Tasks
+          </button>
+          <button
+            class="filter-btn"
+            id="filter-created-btn"
+            style="display: none"
+            onclick="setViewFilter(this, 'created')"
+          >
+            Created by Me
+          </button>
+        </div>
+
+        <!-- Tasks -->
+        <div id="tasks-container" class="tasks-grid">
+          <div
+            id="tasks-loading-placeholder"
+            class="empty-state"
+            style="grid-column: 1/-1"
+          >
+            <i
+              class="ph ph-circle-notch"
+              style="font-size: 28px; animation: spin 1s linear infinite"
+            ></i>
+            <p>Loading tasks...</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="task-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title" id="task-modal-title">Create New Task</span>
+          <button class="modal-close" onclick="closeModal('task-modal')">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <form id="task-form" onsubmit="submitTask(event)">
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input type="text" id="tf-title" class="form-input" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea id="tf-desc" class="form-input" rows="3"></textarea>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select id="tf-priority" class="form-input form-select">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="tf-status" class="form-input form-select">
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deadline *</label>
+            <input
+              type="datetime-local"
+              id="tf-deadline"
+              class="form-input"
+              required
+            />
+          </div>
+
+          <!-- ✅ ADD THIS BLOCK HERE -->
+          <input type="hidden" id="edit-task-id" />
+
+          <div class="form-group" id="assign-group">
+            <label class="form-label">Assign To</label>
+
+            <input
+              type="text"
+              id="tf-assign-search"
+              class="form-input"
+              placeholder="Search users..."
+              oninput="searchAssignees(this.value)"
+              onfocus="searchAssignees('')"
+            />
+
+            <div
+              id="tf-assignee-results"
+              style="
+                max-height: 150px;
+                overflow-y: auto;
+                margin-top: 6px;
+                border: 1px solid var(--border-glass);
+                border-radius: var(--radius-md);
+                display: none;
+                background: #fff; border-color: var(--border-hover) !important;
+              "
+            ></div>
+
+            <div
+              id="tf-selected-assignees"
+              style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px"
+            ></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tags</label>
+            <input
+              type="text"
+              id="tf-tags"
+              class="form-input"
+              placeholder="design, backend"
+            />
+          </div>
+
+          <div
+            class="form-group"
+            style="display: flex; align-items: center; gap: 10px"
+          >
+            <input
+              type="checkbox"
+              id="tf-common"
+              style="width: 15px; height: 15px"
+            />
+
+            <label class="form-label" style="margin: 0; cursor: pointer">
+              Common Task (visible to all)
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeModal('task-modal')"
+            >
+              Cancel
+            </button>
+            <button type="submit" id="task-form-submit" class="btn btn-primary">
+              <i class="ph ph-check"></i> Save Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="./tasks.js"></script>
+
+  </body>
+</html>

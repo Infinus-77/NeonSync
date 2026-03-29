@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg-body:          #f4f6fb;
+        --cyan:             #4f6ef7;
+        --purple:           #8b5cf6;
+        --pink:             #f43f5e;
+        --green:            #10b981;
+        --danger:           #ef4444;
+        --text-primary:     #0f1117;
+        --text-secondary:   #5a6478;
+        --text-muted:       #9aa1b1;
+        --border-glass:     rgba(0, 0, 0, 0.09);
+        --radius-lg:        14px;
+        --radius-xl:        20px;
+        --transition:       all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --gradient-brand:   linear-gradient(135deg, #4f6ef7 0%, #8b5cf6 100%);
+      }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--bg-body);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 20% 40%,
+            rgba(79, 110, 247, 0.06) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse at 80% 30%,
+            rgba(139, 92, 246, 0.05) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse at 50% 90%,
+            rgba(244, 63, 94, 0.04) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: none;
+        pointer-events: none;
+      }
+      .login-box {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        border: 1px solid var(--border-glass);
+        border-radius: 20px;
+        padding: 36px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.08), 0 1px 6px rgba(0,0,0,0.05);
+        animation: fadeIn 0.4s ease both;
+      }
+      @media (max-width: 479px) {
+        .login-box {
+          padding: 24px 20px;
+          border-radius: 16px;
+        }
+        .logo h1 { font-size: 20px; }
+        .logo-icon { width: 32px; height: 32px; }
+        .form-input { font-size: 16px; } /* prevents iOS zoom */
+        .btn-submit { font-size: 14px; padding: 12px; }
+      }
+      @media (max-width: 359px) {
+        .login-box { padding: 20px 14px; border-radius: 12px; }
+        .tabs { margin-bottom: 20px; }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+        justify-content: center;
+      }
+      .logo-icon {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(
+          135deg,
+          var(--cyan),
+          var(--purple)
+        );
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo h1 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #4f6ef7 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .tabs {
+        display: flex;
+        background: #f7f8fc;
+        border-radius: 10px;
+        padding: 3px;
+        margin-bottom: 28px;
+      }
+      .tab-btn {
+        flex: 1;
+        padding: 9px;
+        background: none;
+        border: none;
+        border-radius: 8px;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-family: 'Inter', system-ui, sans-serif;
+      }
+      .tab-btn.active {
+        background: #eef1ff;
+        color: var(--text-primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .form-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        letter-spacing: 0.03em;
+      }
+      .form-input {
+        width: 100%;
+        padding: 11px 14px;
+        background: #f7f8fc;
+        border: 1px solid var(--border-glass);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 14px;
+        font-family: 'Inter', system-ui, sans-serif;
+        transition: var(--transition);
+        outline: none;
+      }
+      .form-input:focus {
+        border-color: #4f6ef7;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(79,110,247,0.08);
+      }
+      .btn-submit {
+        width: 100%;
+        padding: 13px;
+        background: #4f6ef7;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: 'Inter', system-ui, sans-serif;
+        transition: var(--transition);
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(79,110,247,0.3);
+      }
+      .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .error-msg {
+        display: none;
+        padding: 10px 14px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: 10px;
+        font-size: 12px;
+        color: #ef4444;
+        margin-bottom: 14px;
+      }
+      .error-msg.visible {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .success-msg {
+        display: none;
+        padding: 10px 14px;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        border-radius: 10px;
+        font-size: 12px;
+        color: #10b981;
+        margin-bottom: 14px;
+      }
+      .success-msg.visible {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      /* ✅ FIX: Forgot password link */
+      .forgot-link {
+        display: block;
+        text-align: right;
+        font-size: 11px;
+        color: #4f6ef7;
+        margin-top: -8px;
+        margin-bottom: 14px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: 'Inter', system-ui, sans-serif;
+        text-decoration: none;
+      }
+      .forgot-link:hover {
+        text-decoration: underline;
+      }
+      /* Reset form */
+      #reset-panel {
+        display: none;
+        animation: fadeIn 0.3s ease both;
+      }
+      #reset-panel.visible {
+        display: block;
+      }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: var(--text-muted);
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-family: 'Inter', system-ui, sans-serif;
+        margin-bottom: 16px;
+        padding: 0;
+        transition: color 0.2s;
+      }
+      .back-link:hover {
+        color: var(--text-primary);
+      }
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 18px 0;
+      }
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border-glass);
+      }
+      .divider span {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-box">
+      <div class="logo">
+        <div class="logo-icon">
+          <i
+            class="ph ph-circles-four"
+            style="color: white; font-size: 18px"
+          ></i>
+        </div>
+        <h1>NeonSync</h1>
+      </div>
+
+      <!-- Auth tabs -->
+      <div id="auth-container">
+        <div class="tabs">
+          <button
+            class="tab-btn active"
+            id="tab-signin"
+            data-testid="tab-signin"
+          >
+            Sign In
+          </button>
+          <button class="tab-btn" id="tab-register" data-testid="tab-register">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Sign In -->
+        <div class="tab-content active" id="tc-signin">
+          <div class="error-msg" id="signin-error">
+            <i class="ph ph-warning-circle"></i
+            ><span id="signin-error-text"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              id="signin-email"
+              class="form-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              data-testid="signin-email"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              id="signin-password"
+              class="form-input"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              data-testid="signin-password"
+            />
+          </div>
+          <!-- ✅ FIX: Forgot password link -->
+          <button
+            class="forgot-link"
+            id="forgot-password-btn"
+            data-testid="forgot-password-btn"
+          >
+            Forgot password?
+          </button>
+
+          <button class="btn-submit" id="signin-btn" data-testid="signin-btn">
+            <i class="ph ph-sign-in"></i> Sign In
+          </button>
+        </div>
+
+        <!-- Register -->
+        <div class="tab-content" id="tc-register">
+          <div class="error-msg" id="register-error">
+            <i class="ph ph-warning-circle"></i
+            ><span id="register-error-text"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input
+              type="text"
+              id="reg-name"
+              class="form-input"
+              placeholder="Jane Smith"
+              autocomplete="name"
+              data-testid="reg-name"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              id="reg-email"
+              class="form-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              data-testid="reg-email"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              id="reg-password"
+              class="form-input"
+              placeholder="Min. 6 characters"
+              autocomplete="new-password"
+              data-testid="reg-password"
+            />
+          </div>
+          <button
+            class="btn-submit"
+            id="register-btn"
+            data-testid="register-btn"
+          >
+            <i class="ph ph-user-plus"></i> Create Account
+          </button>
+        </div>
+      </div>
+
+      <!-- ✅ FIX: Password Reset Panel (hidden by default) -->
+      <div id="reset-panel">
+        <button class="back-link" id="back-to-signin-btn">
+          <i class="ph ph-arrow-left"></i> Back to sign in
+        </button>
+        <div style="margin-bottom: 18px">
+          <div
+            style="
+              font-family: 'Plus Jakarta Sans', sans-serif;
+              font-size: 18px;
+              font-weight: 700;
+              margin-bottom: 6px;
+            "
+          >
+            Reset Password
+          </div>
+          <div style="font-size: 13px; color: var(--text-secondary)">
+            Enter your email and we'll send you a reset link.
+          </div>
+        </div>
+
+        <div class="success-msg" id="reset-success">
+          <i class="ph ph-check-circle"></i
+          ><span>Reset email sent! Check your inbox.</span>
+        </div>
+        <div class="error-msg" id="reset-error">
+          <i class="ph ph-warning-circle"></i
+          ><span id="reset-error-text"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input
+            type="email"
+            id="reset-email"
+            class="form-input"
+            placeholder="you@example.com"
+            data-testid="reset-email"
+          />
+        </div>
+        <button class="btn-submit" id="reset-btn" data-testid="reset-btn">
+          <i class="ph ph-paper-plane-tilt"></i> Send Reset Email
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="./login.js"></script>
+  </body>
+</html>
