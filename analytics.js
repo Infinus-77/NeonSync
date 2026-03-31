@@ -86,7 +86,12 @@ function renderAnalytics() {
 function renderKPIs(tasks, prevTasks, now) {
   const completed = tasks.filter((t) => t.status === "completed").length;
   const prevCompleted = prevTasks.filter((t) => t.status === "completed").length;
-  const active = tasks.filter((t) => ["in-progress", "review", "pending"].includes(t.status)).length;
+  const active = tasks.filter((t) => {
+    const assigneeList = t.assignedTo || [];
+    if (assigneeList.length === 0) return false;
+    if (t.status === "completed") return false;
+    return true;
+  }).length;
   const overdue = tasks.filter((t) => {
     if (!t.deadline || t.status === "completed") return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
@@ -111,7 +116,7 @@ function renderKPIs(tasks, prevTasks, now) {
   document.getElementById("a-rate-sub").textContent = tasks.length ? `${completed} of ${tasks.length} tasks` : "No tasks";
   document.getElementById("a-overdue").textContent = overdue;
   document.getElementById("a-active").textContent = active;
-  document.getElementById("a-active-sub").textContent = `${tasks.filter(t=>t.status==="in-progress").length} in progress`;
+  document.getElementById("a-active-sub").textContent = `${active} with Active tag`;
   document.getElementById("a-users").textContent = members;
   document.getElementById("a-users-sub").textContent = `${activeMembers} active this week`;
 
@@ -509,7 +514,14 @@ function renderMemberProductivity(tasks, users, now) {
   const memberStats = members.map((u) => {
     const assigned = tasks.filter((t) => (t.assignedTo || []).includes(u.id));
     const completed = assigned.filter((t) => t.status === "completed").length;
-    const active = assigned.filter((t) => ["in-progress", "review"].includes(t.status)).length;
+    const active = assigned.filter((t) => {
+      if (t.status === "completed") return false;
+      const d = t.deadline
+        ? t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline)
+        : null;
+      if (d && d < now) return false;
+      return true;
+    }).length;
     const overdue = assigned.filter((t) => {
       if (!t.deadline || t.status === "completed") return false;
       const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);

@@ -278,8 +278,21 @@ function renderTasks(tasks) {
       const displayStatus = isOverdue ? "overdue" : t.status || "pending";
       const pct = t.completionPercentage || 0;
 
-      // Assignee avatars (max 3 shown + overflow count)
+      // Active tag: task is active when it has assignees and is not completed/overdue
       const assigneeList = t.assignedTo || [];
+      const isActive = assigneeList.length > 0 && t.status !== "completed";
+      const activeTag = isActive
+        ? `<span style="
+            font-size:10px;padding:2px 8px;
+            background:rgba(16,185,129,0.12);
+            border:1px solid rgba(16,185,129,0.35);
+            border-radius:999px;color:#10b981;
+            white-space:nowrap;font-weight:600;
+            display:inline-flex;align-items:center;gap:4px;
+          "><span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;"></span>Active</span>`
+        : "";
+
+      // Assignee avatars (max 3 shown + overflow count)
       const shownAssignees = assigneeList.slice(0, 3);
       const extraCount = assigneeList.length - shownAssignees.length;
 
@@ -373,6 +386,7 @@ function renderTasks(tasks) {
         <!-- Status + tags -->
         <div class="task-card-meta">
           ${statusBadge(displayStatus)}
+          ${activeTag}
           ${tagChips}
         </div>
 

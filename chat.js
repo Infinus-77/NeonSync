@@ -17,6 +17,7 @@ import {
   limit,
   updateDoc,
   arrayUnion,
+  arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getInitials, timeAgo, showToast, sanitizeHtml } from "./utils.js";
 
@@ -233,6 +234,24 @@ function getRoomIcon(type) {
 window.selectRoom = (chatId, name, icon) => {
   activeChatId = chatId;
 
+  // Show/hide group action buttons
+  const isGroup = icon === "group-room";
+  const canManage = currentUser.role === "admin" || currentUser.role === "super_admin";
+
+  const addMembersBtn = document.getElementById("add-members-btn");
+  if (addMembersBtn) addMembersBtn.style.display = isGroup && canManage ? "flex" : "none";
+
+  const exitGroupBtn = document.getElementById("exit-group-btn");
+  if (exitGroupBtn) exitGroupBtn.style.display = isGroup ? "flex" : "none";
+
+  // Show members icon on group name
+  const membersIcon = document.getElementById("group-members-icon");
+  if (membersIcon) membersIcon.style.display = isGroup ? "inline-flex" : "none";
+
+  // Make group name clickable only for groups
+  const nameEl2 = document.getElementById("chat-room-name-header");
+  if (nameEl2) nameEl2.style.cursor = isGroup ? "pointer" : "default";
+
   // Mark seen
   lastSeenMap[chatId] = Date.now();
   setDoc(doc(db, "lastSeen", currentUser.id), lastSeenMap, {
@@ -379,7 +398,13 @@ function renderMessages(msgs) {
 
       return (
         dateDivider +
-        `
+        (m.type === "system"
+          ? `<div style="display:flex;align-items:center;gap:10px;margin:8px 0;" data-testid="chat-msg-${m.id}">
+              <div style="flex:1;height:1px;background:var(--border-glass);"></div>
+              <div style="font-size:11px;color:var(--text-muted);font-style:italic;white-space:nowrap;padding:0 6px;">${escapeHtml(m.message)}</div>
+              <div style="flex:1;height:1px;background:var(--border-glass);"></div>
+            </div>`
+          : `
       <div class="message-item" data-testid="chat-msg-${m.id}" style="${isMe ? "flex-direction:row-reverse;" : ""}">
         <div class="message-avatar" style="${isMe ? "background:var(--gradient-brand);" : ""}">
           ${u?.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:11px;font-weight:700;">${getInitials(u?.displayName)}</span>`}
@@ -398,7 +423,7 @@ function renderMessages(msgs) {
             font-size:13px;line-height:1.5;
           ">${escapeHtml(m.message)}</div>
         </div>
-      </div>`
+      </div>`)
       );
     })
     .join("");
@@ -608,3 +633,265 @@ document.addEventListener("click", (e) => {
 const style = document.createElement("style");
 style.textContent = `@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }`;
 document.head.appendChild(style);
+
+// ─── Add Members to existing group ───────────────────────────────────────────
+let addMemberSelected = [];
+
+window.openAddMembersModal = () => {
+  addMemberSelected = [];
+  document.getElementById("add-member-search-input").value = "";
+  document.getElementById("add-member-results").style.display = "none";
+  document.getElementById("add-selected-members").innerHTML = "";
+  document.getElementById("add-member-count").textContent = "";
+  document.getElementById("add-members-modal").classList.add("active");
+};
+
+window.closeAddMembersModal = () => {
+  document.getElementById("add-members-modal").classList.remove("active");
+};
+
+window.searchAddMembers = (query) => {
+  const el = document.getElementById("add-member-results");
+  const q = query.trim().toLowerCase();
+
+  // Get current group members
+  const currentRoom = chatRooms.find((r) => r.docId === activeChatId);
+  const existingMembers = currentRoom?.members || [];
+
+  const filtered = Object.values(allUsers).filter((u) => {
+    if (u.role === "super_admin" && currentUser.role !== "super_admin") return false;
+    if (existingMembers.includes(u.id)) return false; // already in group
+    if (addMemberSelected.includes(u.id)) return false; // already selected
+    if (!q) return true;
+    return (
+      (u.displayName || "").toLowerCase().includes(q) ||
+      (u.email || "").toLowerCase().includes(q)
+    );
+  });
+
+  if (!filtered.length) {
+    el.innerHTML = `<div style="padding:10px;font-size:12px;color:var(--text-muted);text-align:center;">No users found</div>`;
+    el.style.display = "block";
+    return;
+  }
+
+  el.innerHTML = filtered
+    .map(
+      (u) => `
+    <div onclick="selectAddMember('${u.id}')" style="
+      padding:8px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;
+      transition:background 0.15s;border-radius:6px;
+    " onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background=''">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);
+        display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0;">
+        ${getInitials(u.displayName || "?")}
+      </div>
+      <div>
+        <div style="font-weight:500;">${sanitizeHtml(u.displayName || "Unknown")}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${sanitizeHtml(u.email || "")}</div>
+      </div>
+    </div>`
+    )
+    .join("");
+  el.style.display = "block";
+};
+
+window.selectAddMember = (uid) => {
+  if (addMemberSelected.includes(uid)) return;
+  addMemberSelected.push(uid);
+  document.getElementById("add-member-search-input").value = "";
+  document.getElementById("add-member-results").style.display = "none";
+  renderAddSelectedChips();
+};
+
+function renderAddSelectedChips() {
+  const el = document.getElementById("add-selected-members");
+  const countEl = document.getElementById("add-member-count");
+  countEl.textContent = addMemberSelected.length ? `(${addMemberSelected.length})` : "";
+  el.innerHTML = addMemberSelected
+    .map((uid) => {
+      const u = allUsers[uid];
+      const name = u?.displayName || uid;
+      return `<div style="
+        display:inline-flex;align-items:center;gap:5px;
+        background:rgba(79,110,247,0.1);border:1px solid rgba(79,110,247,0.25);
+        border-radius:999px;padding:3px 10px;font-size:12px;
+      ">
+        ${sanitizeHtml(name)}
+        <span onclick="removeAddMember('${uid}')" style="cursor:pointer;color:var(--text-muted);font-size:14px;line-height:1;">&times;</span>
+      </div>`;
+    })
+    .join("");
+}
+
+window.removeAddMember = (uid) => {
+  addMemberSelected = addMemberSelected.filter((id) => id !== uid);
+  renderAddSelectedChips();
+};
+
+window.submitAddMembers = async () => {
+  if (!addMemberSelected.length) {
+    showToast("Select at least one member to add", "error");
+    return;
+  }
+  const btn = document.getElementById("add-members-submit-btn");
+  btn.disabled = true;
+  try {
+    await updateDoc(doc(db, "chats", activeChatId), {
+      members: arrayUnion(...addMemberSelected),
+    });
+    // Post system messages for each added member
+    const adderName = currentUser.displayName || "Admin";
+    for (const uid of addMemberSelected) {
+      const addedName = allUsers[uid]?.displayName || "Someone";
+      await addDoc(collection(db, "messages"), {
+        chatId: activeChatId,
+        type: "system",
+        message: `${adderName} added ${addedName} to the group`,
+        timestamp: serverTimestamp(),
+        senderId: "system",
+      });
+    }
+    showToast("Members added successfully!", "success");
+    closeAddMembersModal();
+  } catch (err) {
+    showToast("Failed to add members: " + err.message, "error");
+  }
+  btn.disabled = false;
+};
+
+// Close add-members results when clicking outside
+document.addEventListener("click", (e) => {
+  const input = document.getElementById("add-member-search-input");
+  const results = document.getElementById("add-member-results");
+  if (input && results && !input.contains(e.target) && !results.contains(e.target)) {
+    results.style.display = "none";
+  }
+});
+
+// ─── Members Panel ────────────────────────────────────────────────────────────
+window.openMembersPanel = () => {
+  const room = chatRooms.find((r) => r.docId === activeChatId);
+  if (!room || room.type !== "group") return;
+
+  const canManage = currentUser.role === "admin" || currentUser.role === "super_admin";
+  const members = room.members || [];
+  const listEl = document.getElementById("members-panel-list");
+
+  listEl.innerHTML = members.map((uid) => {
+    const u = allUsers[uid];
+    const name = u?.displayName || "Unknown";
+    const isMe = uid === currentUser.id;
+    const removable = canManage && !isMe;
+
+    return `<div style="
+      display:flex;align-items:center;gap:10px;
+      padding:8px 10px;border-radius:10px;
+      background:rgba(0,0,0,0.02);
+      border:1px solid var(--border-glass);
+    ">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-brand);
+        display:flex;align-items:center;justify-content:center;
+        font-size:11px;font-weight:700;color:#000;flex-shrink:0;">
+        ${getInitials(name)}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${sanitizeHtml(name)}${isMe ? ' <span style="color:var(--text-muted);font-weight:400;font-size:11px;">(you)</span>' : ""}
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);">${sanitizeHtml(u?.role || "")}</div>
+      </div>
+      ${removable ? `<button onclick="confirmRemoveMember('${uid}','${sanitizeHtml(name).replace(/'/g,"\\'")}'); event.stopPropagation();"
+        style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);
+          border-radius:7px;color:#ef4444;font-size:11px;padding:4px 9px;cursor:pointer;
+          display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;">
+        <i class="ph ph-user-minus"></i> Remove
+      </button>` : ""}
+    </div>`;
+  }).join("");
+
+  document.getElementById("members-panel-overlay").style.display = "block";
+  const panel = document.getElementById("members-panel");
+  panel.style.display = "flex";
+};
+
+window.closeMembersPanel = () => {
+  document.getElementById("members-panel-overlay").style.display = "none";
+  document.getElementById("members-panel").style.display = "none";
+};
+
+// ─── Remove Member ────────────────────────────────────────────────────────────
+let removeMemberTargetId = null;
+let removeMemberTargetName = null;
+
+window.confirmRemoveMember = (uid, name) => {
+  removeMemberTargetId = uid;
+  removeMemberTargetName = name;
+  closeMembersPanel();
+  if (confirm(`Remove "${name}" from this group?`)) {
+    submitRemoveMember();
+  }
+};
+
+async function submitRemoveMember() {
+  if (!removeMemberTargetId) return;
+  try {
+    await updateDoc(doc(db, "chats", activeChatId), {
+      members: arrayRemove(removeMemberTargetId),
+    });
+    const removerName = currentUser.displayName || "Admin";
+    await addDoc(collection(db, "messages"), {
+      chatId: activeChatId,
+      type: "system",
+      message: `${removerName} removed ${removeMemberTargetName} from the group`,
+      timestamp: serverTimestamp(),
+      senderId: "system",
+    });
+    showToast(`${removeMemberTargetName} removed from group`, "success");
+  } catch (err) {
+    showToast("Failed to remove member: " + err.message, "error");
+  }
+  removeMemberTargetId = null;
+  removeMemberTargetName = null;
+}
+
+// ─── Exit Group ───────────────────────────────────────────────────────────────
+window.confirmExitGroup = () => {
+  document.getElementById("exit-group-modal").classList.add("active");
+};
+
+window.closeExitGroupModal = () => {
+  document.getElementById("exit-group-modal").classList.remove("active");
+};
+
+window.submitExitGroup = async () => {
+  try {
+    await updateDoc(doc(db, "chats", activeChatId), {
+      members: arrayRemove(currentUser.id),
+    });
+    const leaverName = currentUser.displayName || "Someone";
+    await addDoc(collection(db, "messages"), {
+      chatId: activeChatId,
+      type: "system",
+      message: `${leaverName} left the group`,
+      timestamp: serverTimestamp(),
+      senderId: "system",
+    });
+    closeExitGroupModal();
+    // Remove from local list and reset chat view
+    chatRooms = chatRooms.filter((r) => r.docId !== activeChatId);
+    activeChatId = null;
+    renderRooms();
+    document.getElementById("chat-room-name-header").textContent = "Select a channel";
+    document.getElementById("chat-room-desc-header").textContent = "Choose a room from the left";
+    document.getElementById("messages-list").innerHTML = `<div class="empty-state"><i class="ph ph-chat-circle"></i><p>Select a chat room to start messaging</p></div>`;
+    document.getElementById("chat-input-area").style.display = "none";
+    document.getElementById("add-members-btn").style.display = "none";
+    document.getElementById("exit-group-btn").style.display = "none";
+    document.getElementById("group-members-icon").style.display = "none";
+    showToast("You left the group", "success");
+  } catch (err) {
+    showToast("Failed to leave group: " + err.message, "error");
+    closeExitGroupModal();
+  }
+};

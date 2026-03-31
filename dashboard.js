@@ -147,11 +147,14 @@ function renderDashboard(tasks, user) {
     );
   }
 
-  // Stats
+  // Stats — active matches "Active tag" logic: has assignees, not completed, not overdue
   const total = myTasks.length;
-  const active = myTasks.filter((t) =>
-    ["in-progress", "review"].includes(t.status),
-  ).length;
+  const active = myTasks.filter((t) => {
+    const assigneeList = t.assignedTo || [];
+    if (assigneeList.length === 0) return false;
+    if (t.status === "completed") return false;
+    return true;
+  }).length;
   const overdue = myTasks.filter((t) => {
     if (!t.deadline || t.status === "completed") return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);

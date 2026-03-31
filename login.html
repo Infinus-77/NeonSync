@@ -256,6 +256,36 @@
         gap: 8px;
       }
       /* ✅ FIX: Forgot password link */
+      /* Hide browser native password reveal buttons (Edge, IE, Chrome) */
+      input[type="password"]::-ms-reveal,
+      input[type="password"]::-ms-clear,
+      input[type="password"]::-webkit-contacts-auto-fill-button,
+      input[type="password"]::-webkit-credentials-auto-fill-button {
+        display: none !important;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .password-wrapper {
+        position: relative;
+      }
+      .password-wrapper .form-input {
+        padding-right: 42px;
+      }
+      .toggle-pw {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        padding: 0;
+        transition: color 0.2s;
+      }
+      .toggle-pw:hover { color: var(--text-secondary); }
       .forgot-link {
         display: block;
         text-align: right;
@@ -368,14 +398,19 @@
           </div>
           <div class="form-group">
             <label class="form-label">Password</label>
-            <input
-              type="password"
-              id="signin-password"
-              class="form-input"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              data-testid="signin-password"
-            />
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="signin-password"
+                class="form-input"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                data-testid="signin-password"
+              />
+              <button type="button" class="toggle-pw" onclick="togglePw('signin-password',this)" tabindex="-1" aria-label="Toggle password visibility">
+                <i class="ph ph-eye" style="font-size:16px;"></i>
+              </button>
+            </div>
           </div>
           <!-- ✅ FIX: Forgot password link -->
           <button
@@ -422,14 +457,19 @@
           </div>
           <div class="form-group">
             <label class="form-label">Password</label>
-            <input
-              type="password"
-              id="reg-password"
-              class="form-input"
-              placeholder="Min. 6 characters"
-              autocomplete="new-password"
-              data-testid="reg-password"
-            />
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="reg-password"
+                class="form-input"
+                placeholder="Min. 6 characters"
+                autocomplete="new-password"
+                data-testid="reg-password"
+              />
+              <button type="button" class="toggle-pw" onclick="togglePw('reg-password',this)" tabindex="-1" aria-label="Toggle password visibility">
+                <i class="ph ph-eye" style="font-size:16px;"></i>
+              </button>
+            </div>
           </div>
           <button
             class="btn-submit"
@@ -487,6 +527,19 @@
       </div>
     </div>
 
+    <script>
+      function togglePw(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.className = 'ph ph-eye-slash';
+        } else {
+          input.type = 'password';
+          icon.className = 'ph ph-eye';
+        }
+      }
+    </script>
     <script type="module" src="./login.js"></script>
   </body>
 </html>

@@ -315,46 +315,6 @@
             <div id="task-logs"></div>
           </div>
 
-          <!-- RIGHT SIDE CHAT -->
-
-          <div>
-            <div
-              class="card animate-in"
-              style="height: 420px; display: flex; flex-direction: column"
-            >
-              <div
-                style="
-                  padding: 16px;
-                  border-bottom: 1px solid var(--border-glass);
-                  font-weight: 600;
-                "
-              >
-                <i class="ph ph-chat-circle-dots"></i> Task Discussion
-              </div>
-
-              <div
-                id="task-messages"
-                style="flex: 1; overflow-y: auto; padding: 14px"
-              ></div>
-
-              <div class="chat-input-area">
-                <input
-                  type="text"
-                  id="task-chat-input"
-                  class="chat-input"
-                  placeholder="Write a message..."
-                  onkeydown="if (event.key === 'Enter') sendTaskMessage();"
-                />
-
-                <button
-                  class="btn btn-primary btn-sm"
-                  onclick="sendTaskMessage()"
-                >
-                  <i class="ph ph-paper-plane-tilt"></i>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
     </div>
