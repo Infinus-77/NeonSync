@@ -4,6 +4,7 @@ import { requireAuth } from "./auth-guard.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications } from "./notifications.js";
+import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   doc, getDoc, updateDoc, collection, query,
   where, getDocs, serverTimestamp, limit, orderBy,
@@ -33,6 +34,7 @@ requireAuth(async (user) => {
   const targetUid = uid || user.id;
   renderSidebar("profile", user);
   initNotifications(user.id);
+  checkDeadlineAlerts(user);
 
   showSkeletons();
   await loadProfile(targetUid);

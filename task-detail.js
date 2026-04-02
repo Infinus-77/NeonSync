@@ -3,6 +3,7 @@ import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications, createNotification } from "./notifications.js";
+import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   doc,
   getDoc,
@@ -49,6 +50,7 @@ requireAuth(async (user) => {
   currentUser = user;
   renderSidebar("tasks", user);
   initNotifications(user.id);
+  checkDeadlineAlerts(user);
 
   const usersSnap = await getDocs(collection(db, "users"));
   usersSnap.docs.forEach((d) => {

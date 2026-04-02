@@ -3,6 +3,7 @@ import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications } from "./notifications.js";
+import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   collection,
   query,
@@ -44,6 +45,7 @@ requireAuth(async (user) => {
   currentUser = user;
   renderSidebar("chat", user);
   initNotifications(user.id);
+  checkDeadlineAlerts(user);
 
   // Load all users for display
   const snap = await getDocs(collection(db, "users"));

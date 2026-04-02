@@ -3,6 +3,7 @@ import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications } from "./notifications.js";
+import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   collection, query, getDocs, orderBy, limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -30,6 +31,7 @@ requireAuth(async (user) => {
 
   renderSidebar("analytics", user);
   initNotifications(user.id);
+  checkDeadlineAlerts(user);
 
   await fetchData();
   renderAnalytics();

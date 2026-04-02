@@ -3,6 +3,7 @@ import { auth, db } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications, createNotification } from "./notifications.js";
+import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   collection,
   query,
@@ -72,6 +73,7 @@ requireAuth(
 
     renderSidebar("users", user);
     initNotifications(user.id);
+    checkDeadlineAlerts(user);
 
     document.getElementById("users-subtitle").textContent =
       user.role === "super_admin"

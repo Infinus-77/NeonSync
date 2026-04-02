@@ -3,6 +3,7 @@ import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications, createNotification } from "./notifications.js";
+import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   collection,
   query,
@@ -35,7 +36,6 @@ let assigneeMap = {};
 let selectedAssignees = [];
 let pieChart = null;
 let lineChart = null;
-
 requireAuth(async (user) => {
   currentUser = user;
 
@@ -49,6 +49,7 @@ requireAuth(async (user) => {
 
   renderSidebar("dashboard", user);
   initNotifications(user.id);
+  checkDeadlineAlerts(user);
 
   // Personalize greeting
   const hour = new Date().getHours();
@@ -178,6 +179,8 @@ function renderDashboard(tasks, user) {
     renderCharts(tasks, now);
     renderLeaderboard(tasks);
   }
+
+  // Check for urgent tasks now handled globally by deadline-alert.js on page load
 }
 
 function renderRecentTasks(tasks, now) {
@@ -778,6 +781,7 @@ function renderSelectedDashAssignees() {
     })
     .join("");
 }
+
 
 // Modal helpers
 window.closeModal = (id) =>

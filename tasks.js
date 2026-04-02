@@ -3,6 +3,7 @@ import { db } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications, createNotification } from "./notifications.js";
+import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   collection,
   query,
@@ -68,6 +69,7 @@ requireAuth(async (user) => {
   currentUser = user;
   renderSidebar("tasks", user);
   initNotifications(user.id);
+  checkDeadlineAlerts(user);
 
   // Safety net: if nothing renders within 8s, show a diagnostic message
   // instead of leaving the user on "Loading tasks..." forever.
