@@ -90,8 +90,18 @@ export function requireAuth(callback, allowedRoles = []) {
       callback(user);
     } catch (err) {
       console.error("Auth guard error:", err);
+      // Change from silent redirect to showing an error so the user isn't stuck in a blind loop
+      document.body.innerHTML = `
+        <div style="padding:40px; text-align:center; font-family:sans-serif;">
+          <h2 style="color:red;">Database Error</h2>
+          <p>We authenticated you, but we couldn't load your user profile from the database.</p>
+          <p style="color:#666;">This usually means your Firestore security rules are blocking access, or your profile was never fully created.</p>
+          <p><i>Technical details: ${err.message}</i></p>
+          <br/>
+          <button onclick="window.location.href='login.html'" style="padding:10px 20px; cursor:pointer;">Go Back to Login</button>
+        </div>
+      `;
       hideLoadingOverlay();
-      window.location.href = "login.html";
     }
   });
 }

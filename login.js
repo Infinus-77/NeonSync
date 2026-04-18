@@ -18,8 +18,13 @@ import {
 // Redirect if already logged in
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (snap.exists()) window.location.href = "dashboard.html";
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists()) window.location.href = "dashboard.html";
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      // We don't redirect here, allowing the user to see the error or re-authenticate if needed.
+    }
   }
 });
 
