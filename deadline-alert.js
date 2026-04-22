@@ -105,7 +105,7 @@ function showDeadlinePopup(tasks, now) {
     style.id = "deadline-alert-styles";
     style.textContent = `
       #deadline-alert-overlay {
-        position: fixed; inset: 0; z-index: 10000;
+        position: fixed; inset: 0; z-index: 21000;
         display: flex; align-items: center; justify-content: center;
         background: rgba(0,0,0,0.55);
         backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -114,10 +114,10 @@ function showDeadlinePopup(tasks, now) {
       @keyframes da-fade-in { from { opacity:0 } to { opacity:1 } }
 
       #deadline-alert-modal {
-        background: var(--bg-card, #1a1a24);
-        border: 1px solid rgba(239,108,0,0.35);
+        background: var(--bg-panel);
+        border: 1px solid var(--border-glass);
         border-radius: 18px;
-        box-shadow: 0 8px 48px rgba(239,108,0,0.18), 0 2px 16px rgba(0,0,0,0.5);
+        box-shadow: var(--shadow-lg), 0 2px 30px rgba(239,108,0,0.15);
         width: 92%; max-width: 460px;
         padding: 0;
         animation: da-slide-up 0.25s cubic-bezier(0.22,1,0.36,1) both;
@@ -142,23 +142,23 @@ function showDeadlinePopup(tasks, now) {
       .da-title {
         flex: 1;
         font-size: 16px; font-weight: 700;
-        color: var(--text-primary, #f0f0f8);
+        color: var(--text-primary);
       }
       .da-close-btn {
         width: 32px; height: 32px; border-radius: 8px;
         border: none; cursor: pointer;
-        background: var(--bg-input, rgba(255,255,255,0.06));
-        color: var(--text-muted, #888);
+        background: var(--bg-input);
+        color: var(--text-muted);
         display: flex; align-items: center; justify-content: center;
         font-size: 16px; transition: background 0.15s, color 0.15s;
       }
       .da-close-btn:hover {
-        background: rgba(239,68,68,0.12); color: #ef4444;
+        background: var(--danger-light, rgba(239,68,68,0.12)); color: var(--danger, #ef4444);
       }
 
       .da-subtitle {
         margin: 10px 22px 0;
-        font-size: 12.5px; color: var(--text-muted, #888); line-height: 1.6;
+        font-size: 12.5px; color: var(--text-muted); line-height: 1.6;
       }
 
       .da-task-list {
@@ -168,7 +168,7 @@ function showDeadlinePopup(tasks, now) {
       }
       .da-task-list::-webkit-scrollbar { width: 4px; }
       .da-task-list::-webkit-scrollbar-track { background: transparent; }
-      .da-task-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius:4px; }
+      .da-task-list::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius:4px; }
 
       .da-task-item {
         display: flex; align-items: center; gap: 12px;
@@ -196,7 +196,7 @@ function showDeadlinePopup(tasks, now) {
       .da-task-info { flex: 1; min-width: 0; }
       .da-task-name {
         font-size: 13px; font-weight: 600;
-        color: var(--text-primary, #f0f0f8);
+        color: var(--text-primary);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .da-task-time {
@@ -204,7 +204,7 @@ function showDeadlinePopup(tasks, now) {
         color: #ef6c00; font-weight: 600;
       }
       .da-task-arrow {
-        color: var(--text-muted, #888); font-size: 14px; flex-shrink:0;
+        color: var(--text-muted); font-size: 14px; flex-shrink:0;
       }
 
       .da-footer {
@@ -213,12 +213,12 @@ function showDeadlinePopup(tasks, now) {
       }
       .da-btn-dismiss {
         padding: 9px 18px; border-radius: 9px; font-size: 13px; font-weight: 600;
-        border: 1px solid var(--border-glass, rgba(255,255,255,0.1));
-        background: var(--bg-input, rgba(255,255,255,0.06));
-        color: var(--text-muted, #888); cursor: pointer;
+        border: 1px solid var(--border-glass);
+        background: var(--bg-input);
+        color: var(--text-muted); cursor: pointer;
         transition: background 0.15s, color 0.15s;
       }
-      .da-btn-dismiss:hover { background: rgba(255,255,255,0.1); color: var(--text-primary, #f0f0f8); }
+      .da-btn-dismiss:hover { background: var(--bg-input-hover); color: var(--text-primary); }
       .da-btn-tasks {
         padding: 9px 20px; border-radius: 9px; font-size: 13px; font-weight: 700;
         border: none; cursor: pointer;

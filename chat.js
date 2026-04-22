@@ -392,9 +392,9 @@ function renderMessages(msgs) {
       if (dateStr !== lastDate) {
         lastDate = dateStr;
         dateDivider = `<div style="display:flex;align-items:center;gap:10px;margin:12px 0;">
-        <div style="flex:1;height:1px;background:rgba(0,0,0,0.03);"></div>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,0.04);"></div>
         <div style="font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:0.06em;white-space:nowrap;">${dateStr}</div>
-        <div style="flex:1;height:1px;background:rgba(0,0,0,0.03);"></div>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,0.04);"></div>
       </div>`;
       }
 
@@ -419,9 +419,9 @@ function renderMessages(msgs) {
           <div class="message-text" style="
             max-width:420px;word-break:break-word;
             padding:9px 13px;
-            background:${isMe ? "rgba(79,110,247,0.12)" : "rgba(0,0,0,0.03)"};
+            background:${isMe ? "rgba(0,242,255,0.12)" : "rgba(255,255,255,0.04)"};
             border-radius:${isMe ? "14px 4px 14px 14px" : "4px 14px 14px 14px"};
-            border:1px solid ${isMe ? "rgba(79,110,247,0.20)" : "var(--border-glass)"};
+            border:1px solid ${isMe ? "rgba(0,242,255,0.20)" : "var(--border-glass)"};
             font-size:13px;line-height:1.5;
           ">${escapeHtml(m.message)}</div>
         </div>
@@ -517,7 +517,7 @@ function renderGroupMemberSearch(val) {
       (u) => `
     <div onclick="addGroupMember('${u.id}')"
       style="padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:13px;border-radius:6px;transition:background 0.15s;"
-      onmouseover="this.style.background='rgba(0,0,0,0.03)'" onmouseout="this.style.background='transparent'">
+      onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
       <div style="width:28px;height:28px;border-radius:50%;background:var(--gradient-brand);
         display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0;">
         ${getInitials(u.displayName)}
@@ -550,7 +550,7 @@ function renderGroupMemberChips() {
     .map((uid) => {
       const u = allUsers[uid];
       return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
-      background:rgba(79,110,247,0.10);border:1px solid rgba(79,110,247,0.25);
+      background:rgba(0,242,255,0.10);border:1px solid rgba(0,242,255,0.25);
       border-radius:999px;font-size:11px;color:var(--blue);">
       ${sanitizeHtml(u?.displayName || uid)}
       <button onclick="removeGroupMember('${uid}')"
@@ -683,7 +683,7 @@ window.searchAddMembers = (query) => {
     <div onclick="selectAddMember('${u.id}')" style="
       padding:8px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;
       transition:background 0.15s;border-radius:6px;
-    " onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background=''">
+    " onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background=''">
       <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);
         display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0;">
         ${getInitials(u.displayName || "?")}
@@ -716,7 +716,7 @@ function renderAddSelectedChips() {
       const name = u?.displayName || uid;
       return `<div style="
         display:inline-flex;align-items:center;gap:5px;
-        background:rgba(79,110,247,0.1);border:1px solid rgba(79,110,247,0.25);
+        background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.25);
         border-radius:999px;padding:3px 10px;font-size:12px;
       ">
         ${sanitizeHtml(name)}
@@ -789,7 +789,7 @@ window.openMembersPanel = () => {
     return `<div style="
       display:flex;align-items:center;gap:10px;
       padding:8px 10px;border-radius:10px;
-      background:rgba(0,0,0,0.02);
+      background:rgba(255,255,255,0.03);
       border:1px solid var(--border-glass);
     ">
       <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-brand);

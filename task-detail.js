@@ -23,6 +23,7 @@ import {
   statusBadge,
   priorityBadge,
   formatDate,
+  formatDateTime,
   timeAgo,
   getInitials,
   roleBadge,
@@ -131,7 +132,7 @@ function renderTask(t) {
 
   const dlEl = document.getElementById("task-deadline-display");
   dlEl.innerHTML = deadline
-    ? `<span class="${overdue ? "text-danger" : ""}">${formatDate(t.deadline)}${overdue ? " (Overdue)" : ""}</span>`
+    ? `<span class="${overdue ? "text-danger" : ""}">${formatDateTime(t.deadline)}${overdue ? " (Overdue)" : ""}</span>`
     : "No deadline";
 
   document.getElementById("task-assignees").innerHTML = (t.assignedTo || [])
@@ -170,7 +171,7 @@ function renderTask(t) {
     document.getElementById("task-tags-display").innerHTML = t.tags
       .map(
         (tag) =>
-          `<span style="padding:4px 12px;background:rgba(79,110,247,0.10);border:1px solid rgba(79,110,247,0.20);border-radius:999px;font-size:12px;color:var(--blue);">${sanitizeHtml(tag)}</span>`,
+          `<span style="padding:4px 12px;background:rgba(0,242,255,0.10);border:1px solid rgba(0,242,255,0.20);border-radius:999px;font-size:12px;color:var(--blue);">${sanitizeHtml(tag)}</span>`,
       )
       .join("");
   }
@@ -508,7 +509,7 @@ function renderLogs(logs) {
       const u = allUsers[l.updatedBy];
       return `
       <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-subtle);font-size:12px;">
-        <div style="width:28px;height:28px;border-radius:50%;background:rgba(79,110,247,0.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--blue);">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,242,255,0.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--blue);">
           <i class="ph ${icons[l.actionType] || icons.default}"></i>
         </div>
         <div style="flex:1;">

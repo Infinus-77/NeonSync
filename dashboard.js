@@ -214,7 +214,7 @@ function renderRecentTasks(tasks, now) {
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sanitizeHtml(t.title)}</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:3px;">
             ${statusBadge(overdue ? "overdue" : t.status || "pending")}
-            <span style="font-size:10px;color:var(--text-muted);">${deadline ? formatDate(t.deadline) : "No deadline"}</span>
+            <span style="font-size:10px;color:var(--text-muted);">${deadline ? formatDateTime(t.deadline) : "No deadline"}</span>
           </div>
           <div style="margin-top:5px;">${progressBar(pct)}</div>
         </div>
@@ -268,7 +268,7 @@ function renderUpcomingDeadlines(tasks, now) {
         <div style="width:4px;height:36px;border-radius:2px;background:${urgentColor};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sanitizeHtml(t.title)}</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${formatDate(t.deadline)}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${formatDateTime(t.deadline)}</div>
         </div>
         <div style="font-size:11px;font-weight:700;color:${urgentColor};flex-shrink:0;">${daysLeft === 0 ? "Today!" : daysLeft === 1 ? "Tomorrow" : `${daysLeft}d left`}</div>
       </div>
@@ -278,6 +278,11 @@ function renderUpcomingDeadlines(tasks, now) {
 }
 
 function renderCharts(tasks, now) {
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+  const labelColor = isLight ? "#6b7280" : "#A1A1AA";
+  const tickColor = isLight ? "#9ca3af" : "#52525B";
+  const gridColor = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+
   const statusCounts = {
     pending: 0,
     "in-progress": 0,
@@ -327,7 +332,7 @@ function renderCharts(tasks, now) {
         plugins: {
           legend: {
             position: "right",
-            labels: { color: "#A1A1AA", font: { size: 11 }, boxWidth: 10 },
+            labels: { color: labelColor, font: { size: 11 }, boxWidth: 10 },
           },
         },
       },
@@ -370,7 +375,7 @@ function renderCharts(tasks, now) {
             label: "Created",
             data: createdData,
             borderColor: "#BD00FF",
-            backgroundColor: "rgba(139,92,246,0.08)",
+            backgroundColor: "rgba(189,0,255,0.08)",
             tension: 0.4,
             fill: true,
             pointRadius: 3,
@@ -393,17 +398,17 @@ function renderCharts(tasks, now) {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            labels: { color: "#A1A1AA", font: { size: 11 }, boxWidth: 10 },
+            labels: { color: labelColor, font: { size: 11 }, boxWidth: 10 },
           },
         },
         scales: {
           x: {
-            ticks: { color: "#52525B", font: { size: 10 }, maxRotation: 45 },
-            grid: { color: "rgba(0,0,0,0.05)" },
+            ticks: { color: tickColor, font: { size: 10 }, maxRotation: 45 },
+            grid: { color: gridColor },
           },
           y: {
-            ticks: { color: "#52525B", stepSize: 1 },
-            grid: { color: "rgba(0,0,0,0.05)" },
+            ticks: { color: tickColor, stepSize: 1 },
+            grid: { color: gridColor },
           },
         },
       },
@@ -576,9 +581,6 @@ function renderLeaderboard(tasks) {
   });
 
   const sorted = allUsers
-    .filter(function (u) {
-      return u.role !== "super_admin";
-    })
     .map(function (u) {
       return Object.assign({}, u, { score: scores[u.id] || 0 });
     })
@@ -774,7 +776,7 @@ function renderSelectedDashAssignees() {
   el.innerHTML = selectedAssignees
     .map((uid) => {
       const u = assigneeMap[uid];
-      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.2);border-radius:999px;font-size:11px;">
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(0,242,255,0.1);border:1px solid rgba(0,242,255,0.2);border-radius:999px;font-size:11px;">
       ${sanitizeHtml(u?.displayName || uid)}
       <button onclick="removeDashAssignee('${uid}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;line-height:1;">×</button>
     </span>`;

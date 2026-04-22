@@ -27,16 +27,17 @@ export function showConfirm(message, confirmLabel = "Delete", danger = true) {
     const overlay = document.createElement("div");
     overlay.id = "ns-confirm-overlay";
     overlay.style.cssText = `
-      position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;
+      position:fixed;inset:0;background:var(--overlay-bg, rgba(0,0,0,0.7));z-index:21000;
       display:flex;align-items:center;justify-content:center;
       animation:fadeIn 0.15s ease;
+      backdrop-filter: blur(4px);
     `;
 
     overlay.innerHTML = `
       <div style="
-        background:#ffffff;border:1px solid var(--border-glass);
+        background:var(--bg-panel,#ffffff);border:1px solid var(--border-glass);
         border-radius:12px;padding:24px 28px;max-width:380px;width:90%;
-        box-shadow:0 8px 40px rgba(0,0,0,0.10);
+        box-shadow:var(--shadow-lg);
       ">
         <div style="font-size:13.5px;color:var(--text-primary);line-height:1.6;margin-bottom:20px;">
           ${sanitizeHtml(message)}
@@ -48,7 +49,7 @@ export function showConfirm(message, confirmLabel = "Delete", danger = true) {
           ">Cancel</button>
           <button id="ns-confirm-ok" style="
             padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;
-            background:${danger ? "var(--danger,#ef4444)" : "var(--blue,#4f6ef7)"};
+            background:${danger ? "var(--danger,#ff716c)" : "var(--blue,#00F2FF)"};
             color:#fff;
           ">${sanitizeHtml(confirmLabel)}</button>
         </div>

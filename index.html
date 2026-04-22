@@ -5,11 +5,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NeonSync - Team Management & Collaboration</title>
+  <meta name="description" content="NeonSync brings together task management, real-time chat, role-based dashboards, and analytics for modern teams." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
     rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('neonsync-theme') || 'dark');</script>
   <style>
     *,
     *::before,
@@ -20,24 +22,27 @@
     }
 
     :root {
-      --bg-body: #f5f6fa;
-      --blue: #4f6ef7;
-      --purple: #8b5cf6;
-      --rose: #f43f5e;
-      --green: #10b981;
-      --teal: #0ea5e9;
-      --text-primary: #111827;
-      --text-secondary: #4b5563;
-      --text-muted: #9ca3af;
-      --border-glass: rgba(0, 0, 0, 0.07);
-      --border-subtle: rgba(0, 0, 0, 0.06);
-      --gradient-brand: linear-gradient(135deg, #4f6ef7 0%, #8b5cf6 100%);
-      --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
-      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05);
+      --bg-body: #0b0e14;
+      --bg-surface: #10131a;
+      --bg-panel: #161a21;
+      --blue: #00F2FF;
+      --purple: #BF00FF;
+      --lime: #39FF14;
+      --rose: #ff716c;
+      --amber: #FFB800;
+      --text-primary: #ecedf6;
+      --text-secondary: #a9abb3;
+      --text-muted: #626673;
+      --border-glass: rgba(255, 255, 255, 0.06);
+      --border-subtle: rgba(255, 255, 255, 0.04);
+      --gradient-brand: linear-gradient(135deg, #00F2FF 0%, #BF00FF 100%);
+      --gradient-cta: linear-gradient(135deg, #99f7ff 0%, #00f1fe 100%);
+      --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.25);
     }
 
     body {
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: 'Manrope', 'Inter', system-ui, sans-serif;
       background: var(--bg-body);
       color: var(--text-primary);
       min-height: 100vh;
@@ -50,8 +55,9 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 70% 50% at 10% 20%, rgba(79, 110, 247, 0.06) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 90% 10%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+        radial-gradient(ellipse 60% 45% at 15% 25%, rgba(0, 242, 255, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 85% 15%, rgba(191, 0, 255, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 30% at 50% 85%, rgba(57, 255, 20, 0.03) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
@@ -72,7 +78,7 @@
       padding: 0 48px;
       height: 60px;
       border-bottom: 1px solid var(--border-subtle);
-      background: rgba(255, 255, 255, 0.97);
+      background: rgba(11, 14, 20, 0.8);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       position: sticky;
@@ -95,12 +101,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 0 12px rgba(0, 242, 255, 0.3);
     }
 
     .nav-logo h1 {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 16px;
-      font-weight: 800;
+      font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.02em;
     }
@@ -123,7 +130,7 @@
       cursor: pointer;
       text-decoration: none;
       transition: all 0.18s ease;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Manrope', sans-serif;
       white-space: nowrap;
     }
 
@@ -134,20 +141,22 @@
     }
 
     .btn-outline:hover {
-      border-color: rgba(0, 0, 0, 0.15);
-      color: var(--text-primary);
-      background: rgba(0, 0, 0, 0.03);
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(0, 242, 255, 0.06);
+      box-shadow: 0 0 15px rgba(0, 242, 255, 0.08);
     }
 
     .btn-primary {
-      background: var(--blue);
-      color: white;
-      box-shadow: 0 1px 6px rgba(79, 110, 247, 0.25);
+      background: var(--gradient-cta);
+      color: #003538;
+      font-weight: 700;
+      box-shadow: 0 1px 6px rgba(0, 242, 255, 0.25);
     }
 
     .btn-primary:hover {
-      background: #3d5ce8;
-      box-shadow: 0 4px 16px rgba(79, 110, 247, 0.3);
+      box-shadow: 0 4px 24px rgba(0, 242, 255, 0.3);
+      transform: translateY(-1px);
     }
 
     .btn-lg {
@@ -172,20 +181,21 @@
       align-items: center;
       gap: 6px;
       padding: 4px 13px;
-      background: rgba(79, 110, 247, 0.08);
-      border: 1px solid rgba(79, 110, 247, 0.18);
+      background: rgba(0, 242, 255, 0.06);
+      border: 1px solid rgba(0, 242, 255, 0.18);
       border-radius: 9999px;
       font-size: 11.5px;
       font-weight: 600;
       color: var(--blue);
       margin-bottom: 24px;
       animation: fadeInDown 0.5s ease both;
+      box-shadow: 0 0 15px rgba(0, 242, 255, 0.06);
     }
 
     .hero-title {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(32px, 5.5vw, 64px);
-      font-weight: 800;
+      font-weight: 700;
       line-height: 1.06;
       letter-spacing: -0.03em;
       margin-bottom: 18px;
@@ -226,9 +236,9 @@
 
     .features-title {
       text-align: center;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 26px;
-      font-weight: 800;
+      font-weight: 700;
       margin-bottom: 36px;
       letter-spacing: -0.02em;
       color: var(--text-primary);
@@ -250,18 +260,18 @@
     }
 
     .feature-card {
-      background: #fff;
+      background: var(--bg-panel);
       border: 1px solid var(--border-glass);
       border-radius: 12px;
       padding: 20px;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
       box-shadow: var(--shadow-sm);
     }
 
     .feature-card:hover {
-      border-color: rgba(79, 110, 247, 0.2);
+      border-color: rgba(0, 242, 255, 0.2);
       transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
+      box-shadow: var(--shadow-md), 0 0 25px rgba(0, 242, 255, 0.04);
     }
 
     .feature-icon {
@@ -276,27 +286,30 @@
     }
 
     .feature-icon.cyan {
-      background: rgba(14, 165, 233, 0.10);
-      color: var(--teal);
+      background: rgba(0, 242, 255, 0.10);
+      color: var(--blue);
+      box-shadow: 0 0 10px rgba(0, 242, 255, 0.10);
     }
 
     .feature-icon.purple {
-      background: rgba(139, 92, 246, 0.10);
+      background: rgba(191, 0, 255, 0.10);
       color: var(--purple);
+      box-shadow: 0 0 10px rgba(191, 0, 255, 0.10);
     }
 
     .feature-icon.pink {
-      background: rgba(244, 63, 94, 0.10);
+      background: rgba(255, 113, 108, 0.10);
       color: var(--rose);
     }
 
     .feature-icon.green {
-      background: rgba(16, 185, 129, 0.10);
-      color: var(--green);
+      background: rgba(57, 255, 20, 0.10);
+      color: var(--lime);
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.08);
     }
 
     .feature-title {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 14px;
       font-weight: 700;
       margin-bottom: 6px;
@@ -315,15 +328,15 @@
       position: relative;
       z-index: 1;
       text-align: center;
-      background: #fff;
+      background: var(--bg-surface);
       border-top: 1px solid var(--border-subtle);
       border-bottom: 1px solid var(--border-subtle);
     }
 
     .roles-title {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 24px;
-      font-weight: 800;
+      font-weight: 700;
       margin-bottom: 32px;
       letter-spacing: -0.02em;
       color: var(--text-primary);
@@ -342,11 +355,11 @@
       flex: 1;
       min-width: 200px;
       max-width: 260px;
-      background: #fff;
+      background: var(--bg-panel);
       border: 1px solid var(--border-glass);
       border-radius: 12px;
       padding: 20px 18px;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
       box-shadow: var(--shadow-sm);
       text-align: left;
     }
@@ -358,14 +371,17 @@
 
     .role-card.super-admin {
       border-top: 2px solid var(--rose);
+      box-shadow: 0 -4px 20px rgba(255, 113, 108, 0.05);
     }
 
     .role-card.admin {
       border-top: 2px solid var(--blue);
+      box-shadow: 0 -4px 20px rgba(0, 242, 255, 0.05);
     }
 
     .role-card.member {
-      border-top: 2px solid var(--green);
+      border-top: 2px solid var(--lime);
+      box-shadow: 0 -4px 20px rgba(57, 255, 20, 0.05);
     }
 
     .role-badge {
@@ -379,25 +395,25 @@
     }
 
     .role-badge.super-admin {
-      background: rgba(244, 63, 94, 0.10);
+      background: rgba(255, 113, 108, 0.10);
       color: var(--rose);
-      border: 1px solid rgba(244, 63, 94, 0.22);
+      border: 1px solid rgba(255, 113, 108, 0.22);
     }
 
     .role-badge.admin {
-      background: rgba(79, 110, 247, 0.10);
+      background: rgba(0, 242, 255, 0.10);
       color: var(--blue);
-      border: 1px solid rgba(79, 110, 247, 0.22);
+      border: 1px solid rgba(0, 242, 255, 0.22);
     }
 
     .role-badge.member {
-      background: rgba(16, 185, 129, 0.10);
-      color: var(--green);
-      border: 1px solid rgba(16, 185, 129, 0.22);
+      background: rgba(57, 255, 20, 0.10);
+      color: var(--lime);
+      border: 1px solid rgba(57, 255, 20, 0.22);
     }
 
     .role-name {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 15px;
       font-weight: 700;
       margin-bottom: 10px;

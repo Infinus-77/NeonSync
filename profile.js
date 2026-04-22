@@ -42,9 +42,9 @@ requireAuth(async (user) => {
 
 function showSkeletons() {
   document.getElementById("profile-header-inner").innerHTML = `
-    <div style="width:80px;height:80px;border-radius:50%;background:rgba(0,0,0,0.03);animation:pulse 1.5s ease infinite;flex-shrink:0;"></div>
+    <div style="width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.06);animation:pulse 1.5s ease infinite;flex-shrink:0;"></div>
     <div style="flex:1;">
-      <div style="height:20px;width:200px;margin-bottom:10px;background:rgba(0,0,0,0.03);border-radius:6px;animation:pulse 1.5s ease infinite;"></div>
+      <div style="height:20px;width:200px;margin-bottom:10px;background:rgba(255,255,255,0.06);border-radius:6px;animation:pulse 1.5s ease infinite;"></div>
       <div style="height:14px;width:120px;background:var(--bg-input);border-radius:6px;animation:pulse 1.5s ease 0.2s infinite;"></div>
     </div>
   `;
@@ -93,7 +93,7 @@ function renderProfileHeader(u) {
 
   document.getElementById("profile-header-inner").innerHTML = `
     <div style="position:relative;flex-shrink:0;">
-      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;overflow:hidden;border:2px solid rgba(79,110,247,0.25);">
+      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;overflow:hidden;border:2px solid rgba(0,242,255,0.25);">
         ${u.photoURL
           ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">`
           : `<span>${getInitials(u.displayName || u.name || "?")}</span>`}
@@ -102,14 +102,14 @@ function renderProfileHeader(u) {
     </div>
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;">${sanitizeHtml(u.displayName || u.name || "User")}</h2>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;">${sanitizeHtml(u.displayName || u.name || "User")}</h2>
         ${roleBadge(u.role || "member")}
       </div>
       <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${sanitizeHtml(u.email || "")}</div>
       ${u.bio ? `<div style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.6;">${sanitizeHtml(u.bio)}</div>` : ""}
       ${(u.skills || []).length ? `
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
-          ${u.skills.map((s) => `<span style="padding:3px 10px;background:rgba(79,110,247,0.08);border:1px solid rgba(79,110,247,0.18);border-radius:999px;font-size:11px;color:var(--cyan);">${sanitizeHtml(s)}</span>`).join("")}
+          ${u.skills.map((s) => `<span style="padding:3px 10px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.18);border-radius:999px;font-size:11px;color:var(--cyan);">${sanitizeHtml(s)}</span>`).join("")}
         </div>` : ""}
       <div style="font-size:11px;color:var(--text-muted);margin-top:10px;display:flex;flex-wrap:wrap;gap:12px;">
         ${u.createdAt ? `<span><i class="ph ph-calendar"></i> Joined ${new Date((u.createdAt.toDate?.() || u.createdAt)).toLocaleDateString("en-US",{month:"long",year:"numeric"})}</span>` : ""}
@@ -183,10 +183,10 @@ async function renderHeatmap(targetUid) {
     const intensity = count === 0 ? 0 : Math.ceil((count / maxCount) * 4);
     const colors = [
       "var(--bg-input)",
-      "rgba(79,110,247,0.20)",
-      "rgba(79,110,247,0.45)",
-      "rgba(79,110,247,0.70)",
-      "rgba(79,110,247,0.95)",
+      "rgba(0,242,255,0.20)",
+      "rgba(0,242,255,0.45)",
+      "rgba(0,242,255,0.70)",
+      "rgba(0,242,255,0.95)",
     ];
     const cell = document.createElement("div");
     cell.className = "heatmap-cell";
@@ -274,7 +274,7 @@ function renderMonthlyChart(tasks) {
         {
           label: "Assigned",
           data: createdData,
-          backgroundColor: "rgba(139,92,246,0.40)",
+          backgroundColor: "rgba(176,64,255,0.40)",
           borderColor: "#B040FF",
           borderWidth: 1,
           borderRadius: 4,
@@ -297,7 +297,7 @@ function renderMonthlyChart(tasks) {
       },
       scales: {
         x: { ticks: { color: "#9ca3af", font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(0,0,0,0.05)" } },
+        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(255,255,255,0.06)" } },
       },
     },
   });
@@ -361,7 +361,7 @@ function renderTopTags(tasks) {
         background:var(--bg-input);border:1px solid var(--border-glass);
         border-radius:999px;font-size:11px;color:var(--text-secondary);">
         ${sanitizeHtml(tag)}
-        <span style="background:rgba(79,110,247,0.15);color:var(--cyan);
+        <span style="background:rgba(0,242,255,0.15);color:var(--cyan);
           border-radius:999px;padding:1px 5px;font-size:10px;font-weight:700;">${count}</span>
       </div>
     `).join("")}

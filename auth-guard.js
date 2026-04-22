@@ -18,13 +18,13 @@ function injectLoadingOverlay() {
   overlay.id = "auth-loading-overlay";
   overlay.style.cssText = `
     position:fixed;inset:0;
-    background:rgba(245, 246, 250, 0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    background:var(--loading-bg, rgba(11, 14, 20, 0.92));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
     z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
     transition:opacity 0.4s ease;
   `;
   overlay.innerHTML = `
-    <div style="width:40px;height:40px;border:3px solid rgba(79,110,247,0.15);border-top-color:#4f6ef7;border-right-color:#8b5cf6;border-radius:50%;animation:spin 0.8s linear infinite;box-shadow:0 0 15px rgba(79,110,247,0.3);"></div>
-    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;background:linear-gradient(135deg, #4f6ef7 0%, #8b5cf6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse-text 1.5s ease-in-out infinite;">Authenticating...</div>
+    <div style="width:40px;height:40px;border:3px solid rgba(0,242,255,0.12);border-top-color:#00F2FF;border-right-color:#BF00FF;border-radius:50%;animation:spin 0.8s linear infinite;box-shadow:0 0 20px rgba(0,242,255,0.25);"></div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;background:linear-gradient(135deg, #00F2FF 0%, #BF00FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse-text 1.5s ease-in-out infinite;">Authenticating...</div>
     <style>
       @keyframes spin { to { transform: rotate(360deg); } }
       @keyframes pulse-text { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
@@ -92,13 +92,13 @@ export function requireAuth(callback, allowedRoles = []) {
       console.error("Auth guard error:", err);
       // Change from silent redirect to showing an error so the user isn't stuck in a blind loop
       document.body.innerHTML = `
-        <div style="padding:40px; text-align:center; font-family:sans-serif;">
-          <h2 style="color:red;">Database Error</h2>
-          <p>We authenticated you, but we couldn't load your user profile from the database.</p>
-          <p style="color:#666;">This usually means your Firestore security rules are blocking access, or your profile was never fully created.</p>
-          <p><i>Technical details: ${err.message}</i></p>
+        <div style="padding:40px; text-align:center; font-family:'Manrope',sans-serif; background:#0b0e14; color:#ecedf6; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <h2 style="color:#ff716c; font-family:'Space Grotesk',sans-serif;">Database Error</h2>
+          <p style="color:#a9abb3; margin-top:12px;">We authenticated you, but we couldn't load your user profile from the database.</p>
+          <p style="color:#626673; margin-top:8px;">This usually means your Firestore security rules are blocking access, or your profile was never fully created.</p>
+          <p style="color:#626673; margin-top:8px;"><i>Technical details: ${err.message}</i></p>
           <br/>
-          <button onclick="window.location.href='login.html'" style="padding:10px 20px; cursor:pointer;">Go Back to Login</button>
+          <button onclick="window.location.href='login.html'" style="padding:10px 20px; cursor:pointer; background:linear-gradient(135deg,#99f7ff,#00f1fe); color:#003538; border:none; border-radius:9px; font-weight:700; font-family:'Manrope',sans-serif;">Go Back to Login</button>
         </div>
       `;
       hideLoadingOverlay();

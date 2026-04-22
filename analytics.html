@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NeonSync - Analytics</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="./main.css" />
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('neonsync-theme') || 'dark');</script>
     <style>
       /* ── Chart containers: always contained, never overflow ── */
       .analytics-chart-lg,
@@ -106,7 +107,7 @@
 
       .insight-card {
         background: var(--teal-light);
-        border: 1px solid rgba(79,110,247,0.12);
+        border: 1px solid rgba(0,242,255,0.12);
         border-radius: var(--radius-md);
         padding: 14px 16px;
         display: flex;

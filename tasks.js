@@ -103,6 +103,16 @@ requireAuth(async (user) => {
         ? "Your assigned tasks"
         : "Manage and assign tasks";
 
+  // Read URL params to pre-set filters (from dashboard stat card clicks)
+  const urlParams = new URLSearchParams(window.location.search);
+  const statusParam = urlParams.get("status");
+  if (statusParam) {
+    const filterStatusEl = document.getElementById("filter-status");
+    if (filterStatusEl) {
+      filterStatusEl.value = statusParam;
+    }
+  }
+
   // Load users for assignee display
   try {
     const usersSnap = await getDocs(collection(db, "users"));
@@ -330,7 +340,7 @@ function renderTasks(tasks) {
           (tag) =>
             `<span style="
         font-size:10px;padding:2px 8px;
-        background:rgba(0,0,0,0.03);
+        background:rgba(255,255,255,0.04);
         border:1px solid var(--border-glass);
         border-radius:999px;color:var(--text-muted);
         white-space:nowrap;
@@ -344,6 +354,8 @@ function renderTasks(tasks) {
             month: "short",
             day: "numeric",
             year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
           })
         : "No deadline";
 
@@ -598,7 +610,7 @@ window.searchAssignees = (val = "") => {
       (u) => `
     <div onclick="selectAssignee('${u.id}')"
       style="padding:9px 13px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:9px;"
-      onmouseover="this.style.background='rgba(0,0,0,0.03)'"
+      onmouseover="this.style.background='rgba(255,255,255,0.04)'"
       onmouseout="this.style.background='transparent'">
       <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">${getInitials(u.displayName)}</div>
       <div>
@@ -630,7 +642,7 @@ function renderSelectedAssigneesEl() {
   el.innerHTML = selectedAssignees
     .map((uid) => {
       const u = assigneeMap[uid];
-      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(79,110,247,0.10);border:1px solid rgba(79,110,247,0.20);border-radius:999px;font-size:11px;">
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(0,242,255,0.10);border:1px solid rgba(0,242,255,0.20);border-radius:999px;font-size:11px;">
       ${sanitizeHtml(u?.displayName || uid)}
       <button onclick="removeAssignee('${uid}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;">×</button>
     </span>`;

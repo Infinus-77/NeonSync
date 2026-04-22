@@ -7,7 +7,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
 
@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <link rel="stylesheet" href="./main.css" />
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('neonsync-theme') || 'dark');</script>
     <style>
 
 
@@ -83,7 +84,7 @@
 
         <!-- Stats -->
         <div class="stats-grid" id="stats-grid" data-testid="stats-grid">
-          <div class="stat-card animate-in">
+          <div class="stat-card animate-in clickable" onclick="window.location.href='tasks.html'" title="View all tasks">
             <div class="stat-icon cyan">
               <i class="ph ph-check-square"></i>
             </div>
@@ -111,7 +112,7 @@
             </div>
           </div>
 
-          <div class="stat-card animate-in" style="animation-delay: 0.1s">
+          <div class="stat-card animate-in clickable" style="animation-delay: 0.1s" onclick="window.location.href='tasks.html?status=overdue'" title="View overdue tasks">
             <div class="stat-icon danger">
               <i class="ph ph-warning-circle"></i>
             </div>
@@ -127,7 +128,7 @@
             </div>
           </div>
 
-          <div class="stat-card animate-in" style="animation-delay: 0.15s">
+          <div class="stat-card animate-in clickable" style="animation-delay: 0.15s" onclick="window.location.href='tasks.html?status=completed'" title="View completed tasks">
             <div class="stat-icon green">
               <i class="ph ph-check-circle"></i>
             </div>
@@ -308,7 +309,7 @@
                 border: 1px solid var(--border-glass);
                 border-radius: var(--radius-md);
                 display: none;
-                background: #fff; border-color: var(--border-hover) !important;
+                background: var(--bg-panel); border-color: var(--border-hover) !important;
               "
             ></div>
 

@@ -237,7 +237,7 @@ function renderTimeline(tasks, days) {
     data: {
       labels,
       datasets: [
-        { label: "Created", data: createdData, borderColor: "#8b5cf6", backgroundColor: "rgba(139,92,246,0.08)",
+        { label: "Created", data: createdData, borderColor: "#d873ff", backgroundColor: "rgba(216,115,255,0.08)",
           tension: 0.4, fill: true, pointRadius: 2, pointHoverRadius: 5 },
         { label: "Completed", data: completedData, borderColor: "#10b981", backgroundColor: "rgba(16,185,129,0.08)",
           tension: 0.4, fill: true, pointRadius: 2, pointHoverRadius: 5 },
@@ -248,11 +248,11 @@ function renderTimeline(tasks, days) {
       interaction: { mode: "index", intersect: false },
       plugins: {
         legend: { labels: { color: "#8888AA", font: { size: 11 }, boxWidth: 10 } },
-        tooltip: { backgroundColor: "#fff", borderColor: "rgba(0,0,0,0.1)", borderWidth: 1 },
+        tooltip: { backgroundColor: "#1a1f2e", borderColor: "rgba(255,255,255,0.1)", borderWidth: 1, titleColor: "#ecedf6", bodyColor: "#a9abb3" },
       },
       scales: {
-        x: { ticks: { color: "#9ca3af", font: { size: 10 }, maxRotation: 45 }, grid: { color: "rgba(0,0,0,0.05)" } },
-        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(0,0,0,0.05)" }, beginAtZero: true },
+        x: { ticks: { color: "#9ca3af", font: { size: 10 }, maxRotation: 45 }, grid: { color: "rgba(255,255,255,0.06)" } },
+        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(255,255,255,0.06)" }, beginAtZero: true },
       },
     },
   });
@@ -284,7 +284,7 @@ function renderStatusPie(tasks, now) {
       responsive: true, maintainAspectRatio: false, cutout: "58%",
       plugins: {
         legend: { position: "right", labels: { color: "#8888AA", font: { size: 11 }, boxWidth: 10, padding: 10 } },
-        tooltip: { backgroundColor: "#fff", borderColor: "rgba(0,0,0,0.1)", borderWidth: 1 },
+        tooltip: { backgroundColor: "#1a1f2e", borderColor: "rgba(255,255,255,0.1)", borderWidth: 1, titleColor: "#ecedf6", bodyColor: "#a9abb3" },
       },
     },
   });
@@ -323,7 +323,7 @@ function renderPriorityBar(tasks) {
       plugins: { legend: { labels: { color: "#8888AA", font: { size: 11 }, boxWidth: 10 } } },
       scales: {
         x: { ticks: { color: "#8888AA", font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(0,0,0,0.05)" }, beginAtZero: true },
+        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(255,255,255,0.06)" }, beginAtZero: true },
       },
     },
   });
@@ -351,8 +351,8 @@ function renderDayOfWeekChart(tasks) {
     data: {
       labels: days,
       datasets: [
-        { label: "Tasks Created", data: createdByDay, borderColor: "#8b5cf6",
-          backgroundColor: "rgba(139,92,246,0.1)", pointBackgroundColor: "#8b5cf6", pointRadius: 3 },
+        { label: "Tasks Created", data: createdByDay, borderColor: "#d873ff",
+          backgroundColor: "rgba(216,115,255,0.1)", pointBackgroundColor: "#d873ff", pointRadius: 3 },
         { label: "Tasks Completed", data: completedByDay, borderColor: "#10b981",
           backgroundColor: "rgba(16,185,129,0.1)", pointBackgroundColor: "#10b981", pointRadius: 3 },
       ],
@@ -363,9 +363,9 @@ function renderDayOfWeekChart(tasks) {
       scales: {
         r: {
           ticks: { color: "#9ca3af", backdropColor: "transparent", stepSize: 1 },
-          grid: { color: "rgba(0,0,0,0.05)" },
+          grid: { color: "rgba(255,255,255,0.06)" },
           pointLabels: { color: "#8888AA", font: { size: 11 } },
-          angleLines: { color: "rgba(0,0,0,0.06)" },
+          angleLines: { color: "rgba(255,255,255,0.06)" },
         },
       },
     },
@@ -409,7 +409,7 @@ function renderAvgTimeChart(tasks) {
         x: { ticks: { color: "#8888AA", font: { size: 11 } }, grid: { display: false } },
         y: {
           ticks: { color: "#9ca3af", callback: (v) => `${v}d` },
-          grid: { color: "rgba(0,0,0,0.05)" }, beginAtZero: true,
+          grid: { color: "rgba(255,255,255,0.06)" }, beginAtZero: true,
         },
       },
     },

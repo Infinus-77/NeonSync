@@ -113,11 +113,10 @@ window.filterUsers = () => {
     );
   if (roleFilter) users = users.filter((u) => u.role === roleFilter);
 
-  // Admins can't see super admins (except themselves)
+  // Admins can now see super admins (discovery)
   if (currentUser.role === "admin") {
-    users = users.filter(
-      (u) => u.role !== "super_admin" || u.id === currentUser.id,
-    );
+    // Keep filter if you want to prevent ACTION on super admins, but allow viewing.
+    // For now, we allow them in the list.
   }
 
   renderUsers(users);

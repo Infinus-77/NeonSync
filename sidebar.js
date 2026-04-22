@@ -100,6 +100,10 @@ export function renderSidebar(activeItem, user) {
     </nav>
 
     <div class="sidebar-footer">
+      <button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle theme">
+        <i class="ph ${_getCurrentTheme() === 'light' ? 'ph-moon' : 'ph-sun'}" aria-hidden="true"></i>
+        <span>${_getCurrentTheme() === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+      </button>
       <button class="sidebar-logout-btn" id="logout-btn" data-testid="logout-btn">
         <i class="ph ph-sign-out" aria-hidden="true"></i>
         <span>Sign Out</span>
@@ -109,9 +113,14 @@ export function renderSidebar(activeItem, user) {
     <div class="notif-panel" id="notif-panel" hidden>
       <div class="notif-panel-header">
         <span>Notifications</span>
-        <button id="mark-all-read-btn" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600;padding:2px 6px;border-radius:4px;">
-          Mark all read
-        </button>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <button id="notif-resize-btn" class="notif-resize-btn" aria-label="Resize panel">
+            <i class="ph ph-arrows-out-simple"></i>
+          </button>
+          <button id="mark-all-read-btn" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600;padding:2px 6px;border-radius:4px;">
+            Mark all read
+          </button>
+        </div>
       </div>
       <div class="notif-list" id="notif-list" style="overflow-y:auto;max-height:300px;">
         <div class="empty-state" style="padding:24px;">
@@ -131,10 +140,29 @@ function _bindSidebarEvents(user) {
   document.getElementById("sidebar-close-btn")
     ?.addEventListener("click", closeSidebar);
 
+  // Theme toggle
+  document.getElementById("theme-toggle-btn")
+    ?.addEventListener("click", _toggleTheme);
+
+  // Notification resize
+  document.getElementById("notif-resize-btn")
+    ?.addEventListener("click", () => {
+      const panel = document.getElementById("notif-panel");
+      if (panel) {
+        panel.classList.toggle("large-size");
+        const isLarge = panel.classList.contains("large-size");
+        const icon = document.querySelector("#notif-resize-btn i");
+        if (icon) {
+          icon.className = isLarge ? "ph ph-arrows-in-simple" : "ph ph-arrows-out-simple";
+        }
+      }
+    });
+
   // Logout
   document.getElementById("logout-btn")
     ?.addEventListener("click", async () => {
       try {
+        sessionStorage.removeItem("deadlineAlertShown"); // allow deadline popup to show on next login
         await signOut(auth);
         window.location.href = "login.html";
       } catch {
@@ -243,4 +271,38 @@ function _formatRole(role) {
   return map[role] || role || "Member";
 }
 
+// ─── Theme management ─────────────────────────────────────────────────────────
 
+function _getCurrentTheme() {
+  return localStorage.getItem("neonsync-theme") || "dark";
+}
+
+function _applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("neonsync-theme", theme);
+}
+
+function _toggleTheme() {
+  const current = _getCurrentTheme();
+  const next = current === "dark" ? "light" : "dark";
+  _applyTheme(next);
+
+  // Update button icon and label
+  const btn = document.getElementById("theme-toggle-btn");
+  if (btn) {
+    const icon = btn.querySelector("i");
+    const label = btn.querySelector("span");
+    if (icon) {
+      icon.className = next === "light" ? "ph ph-moon" : "ph ph-sun";
+    }
+    if (label) {
+      label.textContent = next === "light" ? "Dark Mode" : "Light Mode";
+    }
+  }
+
+  // Dispatch a custom event so other scripts (e.g. charts) can react
+  window.dispatchEvent(new CustomEvent("neonsync-theme-change", { detail: { theme: next } }));
+}
+
+// Apply saved theme on module load
+_applyTheme(_getCurrentTheme());
