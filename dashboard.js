@@ -20,7 +20,7 @@ import {
 import {
   statusBadge,
   priorityBadge,
-  formatDate,
+  formatDateTime,
   getInitials,
   showToast,
   isOverdue,
