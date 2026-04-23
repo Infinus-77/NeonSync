@@ -36,8 +36,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isSuperAdmin();
+      allow update: if isOwner(userId) || (isAdmin() && (
+        request.resource.data.role == resource.data.role || 
+        resource.data.role != 'super_admin'
+      ));
+      allow delete: if isSuperAdmin() && (isOwner(userId) || resource.data.role != 'super_admin');
     }
 
     // ─── Tasks ─────────────────────────────────────────────────────────────────

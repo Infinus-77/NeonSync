@@ -135,7 +135,7 @@ function renderUsers(users) {
       const isMe = u.id === currentUser.id;
       const canManage =
         !isMe &&
-        (currentUser.role === "super_admin" ||
+        ((currentUser.role === "super_admin" && u.role !== "super_admin") ||
           (currentUser.role === "admin" && u.role === "member"));
 
       return `<tr data-testid="user-row-${u.id}">
@@ -264,6 +264,16 @@ window.confirmRoleChange = async () => {
 
   if (currentUser.role === "admin" && newRole === "super_admin") {
     showToast("Admins cannot assign Super Admin role", "error");
+    return;
+  }
+
+  const targetUser = allUsers.find((u) => u.id === roleChangeUserId);
+  if (
+    targetUser &&
+    targetUser.role === "super_admin" &&
+    newRole !== "super_admin"
+  ) {
+    showToast("Super Admins cannot be demoted", "error");
     return;
   }
 
