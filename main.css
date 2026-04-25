@@ -1894,13 +1894,14 @@ input:-webkit-autofill:focus {
 ═══════════════════════════════ */
 .notif-panel.large-size {
   width: min(600px, 94vw) !important;
-  max-height: none !important;
-  left: calc(100% + 14px) !important;
-  top: 14px !important;
+  max-height: 80vh !important;
+  left: 50% !important;
+  top: 50% !important;
   bottom: auto !important;
-  transform: none !important;
-  box-shadow: 0 0 0 1000vw rgba(0,0,0,0.45), var(--shadow-lg);
+  transform: translate(-50%, -50%) !important;
+  box-shadow: 0 0 0 1000vw rgba(0,0,0,0.65), var(--shadow-lg);
 }
+.notif-panel.large-size #notif-close-btn { display: block !important; }
 .notif-resize-btn {
   background: none;
   border: none;
