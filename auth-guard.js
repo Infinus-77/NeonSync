@@ -1,4 +1,4 @@
-// auth-guard.js — FIXED: shows loading overlay until auth resolves, prevents content flash
+// auth-guard.js — Loading overlay removed except on dashboard
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -8,40 +8,8 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ✅ Inject loading overlay immediately (before auth resolves)
-injectLoadingOverlay();
-
-function injectLoadingOverlay() {
-  if (document.getElementById("auth-loading-overlay")) return;
-
-  const overlay = document.createElement("div");
-  overlay.id = "auth-loading-overlay";
-  overlay.style.cssText = `
-    position:fixed;inset:0;
-    background:var(--loading-bg, rgba(11, 14, 20, 0.92));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-    z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-    transition:opacity 0.4s ease;
-  `;
-  overlay.innerHTML = `
-    <div style="width:40px;height:40px;border:3px solid rgba(0,242,255,0.12);border-top-color:#00F2FF;border-right-color:#BF00FF;border-radius:50%;animation:spin 0.8s linear infinite;box-shadow:0 0 20px rgba(0,242,255,0.25);"></div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;background:linear-gradient(135deg, #00F2FF 0%, #BF00FF 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pulse-text 1.5s ease-in-out infinite;">Authenticating...</div>
-    <style>
-      @keyframes spin { to { transform: rotate(360deg); } }
-      @keyframes pulse-text { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
-    </style>
-  `;
-
-  if (document.body) {
-    document.body.appendChild(overlay);
-  } else {
-    document.addEventListener("DOMContentLoaded", () =>
-      document.body.appendChild(overlay),
-    );
-  }
-}
-
 function hideLoadingOverlay() {
-  const overlay = document.getElementById("auth-loading-overlay");
+  const overlay = document.getElementById("loading-overlay");
   if (!overlay) return;
   overlay.style.opacity = "0";
   setTimeout(() => overlay.remove(), 320);
