@@ -74,19 +74,7 @@ export function renderSidebar(activeItem, user) {
       </button>
     </div>
 
-    <div class="sidebar-user">
-      <div class="sidebar-avatar">${avatarHTML}</div>
-      <div class="sidebar-user-info">
-        <div class="sidebar-user-name">${user.displayName || user.name || "User"}</div>
-        <div class="sidebar-user-role">${_formatRole(user.role)}</div>
-      </div>
-      <button class="sidebar-notif-btn" id="notif-bell-btn" aria-label="Notifications" aria-expanded="false">
-        <i class="ph ph-bell"></i>
-        <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
-      </button>
-    </div>
-
-    <nav class="sidebar-nav" aria-label="Main navigation">
+    <nav class="sidebar-nav" aria-label="Main navigation" style="margin-top: 16px;">
       ${navItems.map((item) => `
         <a href="${item.href}"
           class="sidebar-nav-item${activeItem === item.id ? " active" : ""}"
@@ -98,34 +86,61 @@ export function renderSidebar(activeItem, user) {
         </a>
       `).join("")}
     </nav>
+  `;
 
-    <div class="sidebar-footer">
-      <button class="theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle theme">
-        <i class="ph ${_getCurrentTheme() === 'light' ? 'ph-moon' : 'ph-sun'}" aria-hidden="true"></i>
-        <span>${_getCurrentTheme() === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
-      </button>
-      <button class="sidebar-logout-btn" id="logout-btn" data-testid="logout-btn">
-        <i class="ph ph-sign-out" aria-hidden="true"></i>
-        <span>Sign Out</span>
-      </button>
-    </div>
+  // ── Inject Action Bar ──
+  let actionBar = document.getElementById("action-bar");
+  if (!actionBar) {
+    actionBar = document.createElement("div");
+    actionBar.id = "action-bar";
+    actionBar.className = "action-bar";
+    document.body.appendChild(actionBar);
+  }
+  
+  actionBar.innerHTML = `
+    <a href="profile.html?uid=${user.id}" class="action-bar-avatar" title="Profile">
+      ${avatarHTML}
+    </a>
+    <div class="action-bar-spacer"></div>
+    <button class="action-bar-btn" id="theme-toggle-btn" title="Toggle Theme">
+      <i class="ph ${_getCurrentTheme() === 'light' ? 'ph-moon' : 'ph-sun'}"></i>
+    </button>
+    <button class="action-bar-btn" id="notif-bell-btn" title="Notifications">
+      <i class="ph ph-bell"></i>
+      <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+    </button>
+    <button class="action-bar-btn danger" id="logout-btn" title="Sign Out">
+      <i class="ph ph-sign-out"></i>
+    </button>
+  `;
 
-    <div class="notif-panel" id="notif-panel" hidden>
-      <div class="notif-panel-header">
-        <span>Notifications</span>
-        <div style="display:flex;gap:4px;align-items:center;">
-          <button id="notif-resize-btn" class="notif-resize-btn" aria-label="Resize panel">
-            <i class="ph ph-arrows-out-simple"></i>
-          </button>
-          <button id="mark-all-read-btn" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600;padding:2px 6px;border-radius:4px;">
-            Mark all read
-          </button>
-        </div>
+  // ── Inject Notification Panel ──
+  let notifPanel = document.getElementById("notif-panel");
+  if (!notifPanel) {
+    notifPanel = document.createElement("div");
+    notifPanel.id = "notif-panel";
+    notifPanel.className = "notif-panel";
+    notifPanel.hidden = true;
+    document.body.appendChild(notifPanel);
+  }
+  notifPanel.innerHTML = `
+    <div class="notif-panel-header">
+      <span>Notifications</span>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <button id="notif-resize-btn" class="notif-resize-btn" aria-label="Resize panel">
+          <i class="ph ph-arrows-out-simple"></i>
+        </button>
+        <button id="mark-all-read-btn" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600;padding:2px 6px;border-radius:4px;">
+          Mark all read
+        </button>
+        <button id="notif-close-btn" style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:4px;display:none;">
+          <i class="ph ph-x"></i>
+        </button>
       </div>
-      <div class="notif-list" id="notif-list" style="overflow-y:auto;max-height:300px;">
-        <div class="empty-state" style="padding:24px;">
-          <i class="ph ph-bell-slash"></i><p>No notifications</p>
-        </div>
+    </div>
+    <div class="notif-list" id="notif-list" style="overflow-y:auto;flex:1;">
+      <div class="empty-state" style="padding:24px;">
+        <i class="ph ph-bell-slash"></i><p>No notifications</p>
       </div>
     </div>
   `;
@@ -155,6 +170,19 @@ function _bindSidebarEvents(user) {
         if (icon) {
           icon.className = isLarge ? "ph ph-arrows-in-simple" : "ph ph-arrows-out-simple";
         }
+      }
+    });
+
+  // Notification close
+  document.getElementById("notif-close-btn")
+    ?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const panel = document.getElementById("notif-panel");
+      const bell = document.getElementById("notif-bell-btn");
+      if (panel) panel.setAttribute("hidden", "");
+      if (bell) {
+        bell.setAttribute("aria-expanded", "false");
+        bell.classList.remove("active");
       }
     });
 
