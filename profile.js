@@ -95,7 +95,7 @@ function renderProfileHeader(u) {
     <div style="position:relative;flex-shrink:0;">
       <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;overflow:hidden;border:2px solid rgba(0,242,255,0.25);">
         ${u.photoURL
-          ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">`
+          ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${getInitials(u.displayName || u.name || "?")}</span>`
           : `<span>${getInitials(u.displayName || u.name || "?")}</span>`}
       </div>
       <div style="position:absolute;bottom:0;right:0;width:16px;height:16px;background:var(--green);border-radius:50%;border:2px solid var(--bg-body);"></div>

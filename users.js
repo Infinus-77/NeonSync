@@ -123,14 +123,14 @@ window.filterUsers = () => {
 };
 
 function renderUsers(users) {
-  const tbody = document.getElementById("users-tbody");
+  const container = document.getElementById("users-grid");
   if (!users.length) {
-    tbody.innerHTML =
-      '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">No users found</td></tr>';
+    container.innerHTML =
+      '<div style="text-align:center;padding:40px;color:var(--text-muted);grid-column: 1 / -1;">No users found</div>';
     return;
   }
 
-  tbody.innerHTML = users
+  container.innerHTML = users
     .map((u) => {
       const isMe = u.id === currentUser.id;
       const canManage =
@@ -138,38 +138,48 @@ function renderUsers(users) {
         ((currentUser.role === "super_admin" && u.role !== "super_admin") ||
           (currentUser.role === "admin" && u.role === "member"));
 
-      return `<tr data-testid="user-row-${u.id}">
-      <td>
-        <div class="user-cell">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;overflow:hidden;">
-            ${u.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">` : getInitials(u.displayName)}
+      return `
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center;position:relative;border:1px solid var(--border-glass);" data-testid="user-card-${u.id}">
+        ${isMe ? '<div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;color:var(--cyan);background:rgba(0,242,255,0.1);padding:4px 8px;border-radius:999px;">YOU</div>' : ""}
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;overflow:hidden;margin-bottom:12px;border:2px solid rgba(0,242,255,0.25);">
+          ${u.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${getInitials(u.displayName)}</span>` : getInitials(u.displayName)}
+        </div>
+        
+        <div style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:2px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Space Grotesk', sans-serif;">
+          ${sanitizeHtml(u.displayName || "User")}
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${sanitizeHtml(u.email)}
+        </div>
+        
+        <div style="margin-bottom:20px;">
+          ${roleBadge(u.role || "member")}
+        </div>
+
+        <div style="display:flex;justify-content:space-between;width:100%;font-size:11px;color:var(--text-muted);margin-bottom:20px;background:var(--bg-input);padding:10px 14px;border-radius:var(--radius-md);">
+          <div style="text-align:center;">
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${u.totalTasksCompleted || 0}</div>
+            <div>Completed</div>
           </div>
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--text-primary);">
-              ${sanitizeHtml(u.displayName || "User")} ${isMe ? '<span style="font-size:10px;color:var(--accent-cyan);">(you)</span>' : ""}
-            </div>
-            <div style="font-size:11px;color:var(--text-muted);">${sanitizeHtml(u.email)}</div>
+          <div style="width:1px;background:var(--border-subtle);"></div>
+          <div style="text-align:center;">
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${u.lastActive ? timeAgo(u.lastActive).replace('ago','') : "---"}</div>
+            <div>Active</div>
           </div>
         </div>
-      </td>
-      <td>${roleBadge(u.role || "member")}</td>
-      <td style="font-size:12px;">${u.totalTasksCompleted || 0} completed</td>
-      <td style="font-size:12px;">${u.lastActive ? timeAgo(u.lastActive) : "---"}</td>
-      <td><span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600;background:rgba(34,197,94,0.14);color:var(--accent-green);border:1px solid rgba(34,197,94,0.3);">Active</span></td>
-      <td>
-        <div style="display:flex;gap:6px;">
-          <a href="profile.html?uid=${u.id}" class="btn btn-secondary btn-sm" title="View profile"><i class="ph ph-eye"></i></a>
+        
+        <div style="display:flex;gap:8px;width:100%;">
+          <a href="profile.html?uid=${u.id}" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;" title="View profile"><i class="ph ph-user"></i> Profile</a>
           ${
             canManage
               ? `
-            <button class="btn btn-secondary btn-sm" onclick="openRoleModal('${u.id}','${u.displayName}','${u.role}')" title="Change role"><i class="ph ph-shield"></i></button>
-            <button class="btn btn-danger btn-sm" onclick="confirmDeleteUser('${u.id}','${u.displayName}')" title="Delete user"><i class="ph ph-trash"></i></button>
+            <button class="btn btn-secondary btn-sm" style="padding:0 12px;" onclick="openRoleModal('${u.id}','${sanitizeHtml(u.displayName).replace(/'/g, "\\'")}','${u.role}')" title="Change role"><i class="ph ph-shield"></i></button>
+            <button class="btn btn-outline btn-sm" style="padding:0 12px;color:var(--danger);border-color:rgba(220,38,38,0.3);background:rgba(220,38,38,0.05);" onclick="confirmDeleteUser('${u.id}','${sanitizeHtml(u.displayName).replace(/'/g, "\\'")}')" title="Delete user"><i class="ph ph-trash"></i></button>
           `
               : ""
           }
         </div>
-      </td>
-    </tr>`;
+      </div>`;
     })
     .join("");
 }
