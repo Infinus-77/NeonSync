@@ -75,6 +75,7 @@ export function showConfirm(message, confirmLabel = "Delete", danger = true) {
 export function formatDate(timestamp) {
   if (!timestamp) return "N/A";
   const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  if (isNaN(d.getTime())) return "Just now";
   return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -85,6 +86,7 @@ export function formatDate(timestamp) {
 export function formatDateTime(timestamp) {
   if (!timestamp) return "";
   const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  if (isNaN(d.getTime())) return "Just now";
   return d.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -97,9 +99,10 @@ export function formatDateTime(timestamp) {
 export function timeAgo(timestamp) {
   if (!timestamp) return "";
   const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  if (isNaN(d.getTime())) return "Just now";
   const now = new Date();
   const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return `${diff}s ago`;
+  if (diff < 60) return `${diff >= 0 ? diff : 0}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;

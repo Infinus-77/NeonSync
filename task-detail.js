@@ -147,8 +147,7 @@ function renderTask(t) {
     .join("");
 
   const pct = t.completionPercentage || 0;
-  document.getElementById("completion-pct-label").textContent = `${pct}%`;
-  document.getElementById("completion-bar").style.width = `${pct}%`;
+  updateRing(pct);
   document.getElementById("completion-slider").value = pct;
 
   const isAssigned = (t.assignedTo || []).includes(currentUser.id);
@@ -265,9 +264,49 @@ window.updateStatus = async (newStatus) => {
   }
 };
 
+// Ring helper: updates SVG ring offset, label, input, and stroke color
+function updateRing(pct) {
+  pct = Math.max(0, Math.min(100, pct));
+  const circumference = 326.73;
+  const offset = circumference * (1 - pct / 100);
+  const ring = document.getElementById("completion-ring-fill");
+  if (ring) {
+    ring.style.strokeDashoffset = offset;
+    if (pct >= 100) ring.style.stroke = "var(--green)";
+    else if (pct >= 50) ring.style.stroke = "var(--cyan)";
+    else if (pct >= 25) ring.style.stroke = "var(--amber)";
+    else ring.style.stroke = "var(--rose)";
+  }
+  document.getElementById("completion-pct-label").textContent = `${pct}%`;
+  const input = document.getElementById("completion-input");
+  if (input && document.activeElement !== input) input.value = pct;
+}
+
 window.updateCompletionPreview = (val) => {
-  document.getElementById("completion-pct-label").textContent = `${val}%`;
-  document.getElementById("completion-bar").style.width = `${val}%`;
+  updateRing(parseInt(val) || 0);
+};
+
+// Stepper: +/- buttons increment by 5
+window.stepCompletion = async (delta) => {
+  const current = parseInt(document.getElementById("completion-slider").value) || 0;
+  const next = Math.max(0, Math.min(100, current + delta));
+  updateRing(next);
+  document.getElementById("completion-slider").value = next;
+  await saveCompletion();
+};
+
+// Direct input: live preview while typing
+window.previewFromInput = (val) => {
+  const pct = Math.max(0, Math.min(100, parseInt(val) || 0));
+  updateRing(pct);
+};
+
+// Direct input: save on blur/enter
+window.commitFromInput = async (val) => {
+  const pct = Math.max(0, Math.min(100, parseInt(val) || 0));
+  updateRing(pct);
+  document.getElementById("completion-slider").value = pct;
+  await saveCompletion();
 };
 
 // ✅ FIX: Saves completion AND writes activity log

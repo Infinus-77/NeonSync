@@ -177,44 +177,28 @@
               </div>
 
               <div id="completion-control" style="display: none">
-                <div
-                  style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 8px;
-                  "
-                >
-                  <div class="text-sm text-muted">Completion</div>
-                  <span
-                    id="completion-pct-label"
-                    style="font-weight: 600; color: var(--cyan)"
-                  >
-                    0%
-                  </span>
+                <div class="text-sm text-muted" style="margin-bottom: 12px;">Completion</div>
+                <div class="completion-ring-wrap" style="flex-direction: column; align-items: center; gap: 14px;">
+                  <div class="completion-ring-container">
+                    <svg class="completion-ring" viewBox="0 0 120 120">
+                      <circle class="completion-ring-bg" cx="60" cy="60" r="52" />
+                      <circle class="completion-ring-fill" id="completion-ring-fill" cx="60" cy="60" r="52"
+                        stroke-dasharray="326.73" stroke-dashoffset="326.73" />
+                    </svg>
+                    <div class="completion-ring-label" id="completion-pct-label">0%</div>
+                  </div>
+                  <div class="completion-stepper">
+                    <button class="stepper-btn" onclick="stepCompletion(-5)" aria-label="Decrease 5%">
+                      <i class="ph ph-minus"></i>
+                    </button>
+                    <input type="number" id="completion-input" class="stepper-input" min="0" max="100" value="0"
+                      oninput="previewFromInput(this.value)" onchange="commitFromInput(this.value)" />
+                    <button class="stepper-btn" onclick="stepCompletion(5)" aria-label="Increase 5%">
+                      <i class="ph ph-plus"></i>
+                    </button>
+                  </div>
                 </div>
-
-                <div
-                  class="progress-bar-wrap"
-                  style="height: 8px; margin-bottom: 8px"
-                >
-                  <div
-                    class="progress-bar-fill"
-                    id="completion-bar"
-                    style="width: 0%"
-                  ></div>
-                </div>
-
-                <input
-                  type="range"
-                  id="completion-slider"
-                  min="0"
-                  max="100"
-                  value="0"
-                  style="width: 100%; cursor: pointer"
-                  oninput="updateCompletionPreview(this.value)"
-                  onchange="saveCompletion(this.value)"
-                />
+                <input type="hidden" id="completion-slider" value="0" />
               </div>
             </div>
 

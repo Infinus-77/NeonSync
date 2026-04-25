@@ -639,7 +639,7 @@ ul { list-style: none; }
   color: var(--text-secondary);
   flex-shrink: 0;
 }
-.notif-list { overflow-y: auto; flex: 1; }
+.notif-list { overflow-y: auto; flex: 0 1 auto; max-height: 50vh; }
 
 /* Sidebar overlay (mobile backdrop) */
 .sidebar-overlay {
@@ -1087,6 +1087,107 @@ textarea.form-input { resize: vertical; min-height: 72px; }
   border-radius: var(--radius-full);
   transition: width 0.4s var(--ease-out);
   box-shadow: 0 0 8px rgba(0,242,255,0.3);
+}
+
+/* ═══════════════════════════════
+   COMPLETION RING
+═══════════════════════════════ */
+
+.completion-ring-wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.completion-ring-container {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+.completion-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 6px rgba(0, 242, 255, 0.25));
+}
+.completion-ring-bg {
+  fill: none;
+  stroke: var(--bg-input);
+  stroke-width: 8;
+}
+.completion-ring-fill {
+  fill: none;
+  stroke: url(#ring-gradient);
+  stroke: var(--cyan);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.3s;
+}
+.completion-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+.completion-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stepper-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-glass);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.stepper-btn:hover {
+  background: rgba(0, 242, 255, 0.1);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+}
+.stepper-btn:active {
+  transform: scale(0.92);
+}
+.stepper-input {
+  width: 56px;
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cyan);
+  background: var(--bg-input);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 6px 4px;
+  outline: none;
+  -moz-appearance: textfield;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stepper-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 242, 255, 0.1);
 }
 
 /* ═══════════════════════════════
@@ -1694,9 +1795,10 @@ input:-webkit-autofill:focus {
 ═══════════════════════════════ */
 .notif-panel.large-size {
   width: min(600px, 94vw) !important;
-  max-height: 80vh !important;
+  max-height: none !important;
   left: calc(100% + 14px) !important;
   top: 14px !important;
+  bottom: auto !important;
   transform: none !important;
   box-shadow: 0 0 0 1000vw rgba(0,0,0,0.45), var(--shadow-lg);
 }
