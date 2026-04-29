@@ -3,7 +3,7 @@
    Dark neon cyberpunk — Mobile-first, fully responsive, sidebar fixed
    ═══════════════════════════════════════════════════════════════════ */
 
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap");
 
 :root {
   /* ── Surface hierarchy (layered depth) ── */
@@ -496,7 +496,9 @@ ul { list-style: none; }
 .sidebar-logo-icon {
   width: 30px;
   height: 30px;
-  background: var(--gradient-brand);
+  background: url('NS_logo.jpeg');
+  background-size: cover;
+  background-position: center;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -504,11 +506,11 @@ ul { list-style: none; }
   flex-shrink: 0;
   box-shadow: 0 0 12px rgba(0,242,255,0.3);
 }
-.sidebar-logo-icon i { color: #fff; font-size: 14px; }
+.sidebar-logo-icon i { display: none; }
 .sidebar-logo-text,
 .sidebar-logo h1 {
   font-family: "Space Grotesk", sans-serif;
-  font-size: 15px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -765,17 +767,19 @@ ul { list-style: none; }
 .mobile-logo-icon {
   width: 26px;
   height: 26px;
-  background: var(--gradient-brand);
+  background: url('NS_logo.jpeg');
+  background-size: cover;
+  background-position: center;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 10px rgba(0,242,255,0.25);
 }
-.mobile-logo-icon i { color: #fff; font-size: 12px; }
+.mobile-logo-icon i { display: none; }
 .mobile-logo-text {
   font-family: "Space Grotesk", sans-serif;
-  font-size: 15px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -896,12 +900,14 @@ textarea.form-input { resize: vertical; min-height: 72px; }
   width: 100%;
 }
 .page-title {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 20px;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 48px;
+  font-style: italic;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.02em;
   line-height: 1.2;
-  color: var(--text-primary);
+  color: transparent;
+  -webkit-text-stroke: 0.5px var(--text-primary);
 }
 .page-subtitle { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
 

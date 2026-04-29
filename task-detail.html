@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NeonSync - Task Detail</title>
+    <link rel="icon" type="image/jpeg" href="NS_logo.jpeg">
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -187,15 +188,9 @@
                     </svg>
                     <div class="completion-ring-label" id="completion-pct-label">0%</div>
                   </div>
-                  <div class="completion-stepper">
-                    <button class="stepper-btn" onclick="stepCompletion(-5)" aria-label="Decrease 5%">
-                      <i class="ph ph-minus"></i>
-                    </button>
-                    <input type="number" id="completion-input" class="stepper-input" min="0" max="100" value="0"
-                      oninput="previewFromInput(this.value)" onchange="commitFromInput(this.value)" />
-                    <button class="stepper-btn" onclick="stepCompletion(5)" aria-label="Increase 5%">
-                      <i class="ph ph-plus"></i>
-                    </button>
+                  <div class="completion-stepper" style="width: 100%; max-width: 200px;">
+                    <input type="range" id="completion-input" class="form-range" min="0" max="100" value="0" step="5"
+                      oninput="previewFromInput(this.value)" onchange="commitFromInput(this.value)" style="width: 100%; cursor: pointer;" />
                   </div>
                 </div>
                 <input type="hidden" id="completion-slider" value="0" />
