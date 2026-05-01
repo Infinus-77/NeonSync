@@ -105,6 +105,20 @@
             <option value="admin">Admin</option>
             <option value="member">Member</option>
           </select>
+
+          <select
+            id="sort-users"
+            class="form-input form-select"
+            onchange="filterUsers()"
+            data-testid="sort-users"
+          >
+            <option value="role">Default</option>
+            <option value="az">Alphabetical (A-Z)</option>
+            <option value="za">Alphabetical (Z-A)</option>
+            <option value="newest">Date Joined (Newest)</option>
+            <option value="oldest">Date Joined (Oldest)</option>
+            <option value="active">Most Active</option>
+          </select>
         </div>
 
         <!-- Users Grid -->

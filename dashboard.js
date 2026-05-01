@@ -792,3 +792,13 @@ document.addEventListener("click", (e) => {
   if (e.target.classList.contains("modal-overlay"))
     e.target.classList.remove("active");
 });
+
+// Initialize flatpickr for deadline input
+if (typeof flatpickr !== "undefined") {
+  flatpickr("#task-deadline", {
+    enableTime: true,
+    dateFormat: "Y-m-d\\TH:i",
+    altInput: true,
+    altFormat: "d/m/Y h:i K"
+  });
+}

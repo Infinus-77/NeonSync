@@ -606,9 +606,11 @@ window.openEditModal = () => {
     const d = taskData.deadline.toDate
       ? taskData.deadline.toDate()
       : new Date(taskData.deadline);
-    document.getElementById("edit-deadline").value = d
-      .toISOString()
-      .slice(0, 16);
+    const dStr = d.toISOString().slice(0, 16);
+    document.getElementById("edit-deadline").value = dStr;
+    if (document.getElementById("edit-deadline")._flatpickr) {
+      document.getElementById("edit-deadline")._flatpickr.setDate(dStr);
+    }
   }
   openModal("edit-task-modal");
 };
@@ -661,3 +663,13 @@ document.addEventListener("click", (e) => {
   if (e.target.classList.contains("modal-overlay"))
     e.target.classList.remove("active");
 });
+
+// Initialize flatpickr for deadline input
+if (typeof flatpickr !== "undefined") {
+  flatpickr("#edit-deadline", {
+    enableTime: true,
+    dateFormat: "Y-m-d\\TH:i",
+    altInput: true,
+    altFormat: "d/m/Y h:i K"
+  });
+}

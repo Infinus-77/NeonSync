@@ -458,7 +458,11 @@ window.openEditTask = async (taskId) => {
 
   if (t.deadline) {
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
-    document.getElementById("tf-deadline").value = d.toISOString().slice(0, 16);
+    const dStr = d.toISOString().slice(0, 16);
+    document.getElementById("tf-deadline").value = dStr;
+    if (document.getElementById("tf-deadline")._flatpickr) {
+      document.getElementById("tf-deadline")._flatpickr.setDate(dStr);
+    }
   }
 
   document.getElementById("tf-tags").value = (t.tags || []).join(", ");
@@ -682,3 +686,13 @@ document.addEventListener("click", (e) => {
   if (!input.contains(e.target) && !results.contains(e.target))
     results.style.display = "none";
 });
+
+// Initialize flatpickr for deadline input
+if (typeof flatpickr !== "undefined") {
+  flatpickr("#tf-deadline", {
+    enableTime: true,
+    dateFormat: "Y-m-d\\TH:i",
+    altInput: true,
+    altFormat: "d/m/Y h:i K"
+  });
+}

@@ -103,6 +103,7 @@ window.filterUsers = () => {
   const search =
     document.getElementById("user-search")?.value?.toLowerCase() || "";
   const roleFilter = document.getElementById("role-filter")?.value || "";
+  const sortOption = document.getElementById("sort-users")?.value || "role";
 
   let users = [...allUsers];
   if (search)
@@ -113,10 +114,32 @@ window.filterUsers = () => {
     );
   if (roleFilter) users = users.filter((u) => u.role === roleFilter);
 
-  // Admins can now see super admins (discovery)
-  if (currentUser.role === "admin") {
-    // Keep filter if you want to prevent ACTION on super admins, but allow viewing.
-    // For now, we allow them in the list.
+  // Sorting logic
+  if (sortOption === "role") {
+    const roleWeight = { super_admin: 1, admin: 2, member: 3 };
+    users.sort((a, b) => {
+      const wA = roleWeight[a.role] || 4;
+      const wB = roleWeight[b.role] || 4;
+      if (wA !== wB) return wA - wB;
+      return (a.displayName || "").localeCompare(b.displayName || "");
+    });
+  } else if (sortOption === "az") {
+    users.sort((a, b) => (a.displayName || "").localeCompare(b.displayName || ""));
+  } else if (sortOption === "za") {
+    users.sort((a, b) => (b.displayName || "").localeCompare(a.displayName || ""));
+  } else if (sortOption === "newest") {
+    users.sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+  } else if (sortOption === "oldest") {
+    users.sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
+  } else if (sortOption === "active") {
+    users.sort((a, b) => (b.lastActive?.toMillis?.() ?? 0) - (a.lastActive?.toMillis?.() ?? 0));
+  }
+
+  // Always pin current user to the top
+  const meIndex = users.findIndex((u) => u.id === currentUser.id);
+  if (meIndex > -1) {
+    const [me] = users.splice(meIndex, 1);
+    users.unshift(me);
   }
 
   renderUsers(users);
