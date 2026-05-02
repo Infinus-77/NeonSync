@@ -240,6 +240,17 @@
   border-color: var(--border-glass);
 }
 
+[data-theme="light"] .remark-item,
+[data-theme="light"] .notif-panel,
+[data-theme="light"] .card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .task-card,
+[data-theme="light"] .modal,
+[data-theme="light"] .settings-container,
+[data-theme="light"] .profile-header-card {
+  border-color: var(--border-glass) !important;
+}
+
 /* ═══════════════════════════════
    THEME TOGGLE BUTTON
 ═══════════════════════════════ */

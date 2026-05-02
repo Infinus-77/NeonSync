@@ -351,6 +351,34 @@
                 />
               </div>
             </div>
+
+            <div class="form-group" id="edit-assign-group">
+              <label class="form-label">Assign To</label>
+              <input
+                type="text"
+                id="edit-assign-search"
+                class="form-input"
+                placeholder="Search users..."
+                oninput="searchEditAssignees(this.value)"
+                onfocus="searchEditAssignees('')"
+              />
+              <div
+                id="edit-assignee-results"
+                style="
+                  max-height: 150px;
+                  overflow-y: auto;
+                  margin-top: 6px;
+                  border: 1px solid var(--border-glass);
+                  border-radius: var(--radius-md);
+                  display: none;
+                  background: var(--bg-panel); border-color: var(--border-hover) !important;
+                "
+              ></div>
+              <div
+                id="edit-selected-assignees"
+                style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px"
+              ></div>
+            </div>
           </div>
           <div class="modal-footer">
             <button

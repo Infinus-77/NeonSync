@@ -37,6 +37,7 @@ let taskData = null;
 let currentUser;
 let allUsers = {};
 let taskChatId = null;
+let editSelectedUsers = [];
 
 if (!taskId) window.location.href = "tasks.html";
 
@@ -612,6 +613,8 @@ window.openEditModal = () => {
       document.getElementById("edit-deadline")._flatpickr.setDate(dStr);
     }
   }
+  editSelectedUsers = [...(taskData.assignedTo || [])];
+  renderEditSelectedAssignees();
   openModal("edit-task-modal");
 };
 
@@ -621,12 +624,14 @@ window.submitEditTask = async (e) => {
   const desc = document.getElementById("edit-desc").value.trim();
   const priority = document.getElementById("edit-priority").value;
   const dl = document.getElementById("edit-deadline").value;
+  const assignedTo = editSelectedUsers.length ? [...editSelectedUsers] : [currentUser.id];
 
   try {
     await updateDoc(doc(db, "tasks", taskId), {
       title,
       description: desc,
       priority,
+      assignedTo,
       ...(dl ? { deadline: Timestamp.fromDate(new Date(dl)) } : {}),
       updatedAt: serverTimestamp(),
     });
@@ -662,6 +667,77 @@ window.closeModal = (id) =>
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("modal-overlay"))
     e.target.classList.remove("active");
+});
+
+window.searchEditAssignees = (val = "") => {
+  const resultsEl = document.getElementById("edit-assignee-results");
+  if (!resultsEl) return;
+  const q = val.toLowerCase();
+  const usersArray = Object.values(allUsers);
+  const filtered = usersArray.filter((u) => {
+    if (editSelectedUsers.includes(u.id)) return false;
+    if (q && !(u.displayName || "").toLowerCase().includes(q)) return false;
+    if (currentUser.role === "admin" && u.role === "super_admin") return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    resultsEl.style.display = "none";
+    return;
+  }
+
+  resultsEl.style.display = "block";
+  resultsEl.innerHTML = filtered
+    .map(
+      (u) => `
+    <div onclick="selectEditAssignee('${u.id}')"
+      style="padding:9px 13px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:9px;"
+      onmouseover="this.style.background='rgba(255,255,255,0.04)'"
+      onmouseout="this.style.background='transparent'">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">${getInitials(u.displayName)}</div>
+      <div>
+        <div style="font-weight:500;">${sanitizeHtml(u.displayName)}</div>
+        <div style="font-size:10px;color:var(--text-muted);">${sanitizeHtml(u.role)}</div>
+      </div>
+    </div>`
+    )
+    .join("");
+};
+
+window.selectEditAssignee = (uid) => {
+  if (!editSelectedUsers.includes(uid)) {
+    editSelectedUsers.push(uid);
+    renderEditSelectedAssignees();
+  }
+  document.getElementById("edit-assign-search").value = "";
+  document.getElementById("edit-assignee-results").style.display = "none";
+};
+
+window.removeEditAssignee = (uid) => {
+  editSelectedUsers = editSelectedUsers.filter((id) => id !== uid);
+  renderEditSelectedAssignees();
+};
+
+function renderEditSelectedAssignees() {
+  const el = document.getElementById("edit-selected-assignees");
+  if (!el) return;
+  el.innerHTML = editSelectedUsers
+    .map((uid) => {
+      const u = allUsers[uid];
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(0,242,255,0.10);border:1px solid rgba(0,242,255,0.20);border-radius:999px;font-size:11px;">
+      ${sanitizeHtml(u?.displayName || uid)}
+      <button type="button" onclick="removeEditAssignee('${uid}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;">×</button>
+    </span>`;
+    })
+    .join("");
+}
+
+document.addEventListener("click", (e) => {
+  const input = document.getElementById("edit-assign-search");
+  const results = document.getElementById("edit-assignee-results");
+  if (!input || !results) return;
+  if (!input.contains(e.target) && !results.contains(e.target))
+    results.style.display = "none";
 });
 
 // Initialize flatpickr for deadline input
