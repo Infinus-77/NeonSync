@@ -145,6 +145,11 @@ service cloud.firestore {
         && (resource.data.get('createdBy', '') == currentUid() || isAdmin());
     }
 
+    // ─── Idea Library ──────────────────────────────────────────────────────────
+    match /ideas/{ideaId} {
+      allow read, write: if isSuperAdmin();
+    }
+
     // ─── Default deny ──────────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

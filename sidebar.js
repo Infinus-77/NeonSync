@@ -47,6 +47,7 @@ export function renderSidebar(activeItem, user) {
   if (!sidebar) return;
 
   const isAdmin = user.role === "admin" || user.role === "super_admin";
+  const isSuperAdmin = user.role === "super_admin";
 
   const navItems = [
     { id: "dashboard",  label: "Dashboard",  icon: "ph-squares-four",    href: "dashboard.html" },
@@ -56,6 +57,9 @@ export function renderSidebar(activeItem, user) {
     ...(isAdmin ? [
       { id: "users",     label: "Users",     icon: "ph-users",     href: "users.html"     },
       { id: "analytics", label: "Analytics", icon: "ph-chart-bar", href: "analytics.html" },
+    ] : []),
+    ...(isSuperAdmin ? [
+      { id: "ideas",     label: "Idea Library (beta)", icon: "ph-lightbulb", href: "ideas.html" },
     ] : []),
     { id: "profile", label: "Profile", icon: "ph-user-circle", href: `profile.html?uid=${user.id}` },
   ];

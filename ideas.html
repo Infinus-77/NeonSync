@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeonSync - Idea Library</title>
+    <meta name="description" content="NeonSync Idea Library — capture, organize, and prioritize your best ideas." />
+    <link rel="icon" type="image/jpeg" href="NS_logo.jpeg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+    <link rel="stylesheet" href="./main.css" />
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('neonsync-theme') || 'dark');</script>
+  </head>
+
+  <body>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar" id="mobile-topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+        <i class="ph ph-list"></i>
+      </button>
+      <div class="mobile-logo">
+        <div class="mobile-logo-icon"><i class="ph ph-circles-four"></i></div>
+        <span class="mobile-logo-text">NeonSync</span>
+      </div>
+      <div style="width:36px"></div>
+    </div>
+
+    <div class="app-layout" id="app">
+      <div id="sidebar" class="sidebar"></div>
+
+      <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Idea Library <span class="beta-tag">beta</span></h1>
+            <p class="page-subtitle" id="ideas-subtitle">
+              Capture, organize, and star your best ideas
+            </p>
+          </div>
+
+          <button
+            class="btn btn-primary"
+            id="add-idea-btn"
+            data-testid="add-idea-btn"
+          >
+            <i class="ph ph-plus-circle"></i>
+            New Idea
+          </button>
+        </div>
+
+        <!-- Search + Filter -->
+        <div class="ideas-toolbar">
+          <div class="ideas-search-wrap">
+            <i class="ph ph-magnifying-glass ideas-search-icon"></i>
+            <input
+              type="text"
+              id="idea-search"
+              class="form-input"
+              placeholder="Search ideas..."
+              data-testid="idea-search"
+            />
+          </div>
+
+          <select
+            id="category-filter"
+            class="form-input form-select"
+            data-testid="category-filter"
+          >
+            <option value="">All Categories</option>
+            <option value="Feature">Feature</option>
+            <option value="UI/UX">UI/UX</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Integration">Integration</option>
+            <option value="Bug Fix">Bug Fix</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <button class="ideas-filter-btn" id="star-filter-btn" data-testid="star-filter-btn" title="Show starred only">
+            <i class="ph ph-star"></i>
+          </button>
+        </div>
+
+        <!-- Ideas Grid -->
+        <div id="ideas-grid" class="ideas-grid animate-in">
+          <div class="ideas-empty-state" id="ideas-loading">
+            <div class="spinner"></div>
+            <p>Loading ideas...</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Add / Edit Idea Modal -->
+    <div class="modal-overlay" id="idea-modal" data-testid="idea-modal">
+      <div class="modal idea-modal-body">
+        <div class="modal-header">
+          <span class="modal-title" id="idea-modal-title">
+            <i class="ph ph-lightbulb" style="color:var(--amber);margin-right:6px;"></i>
+            New Idea
+          </span>
+          <button class="modal-close" id="idea-modal-close-btn">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <form id="idea-form" data-testid="idea-form">
+          <input type="hidden" id="edit-idea-id" />
+
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input
+              type="text"
+              id="idea-title"
+              class="form-input"
+              required
+              placeholder="A short, catchy name for your idea"
+              data-testid="idea-title"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea
+              id="idea-description"
+              class="form-input"
+              rows="4"
+              placeholder="Describe the idea in detail..."
+              data-testid="idea-description"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select
+              id="idea-category"
+              class="form-input form-select"
+              required
+              data-testid="idea-category"
+            >
+              <option value="">Select a category</option>
+              <option value="Feature">Feature</option>
+              <option value="UI/UX">UI/UX</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Integration">Integration</option>
+              <option value="Bug Fix">Bug Fix</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="ph ph-link" style="margin-right:4px;"></i>
+              Reference Links
+            </label>
+            <div id="idea-links-list" class="idea-links-list"></div>
+            <button
+              type="button"
+              class="idea-add-link-btn"
+              id="idea-add-link-btn"
+              data-testid="idea-add-link-btn"
+            >
+              <i class="ph ph-plus"></i>
+              Add Link
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top:8px;">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="idea-cancel-btn"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="idea-submit-btn"
+              data-testid="idea-submit-btn"
+            >
+              <i class="ph ph-sparkle"></i>
+              <span id="idea-submit-label">Add Idea</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="./ideas.js"></script>
+
+  </body>
+</html>
