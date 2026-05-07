@@ -51,6 +51,7 @@ export function renderSidebar(activeItem, user) {
   const navItems = [
     { id: "dashboard",  label: "Dashboard",  icon: "ph-squares-four",    href: "dashboard.html" },
     { id: "tasks",      label: "Tasks",       icon: "ph-check-square",    href: "tasks.html"     },
+    { id: "calendar",   label: "Calendar (beta)",    icon: "ph-calendar",        href: "calendar.html"  },
     { id: "chat",       label: "Chat",        icon: "ph-chat-circle-dots",href: "chat.html"      },
     ...(isAdmin ? [
       { id: "users",     label: "Users",     icon: "ph-users",     href: "users.html"     },

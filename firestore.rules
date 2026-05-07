@@ -130,6 +130,21 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() && currentUid() == userId;
     }
 
+    // ─── Calendar Events ────────────────────────────────────────────────────────
+    match /events/{eventId} {
+      allow read: if isAuthenticated() && (
+        resource.data.get('createdBy', '') == currentUid()
+        || resource.data.get('visibility', 'private') == 'all'
+        || (resource.data.get('visibility', 'private') == 'admin' && isAdmin())
+      );
+      allow create: if isAuthenticated()
+        && request.resource.data.get('createdBy', '') == currentUid();
+      allow update: if isAuthenticated()
+        && (resource.data.get('createdBy', '') == currentUid() || isAdmin());
+      allow delete: if isAuthenticated()
+        && (resource.data.get('createdBy', '') == currentUid() || isAdmin());
+    }
+
     // ─── Default deny ──────────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
