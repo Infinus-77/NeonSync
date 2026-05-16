@@ -197,7 +197,7 @@ function _bindSidebarEvents(user) {
       try {
         sessionStorage.removeItem("deadlineAlertShown"); // allow deadline popup to show on next login
         await signOut(auth);
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       } catch {
         showToast("Failed to sign out", "error");
       }

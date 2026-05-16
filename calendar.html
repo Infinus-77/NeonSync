@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NeonSync - Calendar</title>
-    <link rel="icon" type="image/jpeg" href="NS_logo.jpeg">
+    <link rel="icon" type="image/png" href="NS_logo.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -232,8 +232,8 @@
         /* Make toolbar stack nicely */
         .fc .fc-toolbar {
           flex-direction: column;
-          gap: 12px;
-          align-items: stretch !important;
+          gap: 8px;
+          align-items: center !important;
         }
         .fc .fc-toolbar-title {
           font-size: 1.25rem !important;
@@ -242,10 +242,13 @@
         .fc .fc-toolbar-chunk {
           display: flex;
           justify-content: center;
+          width: 100%;
         }
         /* Enable horizontal scrolling for the calendar grid */
         .fc-view-harness {
           overflow-x: auto !important;
+          min-height: 0 !important;
+          height: auto !important;
         }
         .fc-scrollgrid {
           min-width: 600px !important;
@@ -253,6 +256,24 @@
         /* Adjust padding of the container */
         .calendar-wrapper {
           padding: 12px !important;
+        }
+        /* Fix blank space below calendar */
+        .calendar-main-area {
+          min-height: auto !important;
+          height: auto !important;
+        }
+        #calendar-view {
+          flex: 0 1 auto;
+        }
+        .fc-view-harness {
+          height: auto !important;
+        }
+        .fc .fc-scroller {
+          overflow: visible !important;
+          height: auto !important;
+        }
+        .fc .fc-scroller-liquid-absolute {
+          position: relative !important;
         }
       }
       /* ─── Side Panel & Bottom Sheet Layout ──────────────────────── */

@@ -509,7 +509,7 @@ ul { list-style: none; }
 .sidebar-logo-icon {
   width: 30px;
   height: 30px;
-  background: url('NS_logo.jpeg');
+  background: url('NS_logo.png');
   background-size: cover;
   background-position: center;
   border-radius: var(--radius-sm);
@@ -781,7 +781,7 @@ ul { list-style: none; }
 .mobile-logo-icon {
   width: 26px;
   height: 26px;
-  background: url('NS_logo.jpeg');
+  background: url('NS_logo.png');
   background-size: cover;
   background-position: center;
   border-radius: 6px;

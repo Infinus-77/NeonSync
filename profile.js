@@ -486,7 +486,7 @@ window.logoutFromProfile = async () => {
     const btn = document.querySelector('button[onclick="logoutFromProfile()"]');
     if (btn) btn.innerHTML = '<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite"></i> Signing Out...';
     await signOut(auth);
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   } catch (err) {
     if (typeof showToast === "function") showToast("Failed to sign out", "error");
   }

@@ -24,7 +24,7 @@ export function requireAuth(callback, allowedRoles = []) {
   onAuthStateChanged(auth, async (firebaseUser) => {
     if (!firebaseUser) {
       hideLoadingOverlay();
-      window.location.href = "login.html";
+      window.location.href = "index.html";
       return;
     }
 
@@ -32,7 +32,7 @@ export function requireAuth(callback, allowedRoles = []) {
       const snap = await getDoc(doc(db, "users", firebaseUser.uid));
       if (!snap.exists()) {
         hideLoadingOverlay();
-        window.location.href = "login.html";
+        window.location.href = "index.html";
         return;
       }
 
