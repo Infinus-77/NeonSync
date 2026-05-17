@@ -179,7 +179,7 @@ export function showToast(message, type = "info") {
 
 export function avatarHTML(user, size = 34) {
   if (user?.photoURL) {
-    return `<img src=\"${user.photoURL}\" alt=\"${user.displayName || ""}\" style=\"width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;\">`;
+    return `<img src=\"${user.photoURL}\" alt=\"${user.displayName || ""}\" referrerpolicy=\"no-referrer\" style=\"width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;\">`;
   }
   return `<span style=\"font-size:${Math.floor(size * 0.4)}px;\">${getInitials(user?.displayName || user?.name || "?")}</span>`;
 }

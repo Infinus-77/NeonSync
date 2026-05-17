@@ -456,7 +456,7 @@ function renderLeaderboard(tasks, users) {
     if (!u) return "";
     const c = podiumCfg[rank];
     const inner = u.photoURL
-      ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">`
       : getInitials(u.displayName || "?");
     return `
       <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;max-width:100px;">
@@ -477,7 +477,7 @@ function renderLeaderboard(tasks, users) {
 
   const restHTML = sorted.slice(3).map((u, i) => {
     const inner = u.photoURL
-      ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">`
       : getInitials(u.displayName || "?");
     return `
       <a href="profile.html?uid=${u.id}" style="text-decoration:none;display:flex;align-items:center;gap:10px;
@@ -540,7 +540,7 @@ function renderMemberProductivity(tasks, users, now) {
 
   el.innerHTML = memberStats.map((u) => {
     const inner = u.photoURL
-      ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">`
       : getInitials(u.displayName || "?");
 
     const rateColor = u.rate >= 70 ? "var(--green)" : u.rate >= 40 ? "var(--amber)" : "var(--danger)";
@@ -612,7 +612,7 @@ function renderRecentActivity(logs, users) {
   el.innerHTML = logs.slice(0, 40).map((l) => {
     const u = userMap[l.updatedBy];
     const inner = u?.photoURL
-      ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">`
       : getInitials(u?.displayName || "?");
     const iconKey = l.actionType || "default";
     const color = colors[iconKey] || colors.default;

@@ -165,7 +165,7 @@ function renderUsers(users) {
       <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center;position:relative;border:1px solid var(--border-glass);" data-testid="user-card-${u.id}">
         ${isMe ? '<div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;color:var(--cyan);background:rgba(0,242,255,0.1);padding:4px 8px;border-radius:999px;">YOU</div>' : ""}
         <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;overflow:hidden;margin-bottom:12px;border:2px solid rgba(0,242,255,0.25);">
-          ${u.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${getInitials(u.displayName)}</span>` : getInitials(u.displayName)}
+          ${u.photoURL ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${getInitials(u.displayName)}</span>` : getInitials(u.displayName)}
         </div>
         
         <div style="font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:2px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Space Grotesk', sans-serif;">

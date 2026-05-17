@@ -453,7 +453,7 @@ function buildPodiumHTML(sorted, subtitleFn) {
     var inner = u.photoURL
       ? '<img src="' +
         u.photoURL +
-        '" style="width:100%;height:100%;object-fit:cover;">'
+        '" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">'
       : getInitials(u.displayName);
     return inner;
   }
@@ -520,7 +520,7 @@ function buildPodiumHTML(sorted, subtitleFn) {
       var inner = u.photoURL
         ? '<img src="' +
           u.photoURL +
-          '" style="width:100%;height:100%;object-fit:cover;">'
+          '" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">'
         : getInitials(u.displayName);
       return (
         '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;' +

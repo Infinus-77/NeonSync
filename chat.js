@@ -409,7 +409,7 @@ function renderMessages(msgs) {
           : `
       <div class="message-item" data-testid="chat-msg-${m.id}" style="${isMe ? "flex-direction:row-reverse;" : ""}">
         <div class="message-avatar" style="${isMe ? "background:var(--gradient-brand);" : ""}">
-          ${u?.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:11px;font-weight:700;">${getInitials(u?.displayName)}</span>`}
+          ${u?.photoURL ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:11px;font-weight:700;">${getInitials(u?.displayName)}</span>`}
         </div>
         <div class="message-content" style="${isMe ? "align-items:flex-end;" : "align-items:flex-start;"}">
           <div class="message-header" style="${isMe ? "flex-direction:row-reverse;" : ""}">
