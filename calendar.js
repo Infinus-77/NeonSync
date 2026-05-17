@@ -214,19 +214,25 @@ function refreshCalendarEvents() {
     const start = e.start?.toDate ? e.start.toDate() : new Date(e.start);
     const end = e.end?.toDate ? e.end.toDate() : new Date(e.end);
 
+    let className = "fc-event-custom";
+    if (e.isCompleted) {
+      className = "fc-event-completed";
+    }
+
     calendarEvents.push({
       id: "event_" + e.id,
       title: e.title,
       start: start,
       end: end,
       allDay: false,
-      classNames: ["fc-event-custom"],
+      classNames: [className],
       extendedProps: {
         type: "custom",
         originalId: e.id,
         description: e.description,
         visibility: e.visibility || "private",
-        createdBy: e.createdBy
+        createdBy: e.createdBy,
+        isCompleted: e.isCompleted || false
       }
     });
   });
@@ -296,9 +302,18 @@ window.openDayDetail = (startStr = "", endStr = "") => {
     dayEvents.forEach(e => {
       const isTask = e.extendedProps.type === "task";
       const isOverdue = e.classNames.includes("fc-event-overdue");
+      const isCompleted = e.extendedProps.isCompleted;
+
       let dotColor = isTask ? "var(--green)" : "var(--purple)";
       if (isOverdue) dotColor = "var(--danger)";
+      if (isCompleted) dotColor = "var(--text-muted)";
+
       const timeStr = e.start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+      let titleStyle = "font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
+      if (isCompleted) {
+        titleStyle += " text-decoration: line-through; color: var(--text-muted);";
+      }
 
       listHtml += `
         <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;"
@@ -307,7 +322,7 @@ window.openDayDetail = (startStr = "", endStr = "") => {
              onclick="openEventDetailFromId('${e.id}')">
           <div style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; flex-shrink: 0;"></div>
           <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sanitizeHtml(e.title)}</div>
+            <div style="${titleStyle}">${sanitizeHtml(e.title)}</div>
             <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${timeStr}</div>
           </div>
           <i class="ph ph-caret-right" style="color: var(--text-muted);"></i>
@@ -449,6 +464,18 @@ window.openEventDetail = (event) => {
     const isAdmin = currentUser.role === "admin" || currentUser.role === "super_admin";
     const isCreator = props.createdBy === currentUser.id;
     
+    if (isAdmin) {
+      const toggleText = props.isCompleted ? "Mark Pending" : "Mark Complete";
+      const toggleIcon = props.isCompleted ? "ph-arrow-u-up-left" : "ph-check-circle";
+      const toggleColor = props.isCompleted ? "btn-secondary" : "btn-primary";
+      
+      actionsHtml += `
+        <button type="button" class="btn ${toggleColor}" onclick="toggleEventCompletion()">
+          <i class="ph ${toggleIcon}"></i> ${toggleText}
+        </button>
+      `;
+    }
+
     if (isCreator || isAdmin) {
       actionsHtml += `
         <button type="button" class="btn btn-secondary" onclick="openEditEvent()">
@@ -485,7 +512,7 @@ window.openEventDetail = (event) => {
       ${docsHtml}
     </div>
     
-    <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-glass);">
+    <div class="event-actions-grid">
       ${actionsHtml}
     </div>
   `;
@@ -550,3 +577,23 @@ window.closeModal = (id) => document.getElementById(id)?.classList.remove("activ
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("modal-overlay")) e.target.classList.remove("active");
 });
+
+window.toggleEventCompletion = async () => {
+  if (!currentEventContext) return;
+  const props = currentEventContext.extendedProps;
+  if (props.type !== "custom") return;
+
+  const newStatus = !props.isCompleted;
+
+  try {
+    await updateDoc(doc(db, "events", props.originalId), {
+      isCompleted: newStatus,
+      updatedAt: serverTimestamp()
+    });
+    showToast(newStatus ? "Event marked as complete" : "Event marked as pending", "success");
+    closeSidePanel();
+  } catch (err) {
+    console.error(err);
+    showToast("Failed to update event", "error");
+  }
+};

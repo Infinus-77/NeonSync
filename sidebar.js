@@ -65,7 +65,7 @@ export function renderSidebar(activeItem, user) {
   ];
 
   const avatarHTML = user.photoURL
-    ? `<img src="${user.photoURL}" alt="${user.displayName || "User"}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='';"><span style="display:none;">${_initials(user.displayName || user.name)}</span>`
+    ? `<img src="${user.photoURL}" alt="${user.displayName || "User"}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='';"><span style="display:none;">${_initials(user.displayName || user.name)}</span>`
     : `<span>${_initials(user.displayName || user.name)}</span>`;
 
   sidebar.innerHTML = `

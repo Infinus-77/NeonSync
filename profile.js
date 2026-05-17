@@ -95,7 +95,7 @@ function renderProfileHeader(u) {
     <div style="position:relative;flex-shrink:0;">
       <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;overflow:hidden;border:2px solid rgba(0,242,255,0.25);">
         ${u.photoURL
-          ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${getInitials(u.displayName || u.name || "?")}</span>`
+          ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${getInitials(u.displayName || u.name || "?")}</span>`
           : `<span>${getInitials(u.displayName || u.name || "?")}</span>`}
       </div>
       <div style="position:absolute;bottom:0;right:0;width:16px;height:16px;background:var(--green);border-radius:50%;border:2px solid var(--bg-body);"></div>
@@ -453,7 +453,17 @@ window.saveProfile = async (e) => {
   const bio = document.getElementById("ep-bio").value.trim();
   const skills = document.getElementById("ep-skills").value
     .split(",").map((s) => s.trim()).filter(Boolean);
-  const photoURL = document.getElementById("ep-photo").value.trim();
+  let photoURL = document.getElementById("ep-photo").value.trim();
+
+  // Automatically convert Google Drive links to direct image links
+  if (photoURL && photoURL.includes("drive.google.com")) {
+    const match = photoURL.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?export=view&id=)([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      // Use lh3.googleusercontent.com which bypasses redirect blocks and serves raw images directly
+      photoURL = `https://lh3.googleusercontent.com/d/${match[1]}`;
+    }
+  }
+
   const btn = document.getElementById("ep-save");
 
   btn.disabled = true;
@@ -463,9 +473,16 @@ window.saveProfile = async (e) => {
       displayName: name, bio, skills, photoURL,
       updatedAt: serverTimestamp(),
     });
+    
+    currentUser.displayName = name;
+    currentUser.bio = bio;
+    currentUser.skills = skills;
+    currentUser.photoURL = photoURL;
+    
     showToast("Profile updated!", "success");
     document.getElementById("edit-profile-modal").classList.remove("active");
     await loadProfile(currentUser.id);
+    renderSidebar("profile", currentUser);
   } catch (err) {
     showToast("Failed to save profile", "error");
   }

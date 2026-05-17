@@ -169,6 +169,12 @@
         color: #ef4444 !important;
         border-left: 3px solid #ef4444 !important;
       }
+      .fc-event-completed {
+        background: rgba(156, 163, 175, 0.15) !important;
+        color: #9ca3af !important;
+        border-left: 3px solid #9ca3af !important;
+        text-decoration: line-through !important;
+      }
       /* Event text inside time/day blocks */
       .fc-event .fc-event-main {
         color: inherit !important;
@@ -225,6 +231,26 @@
       .attachment-chip:hover {
         background: rgba(255, 255, 255, 0.1);
         border-color: var(--blue);
+      }
+
+      /* ─── Event Action Grid ────────────────────────────────────────── */
+      .event-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-glass);
+        width: 100%;
+      }
+      .event-actions-grid .btn {
+        justify-content: center;
+        width: 100%;
+        font-size: 12px; /* Slightly smaller to fit label comfortably */
+        padding: 8px 10px;
+      }
+      .event-actions-grid .btn:last-child:nth-child(odd) {
+        grid-column: span 2;
       }
 
       /* ─── Mobile Responsiveness ───────────────────────────────────── */
@@ -386,7 +412,7 @@
         transition: opacity 0.3s;
       }
       /* Only show overlay and blur on mobile */
-      @media (max-width: 900px) {
+      @media (max-width: 1200px) {
         .calendar-side-panel-overlay.active {
           display: block;
           opacity: 1;
@@ -394,7 +420,7 @@
       }
 
       /* Responsive rules for side panel -> bottom sheet */
-      @media (max-width: 900px) {
+      @media (max-width: 1200px) {
         .calendar-layout-container {
           display: block; /* revert flex */
         }
