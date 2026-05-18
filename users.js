@@ -179,20 +179,20 @@ function renderUsers(users) {
           ${roleBadge(u.role || "member")}
         </div>
 
-        <div style="display:flex;justify-content:space-between;width:100%;font-size:11px;color:var(--text-muted);margin-bottom:20px;background:var(--bg-input);padding:10px 14px;border-radius:var(--radius-md);">
-          <div style="text-align:center;">
+        <div style="display:flex;width:100%;font-size:11px;color:var(--text-muted);margin-bottom:20px;background:var(--bg-input);padding:10px 0;border-radius:var(--radius-md);">
+          <div style="flex:1;text-align:center;">
             <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${u.totalTasksCompleted || 0}</div>
             <div>Completed</div>
           </div>
-          <div style="width:1px;background:var(--border-subtle);"></div>
-          <div style="text-align:center;">
+          <div style="width:1px;background:var(--border-subtle);flex-shrink:0;"></div>
+          <div style="flex:1;text-align:center;">
             <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${u.lastActive ? timeAgo(u.lastActive).replace('ago','') : "---"}</div>
             <div>Active</div>
           </div>
         </div>
         
         <div style="display:flex;gap:8px;width:100%;">
-          <a href="profile.html?uid=${u.id}" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center;" title="View profile"><i class="ph ph-user"></i> Profile</a>
+          <a href="profile.html?uid=${u.id}" class="btn btn-secondary btn-sm" style="display:flex;align-items:center;justify-content:center;flex:1;gap:6px;" title="View profile"><i class="ph ph-user"></i> Profile</a>
           ${
             canManage
               ? `

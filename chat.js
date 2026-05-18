@@ -10,6 +10,7 @@ import {
   where,
   onSnapshot,
   addDoc,
+  deleteDoc,
   getDocs,
   doc,
   setDoc,
@@ -20,7 +21,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getInitials, timeAgo, showToast, sanitizeHtml } from "./utils.js";
+import { getInitials, timeAgo, showToast, sanitizeHtml, avatarHTML, showConfirm } from "./utils.js";
 
 let currentUser;
 let activeChatId = null;
@@ -398,6 +399,7 @@ function renderMessages(msgs) {
       </div>`;
       }
 
+      const canDelete = isMe || currentUser.role === "super_admin" || currentUser.role === "admin";
       return (
         dateDivider +
         (m.type === "system"
@@ -412,9 +414,18 @@ function renderMessages(msgs) {
           ${u?.photoURL ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:11px;font-weight:700;">${getInitials(u?.displayName)}</span>`}
         </div>
         <div class="message-content" style="${isMe ? "align-items:flex-end;" : "align-items:flex-start;"}">
-          <div class="message-header" style="${isMe ? "flex-direction:row-reverse;" : ""}">
+          <div class="message-header" style="${isMe ? "flex-direction:row-reverse;" : ""} display:flex; align-items:center; gap:6px;">
             <span class="message-sender">${isMe ? "You" : sanitizeHtml(u?.displayName || "User")}</span>
             <span class="message-time">${timeAgo(m.timestamp)}</span>
+            ${canDelete ? `
+            <button class="message-delete-btn" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0 2px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;transition:color 0.15s;"
+              onmouseover="this.style.color='var(--danger)'"
+              onmouseout="this.style.color='var(--text-muted)'"
+              onclick="window.deleteMessage('${m.id}')"
+              title="Delete message">
+              <i class="ph ph-trash" style="font-size:11px;"></i>
+            </button>
+            ` : ""}
           </div>
           <div class="message-text" style="
             max-width:420px;word-break:break-word;
@@ -440,6 +451,19 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+window.deleteMessage = async (msgId) => {
+  const confirmed = await showConfirm("Are you sure you want to delete this message?");
+  if (!confirmed) return;
+
+  try {
+    await deleteDoc(doc(db, "messages", msgId));
+    showToast("Message deleted", "success");
+  } catch (err) {
+    console.error("Delete message error:", err);
+    showToast("Failed to delete message", "error");
+  }
+};
 
 // ─── Send message ─────────────────────────────────────────────────────────────
 window.sendMessage = async () => {
@@ -519,8 +543,8 @@ function renderGroupMemberSearch(val) {
       style="padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:13px;border-radius:6px;transition:background 0.15s;"
       onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
       <div style="width:28px;height:28px;border-radius:50%;background:var(--gradient-brand);
-        display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0;">
-        ${getInitials(u.displayName)}
+        display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0;overflow:hidden;">
+        ${avatarHTML(u, 28)}
       </div>
       <div>
         <div style="font-weight:500;">${sanitizeHtml(u.displayName || "User")}</div>
@@ -685,8 +709,8 @@ window.searchAddMembers = (query) => {
       transition:background 0.15s;border-radius:6px;
     " onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background=''">
       <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);
-        display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0;">
-        ${getInitials(u.displayName || "?")}
+        display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0;overflow:hidden;">
+        ${avatarHTML(u, 26)}
       </div>
       <div>
         <div style="font-weight:500;">${sanitizeHtml(u.displayName || "Unknown")}</div>
@@ -794,8 +818,8 @@ window.openMembersPanel = () => {
     ">
       <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-brand);
         display:flex;align-items:center;justify-content:center;
-        font-size:11px;font-weight:700;color:#000;flex-shrink:0;">
-        ${getInitials(name)}
+        font-size:11px;font-weight:700;color:#000;flex-shrink:0;overflow:hidden;">
+        ${avatarHTML(u, 32)}
       </div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">

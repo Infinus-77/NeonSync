@@ -26,6 +26,7 @@ import {
   showToast,
   sanitizeHtml,
   showConfirm,
+  avatarHTML,
 } from "./utils.js";
 
 let allTasks = [];
@@ -305,20 +306,33 @@ function renderTasks(tasks) {
         : "";
 
       // Assignee avatars (max 3 shown + overflow count)
-      const shownAssignees = assigneeList.slice(0, 3);
-      const extraCount = assigneeList.length - shownAssignees.length;
+      const sortedAssignees = [...assigneeList];
+      const roleWeight = { super_admin: 1, admin: 2, member: 3 };
+      sortedAssignees.sort((a, b) => {
+        const roleA = assigneeMap[a]?.role || "member";
+        const roleB = assigneeMap[b]?.role || "member";
+        const wA = roleWeight[roleA] || 4;
+        const wB = roleWeight[roleB] || 4;
+        if (wA !== wB) return wA - wB;
+        const nameA = (assigneeMap[a]?.displayName || "").toLowerCase();
+        const nameB = (assigneeMap[b]?.displayName || "").toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+      const shownAssignees = sortedAssignees.slice(0, 3);
+      const extraCount = sortedAssignees.length - shownAssignees.length;
 
       const avatars = shownAssignees
         .map((uid) => {
           const name = assigneeMap[uid]?.displayName || "?";
+          const userObj = assigneeMap[uid];
           return `<div style="
         width:26px;height:26px;border-radius:50%;flex-shrink:0;
         background:var(--gradient-brand);
         display:flex;align-items:center;justify-content:center;
         font-size:9px;font-weight:700;color:#000;
         margin-left:-6px;border:2px solid rgba(20,20,25,0.9);
-        title='${sanitizeHtml(name)}'
-      ">${getInitials(name)}</div>`;
+        overflow:hidden;
+      " title="${sanitizeHtml(name)}">${avatarHTML(userObj, 26)}</div>`;
         })
         .join("");
 
@@ -488,9 +502,9 @@ window.submitTask = async (e) => {
     .map((t) => t.trim())
     .filter(Boolean);
   const isCommon = document.getElementById("tf-common").checked;
-  const assignedTo = selectedAssignees.length
-    ? [...selectedAssignees]
-    : [currentUser.id];
+  const assignedTo = isCommon
+    ? allUsers.map((u) => u.id)
+    : (selectedAssignees.length ? [...selectedAssignees] : [currentUser.id]);
 
   if (!title || !deadlineInput.checkValidity()) {
     showToast("Enter valid title and deadline", "error");
@@ -616,7 +630,7 @@ window.searchAssignees = (val = "") => {
       style="padding:9px 13px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:9px;"
       onmouseover="this.style.background='rgba(255,255,255,0.04)'"
       onmouseout="this.style.background='transparent'">
-      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">${getInitials(u.displayName)}</div>
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 26)}</div>
       <div>
         <div style="font-weight:500;">${sanitizeHtml(u.displayName)}</div>
         <div style="font-size:10px;color:var(--text-muted);">${sanitizeHtml(u.role)}</div>

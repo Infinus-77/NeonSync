@@ -17,6 +17,7 @@ import {
   serverTimestamp,
   Timestamp,
   arrayUnion,
+  arrayRemove,
   getDocs,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
@@ -30,6 +31,7 @@ import {
   showToast,
   sanitizeHtml,
   showConfirm,
+  avatarHTML,
 } from "./utils.js";
 
 const taskId = new URLSearchParams(location.search).get("id");
@@ -136,12 +138,25 @@ function renderTask(t) {
     ? `<span class="${overdue ? "text-danger" : ""}">${formatDateTime(t.deadline)}${overdue ? " (Overdue)" : ""}</span>`
     : "No deadline";
 
-  document.getElementById("task-assignees").innerHTML = (t.assignedTo || [])
+  const displayAssignees = [...(t.assignedTo || [])];
+  const roleWeight = { super_admin: 1, admin: 2, member: 3 };
+  displayAssignees.sort((a, b) => {
+    const roleA = allUsers[a]?.role || "member";
+    const roleB = allUsers[b]?.role || "member";
+    const wA = roleWeight[roleA] || 4;
+    const wB = roleWeight[roleB] || 4;
+    if (wA !== wB) return wA - wB;
+    const nameA = (allUsers[a]?.displayName || "").toLowerCase();
+    const nameB = (allUsers[b]?.displayName || "").toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+
+  document.getElementById("task-assignees").innerHTML = displayAssignees
     .map((uid) => {
       const u = allUsers[uid];
       return `<a href="profile.html?uid=${uid}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);"
       onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-glass)'">
-      <div style="width:22px;height:22px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;">${getInitials(u?.displayName)}</div>
+      <div style="width:22px;height:22px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 22)}</div>
       ${u?.displayName || uid}
     </a>`;
     })
@@ -196,13 +211,23 @@ function renderRemarks(remarks) {
     .reverse()
     .map((r) => {
       const u = allUsers[r.userId];
+      const canDelete = r.userId === currentUser.id || currentUser.role === "super_admin" || currentUser.role === "admin";
       return `
       <div class="remark-item" data-testid="remark-${r.userId}">
-        <div class="remark-avatar">${getInitials(u?.displayName)}</div>
+        <div class="remark-avatar" style="overflow:hidden;">${avatarHTML(u, 36)}</div>
         <div class="remark-content">
-          <div class="remark-header">
+          <div class="remark-header" style="display:flex;align-items:center;width:100%;gap:8px;">
             <span class="remark-author">${sanitizeHtml(u?.displayName || "User")}</span>
             <span class="remark-time">${timeAgo({ toDate: () => new Date(r.timestamp) })}</span>
+            ${canDelete ? `
+            <button class="remark-delete-btn" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:2px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;transition:color 0.15s;margin-left:auto;"
+              onmouseover="this.style.color='var(--danger)'"
+              onmouseout="this.style.color='var(--text-muted)'"
+              onclick="window.deleteRemark('${r.timestamp}', '${r.userId}')"
+              title="Delete remark">
+              <i class="ph ph-trash"></i>
+            </button>
+            ` : ""}
           </div>
           <div class="remark-text">${sanitizeHtml(r.message)}</div>
         </div>
@@ -392,6 +417,30 @@ window.addRemark = async () => {
   }
 };
 
+window.deleteRemark = async (timestamp, userId) => {
+  const confirmed = await showConfirm("Are you sure you want to delete this remark?");
+  if (!confirmed) return;
+
+  try {
+    const remarkToDelete = taskData.remarks.find((r) => r.timestamp === timestamp && r.userId === userId);
+    if (!remarkToDelete) {
+      showToast("Remark not found", "error");
+      return;
+    }
+
+    await updateDoc(doc(db, "tasks", taskId), {
+      remarks: arrayRemove(remarkToDelete),
+      updatedAt: serverTimestamp(),
+    });
+
+    await addTaskLog("remark_deleted", "", remarkToDelete.message);
+    showToast("Remark deleted", "success");
+  } catch (err) {
+    console.error("Delete remark error:", err);
+    showToast("Failed to delete remark", "error");
+  }
+};
+
 window.addAttachment = async () => {
   const name = document.getElementById("attach-name").value.trim();
   const url = document.getElementById("attach-url").value.trim();
@@ -473,7 +522,7 @@ function renderMessages(msgs) {
       const u = allUsers[m.senderId];
       return `
       <div class="message-item" data-testid="msg-${m.id}">
-        <div class="message-avatar"><span style="font-size:12px;">${getInitials(u?.displayName)}</span></div>
+        <div class="message-avatar">${avatarHTML(u, 26)}</div>
         <div class="message-content">
           <div class="message-header">
             <span class="message-sender">${sanitizeHtml(u?.displayName || "User")}</span>
@@ -694,7 +743,7 @@ window.searchEditAssignees = (val = "") => {
       style="padding:9px 13px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:9px;"
       onmouseover="this.style.background='rgba(255,255,255,0.04)'"
       onmouseout="this.style.background='transparent'">
-      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">${getInitials(u.displayName)}</div>
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 26)}</div>
       <div>
         <div style="font-weight:500;">${sanitizeHtml(u.displayName)}</div>
         <div style="font-size:10px;color:var(--text-muted);">${sanitizeHtml(u.role)}</div>

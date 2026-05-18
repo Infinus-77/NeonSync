@@ -12,25 +12,37 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { requireAuth } from "./auth-guard.js";
 import { renderSidebar } from "./sidebar.js";
-import { showToast, showConfirm, sanitizeHtml, timeAgo } from "./utils.js";
+import { showToast, showConfirm, sanitizeHtml, timeAgo, avatarHTML } from "./utils.js";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let currentUser = null;
 let allIdeas = [];
 let unsubIdeas = null;
 let starFilterActive = false;
+let allUsers = {};
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 requireAuth(boot, ["super_admin"]);
 
-function boot(user) {
+async function boot(user) {
   currentUser = user;
   renderSidebar("ideas", user);
   bindUI();
+
+  try {
+    const usersSnap = await getDocs(collection(db, "users"));
+    usersSnap.docs.forEach((d) => {
+      allUsers[d.id] = { id: d.id, ...d.data() };
+    });
+  } catch (err) {
+    console.error("Failed to load users for ideas page:", err);
+  }
+
   listenIdeas();
 }
 
@@ -84,6 +96,8 @@ function buildCard(idea) {
   const starClass = idea.isStarred ? "starred" : "";
   const starIcon = idea.isStarred ? "ph-fill ph-star" : "ph ph-star";
   const categoryColor = getCategoryColor(idea.category);
+  const u = allUsers[idea.createdBy];
+  const avatarEl = `<div style="width:18px;height:18px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#000;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 18)}</div>`;
 
   return `
     <div class="idea-card ${starClass}" data-id="${idea.id}">
@@ -114,7 +128,7 @@ function buildCard(idea) {
 
       <div class="idea-card-footer">
         <span class="idea-card-meta">
-          <i class="ph ph-user" style="font-size:12px;"></i>
+          ${avatarEl}
           ${sanitizeHtml(idea.creatorName || "Unknown")}
         </span>
         <span class="idea-card-meta">

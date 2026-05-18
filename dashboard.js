@@ -27,6 +27,7 @@ import {
   timeAgo,
   progressBar,
   sanitizeHtml,
+  avatarHTML,
 } from "./utils.js";
 
 let currentUser;
@@ -658,9 +659,9 @@ window.submitCreateTask = async (e) => {
     .map((t) => t.trim())
     .filter(Boolean);
   const isCommon = document.getElementById("task-common").checked;
-  const assignedTo = selectedAssignees.length
-    ? [...selectedAssignees]
-    : [currentUser.id];
+  const assignedTo = isCommon
+    ? allUsers.map((u) => u.id)
+    : (selectedAssignees.length ? [...selectedAssignees] : [currentUser.id]);
 
   if (!title || !deadlineVal) {
     showToast("Title and deadline required", "error");
@@ -745,7 +746,7 @@ window.searchAssignees = (val) => {
       style="padding:9px 13px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:9px;"
       onmouseover="this.style.background='var(--bg-input)'"
       onmouseout="this.style.background='transparent'">
-      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;">${getInitials(u.displayName)}</div>
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 26)}</div>
       <div>
         <div style="font-weight:500;">${sanitizeHtml(u.displayName)}</div>
         <div style="font-size:10px;color:var(--text-muted);">${sanitizeHtml(u.role)}</div>
