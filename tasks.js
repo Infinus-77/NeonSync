@@ -393,9 +393,18 @@ function renderTasks(tasks) {
         data-testid="task-card-${t.id}">
 
         <!-- Header: title + priority -->
-        <div class="task-card-header">
-          <div class="task-card-title">${sanitizeHtml(t.title)}</div>
-          ${priorityBadge(t.priority || "medium")}
+        <div class="task-card-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div class="task-card-title" style="flex:1;">${sanitizeHtml(t.title)}</div>
+          <div style="display:flex; align-items:center; gap:6px;" onclick="event.stopPropagation()">
+            ${priorityBadge(t.priority || "medium")}
+            <button class="btn-share-icon" onclick="shareTaskLinkFromCard(event, '${t.id}')" 
+              title="Share task link"
+              style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; display:inline-flex; align-items:center; justify-content:center; font-size:16px; border-radius:50%; transition:all 0.2s;"
+              onmouseover="this.style.color='var(--blue)'; this.style.background='rgba(0,242,255,0.1)'"
+              onmouseout="this.style.color='var(--text-muted)'; this.style.background='none'">
+              <i class="ph ph-share-network"></i>
+            </button>
+          </div>
         </div>
 
         <!-- Description snippet — flex:1 makes this grow to fill space, pushing footer down -->
@@ -602,6 +611,18 @@ window.confirmDeleteTask = async (taskId) => {
     } catch (err) {
       showToast("Failed to delete task", "error");
     }
+  }
+};
+
+// Share Task Detail Link from Card
+window.shareTaskLinkFromCard = async (e, taskId) => {
+  e.stopPropagation();
+  const url = new URL('task-detail.html?id=' + taskId, window.location.href).href;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast("Link copied to clipboard!", "success");
+  } catch (err) {
+    showToast("Failed to copy link", "error");
   }
 };
 

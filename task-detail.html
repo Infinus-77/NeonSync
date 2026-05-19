@@ -90,6 +90,14 @@
           <div style="display: flex; gap: 8px" id="task-action-btns">
             <button
               class="btn btn-secondary btn-sm"
+              id="share-task-btn"
+              onclick="shareTaskLink()"
+            >
+              <i class="ph ph-share-network"></i> Share
+            </button>
+
+            <button
+              class="btn btn-secondary btn-sm"
               id="edit-task-btn"
               onclick="openEditModal()"
               style="display: none"

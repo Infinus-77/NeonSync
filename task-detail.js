@@ -798,3 +798,14 @@ if (typeof flatpickr !== "undefined") {
     altFormat: "d/m/Y h:i K"
   });
 }
+
+// Share Task Detail Link
+window.shareTaskLink = async () => {
+  const url = window.location.href;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast("Link copied to clipboard!", "success");
+  } catch (err) {
+    showToast("Failed to copy link", "error");
+  }
+};
