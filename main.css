@@ -347,6 +347,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   margin-top: 4px;
+  white-space: pre-wrap;
 }
 
 /* ═══════════════════════════════
@@ -1728,6 +1729,7 @@ input:-webkit-autofill:focus {
   padding: 7px 11px;
   border-radius: 9px;
   border: 1px solid var(--border-subtle);
+  white-space: pre-wrap;
 }
 
 /* ═══════════════════════════════

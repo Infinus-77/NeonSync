@@ -411,11 +411,7 @@ function renderTasks(tasks) {
         <div style="flex:1;min-height:0;">
           ${
             t.description
-              ? `
-            <div style="font-size:12px;color:var(--text-muted);line-height:1.55;
-              display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-              ${sanitizeHtml(t.description)}
-            </div>`
+              ? `<div style="font-size:12px;color:var(--text-muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${sanitizeHtml(t.description)}</div>`
               : ""
           }
         </div>
