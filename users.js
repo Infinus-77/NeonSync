@@ -95,8 +95,32 @@ function loadUsers() {
   const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
   onSnapshot(q, (snap) => {
     allUsers = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    updateUserAnalytics();
     filterUsers();
   });
+}
+
+function updateUserAnalytics() {
+  const container = document.getElementById("users-analytics");
+  if (!container) return;
+  
+  let total = allUsers.length;
+  let superAdmins = 0;
+  let admins = 0;
+  let members = 0;
+  
+  allUsers.forEach(u => {
+    if (u.role === 'super_admin') superAdmins++;
+    else if (u.role === 'admin') admins++;
+    else members++;
+  });
+  
+  document.getElementById("stat-total-users").textContent = total;
+  document.getElementById("stat-super-admins").textContent = superAdmins;
+  document.getElementById("stat-admins").textContent = admins;
+  document.getElementById("stat-members").textContent = members;
+  
+  container.style.display = "grid";
 }
 
 window.filterUsers = () => {
