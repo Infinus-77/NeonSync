@@ -40,6 +40,7 @@ let currentUser;
 let allUsers = {};
 let taskChatId = null;
 let editSelectedUsers = [];
+let pendingEditReferenceLinks = [];
 
 if (!taskId) window.location.href = "tasks.html";
 
@@ -180,6 +181,7 @@ function renderTask(t) {
     : "none";
   document.getElementById("delete-task-btn").style.display =
     currentUser.role === "super_admin" ? "flex" : "none";
+  
 
   if ((t.tags || []).length) {
     document.getElementById("tags-card").style.display = "block";
@@ -192,7 +194,31 @@ function renderTask(t) {
   }
 
   renderRemarks(t.remarks || []);
+  renderReferenceLinks(t.referenceLinks || []);
   renderAttachments(t.attachments || []);
+}
+
+function renderReferenceLinks(links) {
+  const listEl = document.getElementById("reference-links-list");
+  const sectionEl = document.getElementById("reference-links-section");
+  if (!listEl || !sectionEl) return;
+  
+  if (!links || !links.length) {
+    sectionEl.style.display = "none";
+    return;
+  }
+
+  sectionEl.style.display = "block";
+  listEl.innerHTML = links
+    .map(
+      (l) => `
+    <div style="display:flex;align-items:center;gap:8px;">
+      <i class="ph ph-link" style="color:var(--cyan);"></i>
+      <a href="${l.url}" target="_blank" style="font-size:13px;color:var(--cyan);text-decoration:none;">${sanitizeHtml(l.title)}</a>
+    </div>
+  `
+    )
+    .join("");
 }
 
 function renderRemarks(remarks) {
@@ -469,6 +495,7 @@ window.addAttachment = async () => {
   }
 };
 
+
 // Task Chat — no longer auto-creates a chat room on task view.
 // Chat rooms are only created explicitly by admins via the Chat page.
 async function loadTaskChat() {
@@ -663,7 +690,9 @@ window.openEditModal = () => {
     }
   }
   editSelectedUsers = [...(taskData.assignedTo || [])];
+  pendingEditReferenceLinks = taskData.referenceLinks ? [...taskData.referenceLinks] : [];
   renderEditSelectedAssignees();
+  renderEditFormReferenceLinks();
   openModal("edit-task-modal");
 };
 
@@ -681,6 +710,7 @@ window.submitEditTask = async (e) => {
       description: desc,
       priority,
       assignedTo,
+      referenceLinks: pendingEditReferenceLinks,
       ...(dl ? { deadline: Timestamp.fromDate(new Date(dl)) } : {}),
       updatedAt: serverTimestamp(),
     });
@@ -765,6 +795,43 @@ window.selectEditAssignee = (uid) => {
 window.removeEditAssignee = (uid) => {
   editSelectedUsers = editSelectedUsers.filter((id) => id !== uid);
   renderEditSelectedAssignees();
+};
+
+window.addEditFormReferenceLink = () => {
+  const title = document.getElementById("edit-tf-ref-title").value.trim();
+  const url = document.getElementById("edit-tf-ref-url").value.trim();
+  if (!title || !url) {
+    showToast("Title and URL required", "error");
+    return;
+  }
+  pendingEditReferenceLinks.push({
+    title,
+    url,
+    addedBy: currentUser.id,
+    timestamp: new Date().toISOString()
+  });
+  document.getElementById("edit-tf-ref-title").value = "";
+  document.getElementById("edit-tf-ref-url").value = "";
+  renderEditFormReferenceLinks();
+};
+
+window.removeEditFormReferenceLink = (index) => {
+  pendingEditReferenceLinks.splice(index, 1);
+  renderEditFormReferenceLinks();
+};
+
+window.renderEditFormReferenceLinks = () => {
+  const container = document.getElementById("edit-tf-reference-links-list");
+  if (!container) return;
+  container.innerHTML = pendingEditReferenceLinks.map((l, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.03);border:1px solid var(--border-glass);border-radius:6px;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
+        <i class="ph ph-link" style="color:var(--cyan);flex-shrink:0;"></i>
+        <span style="color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${sanitizeHtml(l.title)}">${sanitizeHtml(l.title)}</span>
+      </div>
+      <button type="button" onclick="removeEditFormReferenceLink(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;flex-shrink:0;"><i class="ph ph-trash"></i></button>
+    </div>
+  `).join("");
 };
 
 function renderEditSelectedAssignees() {

@@ -248,6 +248,16 @@
             />
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Reference Links</label>
+            <div id="tf-reference-links-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="tf-ref-title" class="form-input" placeholder="Title" style="flex:1" />
+              <input type="url" id="tf-ref-url" class="form-input" placeholder="URL" style="flex:2" />
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addFormReferenceLink()">Add</button>
+            </div>
+          </div>
+
           <div
             class="form-group"
             style="display: flex; align-items: center; gap: 10px"

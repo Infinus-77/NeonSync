@@ -33,6 +33,7 @@ let allTasks = [];
 let allUsers = [];
 let assigneeMap = {};
 let selectedAssignees = [];
+let pendingReferenceLinks = [];
 let currentFilter = "all";
 let currentUser;
 
@@ -458,6 +459,8 @@ window.openTaskModal = () => {
   document.getElementById("task-modal-title").textContent = "Create New Task";
   document.getElementById("task-form").reset();
   selectedAssignees = [];
+  pendingReferenceLinks = [];
+  renderFormReferenceLinks();
   renderSelectedAssigneesEl();
   openModal("task-modal");
 };
@@ -487,6 +490,8 @@ window.openEditTask = async (taskId) => {
   document.getElementById("tf-tags").value = (t.tags || []).join(", ");
   document.getElementById("tf-common").checked = t.isCommonTask || false;
   selectedAssignees = [...(t.assignedTo || [])];
+  pendingReferenceLinks = t.referenceLinks ? [...t.referenceLinks] : [];
+  renderFormReferenceLinks();
   renderSelectedAssigneesEl();
   openModal("task-modal");
 };
@@ -530,6 +535,7 @@ window.submitTask = async (e) => {
         isCommonTask: isCommon,
         visibility: isCommon ? "global" : "team",
         assignedTo,
+        referenceLinks: pendingReferenceLinks,
         deadline: Timestamp.fromDate(new Date(deadlineVal)),
         updatedAt: serverTimestamp(),
       });
@@ -551,6 +557,7 @@ window.submitTask = async (e) => {
         createdBy: currentUser.id,
         deadline: Timestamp.fromDate(new Date(deadlineVal)),
         tags,
+        referenceLinks: pendingReferenceLinks,
         isCommonTask: isCommon,
         visibility: isCommon ? "global" : "team",
         completionPercentage: 0,
@@ -727,3 +734,40 @@ if (typeof flatpickr !== "undefined") {
     altFormat: "d/m/Y h:i K"
   });
 }
+
+window.addFormReferenceLink = () => {
+  const title = document.getElementById("tf-ref-title").value.trim();
+  const url = document.getElementById("tf-ref-url").value.trim();
+  if (!title || !url) {
+    showToast("Title and URL required", "error");
+    return;
+  }
+  pendingReferenceLinks.push({
+    title,
+    url,
+    addedBy: currentUser.id,
+    timestamp: new Date().toISOString()
+  });
+  document.getElementById("tf-ref-title").value = "";
+  document.getElementById("tf-ref-url").value = "";
+  renderFormReferenceLinks();
+};
+
+window.removeFormReferenceLink = (index) => {
+  pendingReferenceLinks.splice(index, 1);
+  renderFormReferenceLinks();
+};
+
+window.renderFormReferenceLinks = () => {
+  const container = document.getElementById("tf-reference-links-list");
+  if (!container) return;
+  container.innerHTML = pendingReferenceLinks.map((l, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.03);border:1px solid var(--border-glass);border-radius:6px;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
+        <i class="ph ph-link" style="color:var(--cyan);flex-shrink:0;"></i>
+        <span style="color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${sanitizeHtml(l.title)}">${sanitizeHtml(l.title)}</span>
+      </div>
+      <button type="button" onclick="removeFormReferenceLink(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;flex-shrink:0;"><i class="ph ph-trash"></i></button>
+    </div>
+  `).join("");
+};

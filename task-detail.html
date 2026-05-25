@@ -166,6 +166,11 @@
                 style="font-size: 14px; line-height: 1.6; white-space: pre-wrap;"
               ></p>
 
+              <div id="reference-links-section" style="margin-bottom: 24px; display: none;">
+                <div class="text-sm text-muted mb-2">Reference Links</div>
+                <div id="reference-links-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+
               <div class="grid-2 mb-4">
                 <div>
                   <div class="text-sm text-muted mb-2">Created By</div>
@@ -338,6 +343,16 @@
                 placeholder="Description..."
               ></textarea>
             </div>
+            <div class="form-group">
+              <label class="form-label">Reference Links</label>
+              <div id="edit-tf-reference-links-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="edit-tf-ref-title" class="form-input" placeholder="Title" style="flex:1" />
+                <input type="url" id="edit-tf-ref-url" class="form-input" placeholder="URL" style="flex:2" />
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addEditFormReferenceLink()">Add</button>
+              </div>
+            </div>
+
             <div
               style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
             >
