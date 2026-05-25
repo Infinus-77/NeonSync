@@ -1,7 +1,7 @@
 // profile.js — Enhanced: full analytics section, charts, priority performance, tag analysis
 import { db, auth } from "./firebase-config.js";
 import { requireAuth } from "./auth-guard.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signOut, updateEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { renderSidebar } from "./sidebar.js";
 import { initNotifications } from "./notifications.js";
 import { checkDeadlineAlerts } from "./deadline-alert.js";
@@ -441,6 +441,7 @@ async function renderRecentRemarks(targetUid, tasks) {
 window.openEditProfile = () => {
   if (!profileUser) return;
   document.getElementById("ep-name").value = profileUser.displayName || "";
+  document.getElementById("ep-email").value = profileUser.email || "";
   document.getElementById("ep-bio").value = profileUser.bio || "";
   document.getElementById("ep-skills").value = (profileUser.skills || []).join(", ");
   document.getElementById("ep-photo").value = profileUser.photoURL || "";
@@ -450,6 +451,7 @@ window.openEditProfile = () => {
 window.saveProfile = async (e) => {
   if (e && e.preventDefault) e.preventDefault();
   const name = document.getElementById("ep-name").value.trim();
+  const email = document.getElementById("ep-email").value.trim();
   const bio = document.getElementById("ep-bio").value.trim();
   const skills = document.getElementById("ep-skills").value
     .split(",").map((s) => s.trim()).filter(Boolean);
@@ -469,12 +471,17 @@ window.saveProfile = async (e) => {
   btn.disabled = true;
   btn.innerHTML = '<i class="ph ph-spinner" style="animation:spin 0.7s linear infinite"></i> Saving...';
   try {
+    if (email && email !== currentUser.email && auth.currentUser) {
+      await updateEmail(auth.currentUser, email);
+    }
+
     await updateDoc(doc(db, "users", currentUser.id), {
-      displayName: name, bio, skills, photoURL,
+      displayName: name, bio, skills, photoURL, email,
       updatedAt: serverTimestamp(),
     });
     
     currentUser.displayName = name;
+    currentUser.email = email;
     currentUser.bio = bio;
     currentUser.skills = skills;
     currentUser.photoURL = photoURL;
@@ -484,7 +491,11 @@ window.saveProfile = async (e) => {
     await loadProfile(currentUser.id);
     renderSidebar("profile", currentUser);
   } catch (err) {
-    showToast("Failed to save profile", "error");
+    if (err.code === "auth/requires-recent-login") {
+      showToast("Security: Please sign out and log back in to change your email.", "error");
+    } else {
+      showToast("Failed to save profile", "error");
+    }
   }
   btn.disabled = false;
   btn.innerHTML = '<i class="ph ph-check"></i> Save Changes';

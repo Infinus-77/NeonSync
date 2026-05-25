@@ -12,8 +12,12 @@ import {
   getDoc,
   setDoc,
   getDocs,
+  deleteDoc,
+  updateDoc,
   collection,
   query,
+  where,
+  limit,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -119,7 +123,8 @@ async function handleRegister() {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
 
     // First user becomes Super Admin
-    const usersSnap = await getDocs(collection(db, "users"));
+    const q = query(collection(db, "users"), limit(1));
+    const usersSnap = await getDocs(q);
     const role = usersSnap.empty ? "super_admin" : "member";
 
     await setDoc(doc(db, "users", cred.user.uid), {
@@ -215,12 +220,13 @@ async function handleGoogleSignIn() {
 
     if (!snap.exists()) {
       // First-time Google user — create profile
-      const usersSnap = await getDocs(collection(db, "users"));
+      const q = query(collection(db, "users"), limit(1));
+      const usersSnap = await getDocs(q);
       const role = usersSnap.empty ? "super_admin" : "member";
 
       await setDoc(doc(db, "users", user.uid), {
         displayName: user.displayName || "Google User",
-        email: user.email,
+        email: user.email || "",
         role,
         bio: "",
         skills: [],

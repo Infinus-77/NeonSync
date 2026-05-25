@@ -236,16 +236,43 @@ window.openCreateUser = () => {
   document.getElementById("user-modal-title").textContent = "Add New User";
   document.getElementById("cu-submit-label").textContent = "Create User";
   document.getElementById("create-user-form").reset();
+  const googleCheckbox = document.getElementById("cu-google-only");
+  if (googleCheckbox) googleCheckbox.checked = false;
   document.getElementById("cu-password-group").style.display = "block";
   document.getElementById("cu-password").required = true;
   openModal("create-user-modal");
+};
+
+window.togglePasswordRequirement = () => {
+  const isGoogleOnly = document.getElementById("cu-google-only")?.checked;
+  const pwGroup = document.getElementById("cu-password-group");
+  const pwInput = document.getElementById("cu-password");
+  
+  if (isGoogleOnly) {
+    if (pwGroup) pwGroup.style.display = "none";
+    if (pwInput) {
+      pwInput.required = false;
+      pwInput.value = "";
+    }
+  } else {
+    if (pwGroup) pwGroup.style.display = "block";
+    if (pwInput) pwInput.required = true;
+  }
 };
 
 window.submitUser = async (e) => {
   e.preventDefault();
   const name = document.getElementById("cu-name").value.trim();
   const email = document.getElementById("cu-email").value.trim();
-  const password = document.getElementById("cu-password").value;
+  const isGoogleOnly = document.getElementById("cu-google-only")?.checked;
+  let password = document.getElementById("cu-password").value;
+  
+  if (isGoogleOnly) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+    password = Array.from(crypto.getRandomValues(new Uint32Array(16)))
+      .map((x) => chars[x % chars.length])
+      .join("");
+  }
   const role = document.getElementById("cu-role").value;
   const bio = document.getElementById("cu-bio").value.trim();
   const btn = document.getElementById("cu-submit");
