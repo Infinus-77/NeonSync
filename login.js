@@ -199,8 +199,8 @@ async function handlePasswordReset() {
   }
 }
 
-// ── Google Sign-In ──
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 async function handleGoogleSignIn() {
   // Grab whichever Google button is currently visible to show loading
