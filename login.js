@@ -4,6 +4,8 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc,
@@ -192,6 +194,68 @@ async function handlePasswordReset() {
   }
 }
 
+// ── Google Sign-In ──
+const googleProvider = new GoogleAuthProvider();
+
+async function handleGoogleSignIn() {
+  // Grab whichever Google button is currently visible to show loading
+  const btns = document.querySelectorAll(".btn-google");
+  btns.forEach((b) => {
+    b.disabled = true;
+    b.innerHTML =
+      '<i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite;"></i> Connecting...';
+  });
+
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    // Check if user profile already exists in Firestore
+    const snap = await getDoc(doc(db, "users", user.uid));
+
+    if (!snap.exists()) {
+      // First-time Google user — create profile
+      const usersSnap = await getDocs(collection(db, "users"));
+      const role = usersSnap.empty ? "super_admin" : "member";
+
+      await setDoc(doc(db, "users", user.uid), {
+        displayName: user.displayName || "Google User",
+        email: user.email,
+        role,
+        bio: "",
+        skills: [],
+        photoURL: user.photoURL || "",
+        createdAt: serverTimestamp(),
+        lastActive: serverTimestamp(),
+        totalTasksCompleted: 0,
+        productivityScore: 0,
+      });
+    }
+
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    // User closed popup or other error
+    if (err.code !== "auth/popup-closed-by-user") {
+      console.error("Google sign-in error:", err);
+      // Show error on whichever tab is active
+      const signinErr = document.getElementById("signin-error");
+      const signinErrText = document.getElementById("signin-error-text");
+      if (signinErr && signinErrText) {
+        signinErrText.textContent =
+          err.code === "auth/account-exists-with-different-credential"
+            ? "An account already exists with this email using a different sign-in method."
+            : "Google sign-in failed. Please try again.";
+        signinErr.classList.add("visible");
+      }
+    }
+    btns.forEach((b) => {
+      b.disabled = false;
+      b.innerHTML =
+        '<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.0 24.0 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google';
+    });
+  }
+}
+
 // ── All event bindings go here — after every function is defined
 document
   .getElementById("tab-signin")
@@ -219,4 +283,9 @@ document
 });
 document.getElementById("reset-email").addEventListener("keydown", (e) => {
   if (e.key === "Enter") handlePasswordReset();
+});
+
+// Google sign-in buttons (one per tab)
+document.querySelectorAll(".btn-google").forEach((btn) => {
+  btn.addEventListener("click", handleGoogleSignIn);
 });
