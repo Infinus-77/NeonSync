@@ -477,6 +477,7 @@ window.openEditTask = async (taskId) => {
   document.getElementById("tf-desc").value = t.description || "";
   document.getElementById("tf-priority").value = t.priority || "medium";
   document.getElementById("tf-status").value = t.status || "pending";
+  document.getElementById("tf-weight").value = t.weight || "3";
 
   if (t.deadline) {
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
@@ -504,6 +505,7 @@ window.submitTask = async (e) => {
   const desc = document.getElementById("tf-desc").value.trim();
   const priority = document.getElementById("tf-priority").value;
   const status = document.getElementById("tf-status").value;
+  const weight = parseInt(document.getElementById("tf-weight").value, 10) || 3;
   const deadlineVal = document.getElementById("tf-deadline").value;
   const deadlineInput = document.getElementById("tf-deadline");
   const tags = document
@@ -531,6 +533,7 @@ window.submitTask = async (e) => {
         description: desc,
         priority,
         status,
+        weight,
         tags,
         isCommonTask: isCommon,
         visibility: isCommon ? "global" : "team",
@@ -553,6 +556,7 @@ window.submitTask = async (e) => {
         description: desc,
         priority,
         status: "pending",
+        weight,
         assignedTo,
         createdBy: currentUser.id,
         deadline: Timestamp.fromDate(new Date(deadlineVal)),

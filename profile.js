@@ -81,10 +81,14 @@ async function loadProfile(targetUid) {
 }
 
 async function loadUserTasks(targetUid) {
-  const snap = await getDocs(
-    query(collection(db, "tasks"), where("assignedTo", "array-contains", targetUid))
-  );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const [assignedSnap, commonSnap] = await Promise.all([
+    getDocs(query(collection(db, "tasks"), where("assignedTo", "array-contains", targetUid))),
+    getDocs(query(collection(db, "tasks"), where("isCommonTask", "==", true)))
+  ]);
+  const tasksMap = new Map();
+  assignedSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
+  commonSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
+  return Array.from(tasksMap.values());
 }
 
 function renderProfileHeader(u) {
@@ -144,6 +148,7 @@ async function renderStats(targetUid, tasks, user) {
     (overdue * 8)
   ));
 
+  document.getElementById("stat-assigned").textContent = tasks.length;
   document.getElementById("stat-completed").textContent = completed;
   document.getElementById("stat-active").textContent = active;
   document.getElementById("stat-rate").textContent = `${rate}%`;

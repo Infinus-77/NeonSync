@@ -138,6 +138,7 @@ async function handleRegister() {
       lastActive: serverTimestamp(),
       totalTasksCompleted: 0,
       productivityScore: 0,
+      weeklyCapacity: 20,
     });
 
     window.location.href = "dashboard.html";
@@ -235,6 +236,7 @@ async function handleGoogleSignIn() {
         lastActive: serverTimestamp(),
         totalTasksCompleted: 0,
         productivityScore: 0,
+        weeklyCapacity: 20,
       });
     }
 

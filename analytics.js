@@ -67,7 +67,7 @@ function renderAnalytics() {
   });
 
   renderKPIs(tasks, prevTasks, now);
-  renderInsights(tasks, now);
+  renderInsights(tasks, allUsers, now);
   renderTimeline(tasks, days);
   renderStatusPie(tasks, now);
   renderPriorityBar(tasks);
@@ -112,6 +112,24 @@ function renderKPIs(tasks, prevTasks, now) {
     return (now - d) < 7 * 24 * 60 * 60 * 1000;
   }).length;
 
+  let totalTeamCapacity = 0;
+  allUsers.forEach((u) => {
+    if (u.role !== "super_admin") {
+      totalTeamCapacity += (u.weeklyCapacity || 20);
+    }
+  });
+
+  let activePoints = 0;
+  tasks.forEach((t) => {
+    const assigneeList = t.assignedTo || [];
+    if (assigneeList.length > 0 && t.status !== "completed") {
+      activePoints += (t.weight || 3);
+    }
+  });
+
+  const teamUtilization = totalTeamCapacity ? Math.round((activePoints / totalTeamCapacity) * 100) : 0;
+  const wastedCapacity = Math.max(0, 100 - teamUtilization);
+
   document.getElementById("a-total").textContent = tasks.length;
   document.getElementById("a-completed").textContent = completed;
   document.getElementById("a-rate").textContent = `${rate}%`;
@@ -121,6 +139,12 @@ function renderKPIs(tasks, prevTasks, now) {
   document.getElementById("a-active-sub").textContent = `${active} with Active tag`;
   document.getElementById("a-users").textContent = members;
   document.getElementById("a-users-sub").textContent = `${activeMembers} active this week`;
+
+  const utilEl = document.getElementById("a-utilization");
+  if (utilEl) {
+    utilEl.textContent = `${teamUtilization}%`;
+    document.getElementById("a-utilization-sub").textContent = `${wastedCapacity}% capacity wasted`;
+  }
 
   // Trends
   setTrend("a-total-trend", tasks.length, prevTasks.length, "tasks");
@@ -146,7 +170,7 @@ function setTrend(elId, current, prev, label, invertColors = false) {
 
 // ── Insights ──────────────────────────────────────────────────────────────────
 
-function renderInsights(tasks, now) {
+function renderInsights(tasks, users, now) {
   const el = document.getElementById("insights-row");
   const insights = [];
 
@@ -185,6 +209,32 @@ function renderInsights(tasks, now) {
       title: `${review} Awaiting Review`, text: `${review} task${review > 1 ? "s are" : " is"} in review state. Complete reviews to unblock team progress.` });
   }
 
+  // Workload Insights
+  const members = users.filter(u => u.role !== "super_admin");
+  const underUtilized = [];
+  const overUtilized = [];
+  
+  members.forEach(u => {
+    const assigned = tasks.filter(t => t.isCommonTask || (t.assignedTo || []).includes(u.id));
+    const capacity = u.weeklyCapacity || 20;
+    let activePoints = 0;
+    assigned.forEach(t => {
+      if (t.status !== "completed") activePoints += (t.weight || 3);
+    });
+    const util = Math.round((activePoints / capacity) * 100);
+    if (util < 30) underUtilized.push(u.displayName ? u.displayName.split(" ")[0] : "User");
+    else if (util > 100) overUtilized.push(u.displayName ? u.displayName.split(" ")[0] : "User");
+  });
+
+  if (underUtilized.length > 0) {
+    insights.push({ icon: "ph-user-minus", color: "var(--cyan)", bg: "rgba(14,165,233,0.08)", border: "rgba(14,165,233,0.2)",
+      title: "Assign More Tasks", text: `${sanitizeHtml(underUtilized.join(", "))} ${underUtilized.length > 1 ? "have" : "has"} very low active workload.` });
+  }
+  if (overUtilized.length > 0) {
+    insights.push({ icon: "ph-warning-octagon", color: "var(--danger)", bg: "rgba(255,69,96,0.08)", border: "rgba(255,69,96,0.2)",
+      title: "Overloaded Members", text: `${sanitizeHtml(overUtilized.join(", "))} ${overUtilized.length > 1 ? "are" : "is"} currently overloaded. Consider redistributing tasks.` });
+  }
+
   if (!insights.length) {
     el.innerHTML = "";
     return;
@@ -201,8 +251,8 @@ function renderInsights(tasks, now) {
             <i class="ph ${ins.icon}"></i>
           </div>
           <div>
-            <div style="font-size:12px;font-weight:700;color:${ins.color};margin-bottom:3px;">${ins.title}</div>
-            <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">${ins.text}</div>
+            <div style="font-size:14px;font-weight:700;color:${ins.color};margin-bottom:4px;">${ins.title}</div>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;">${ins.text}</div>
           </div>
         </div>
       `).join("")}
@@ -514,7 +564,7 @@ function renderMemberProductivity(tasks, users, now) {
   }
 
   const memberStats = members.map((u) => {
-    const assigned = tasks.filter((t) => (t.assignedTo || []).includes(u.id));
+    const assigned = tasks.filter((t) => t.isCommonTask || (t.assignedTo || []).includes(u.id));
     const completed = assigned.filter((t) => t.status === "completed").length;
     const active = assigned.filter((t) => {
       if (t.status === "completed") return false;
@@ -535,7 +585,16 @@ function renderMemberProductivity(tasks, users, now) {
       : null;
     const isRecentlyActive = lastActive && (now - lastActive) < 7 * 24 * 60 * 60 * 1000;
 
-    return { ...u, assigned: assigned.length, completed, active, overdue, rate, isRecentlyActive, lastActive };
+    const capacity = u.weeklyCapacity || 20;
+    let activePoints = 0;
+    assigned.forEach((t) => {
+      if (t.status !== "completed") {
+        activePoints += (t.weight || 3);
+      }
+    });
+    const utilization = Math.round((activePoints / capacity) * 100);
+
+    return { ...u, assigned: assigned.length, completed, active, overdue, rate, isRecentlyActive, lastActive, utilization, activePoints, capacity };
   }).sort((a, b) => b.rate - a.rate || b.completed - a.completed);
 
   el.innerHTML = memberStats.map((u) => {
@@ -566,6 +625,10 @@ function renderMemberProductivity(tasks, users, now) {
             <div style="font-size:10px;color:var(--text-muted);margin-top:1px;">
               ${u.assigned} tasks · ${u.active} active
               ${u.overdue > 0 ? `· <span style="color:var(--danger);">${u.overdue} overdue</span>` : ""}
+            </div>
+            <div style="margin-top:4px;display:flex;align-items:center;gap:6px;">
+              ${u.utilization < 30 ? `<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(107,114,128,0.2);color:var(--text-muted);">Empty Handed</span>` : u.utilization > 100 ? `<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(255,69,96,0.2);color:var(--danger);">Overloaded</span>` : `<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.2);color:var(--green);">Optimal</span>`}
+              <span style="font-size:10px;color:var(--text-muted);">${u.activePoints}/${u.capacity} pts</span>
             </div>
             <div style="margin-top:5px;">
               <div class="progress-bar-wrap" style="height:3px;">

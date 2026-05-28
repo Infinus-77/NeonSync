@@ -52,6 +52,7 @@ function getSecondaryAuth() {
 }
 
 let allUsers = [];
+let allTasks = [];
 let currentUser;
 let roleChangeUserId = null;
 
@@ -87,6 +88,7 @@ requireAuth(
     }
 
     loadUsers();
+    loadTasks();
   },
   ["super_admin", "admin"],
 );
@@ -97,6 +99,13 @@ function loadUsers() {
     allUsers = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     updateUserAnalytics();
     filterUsers();
+  });
+}
+
+function loadTasks() {
+  onSnapshot(collection(db, "tasks"), (snap) => {
+    allTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    if (allUsers.length) filterUsers();
   });
 }
 
@@ -185,6 +194,9 @@ function renderUsers(users) {
         ((currentUser.role === "super_admin" && u.role !== "super_admin") ||
           (currentUser.role === "admin" && u.role === "member"));
 
+      const assignedCount = allTasks.filter(t => t.isCommonTask || (t.assignedTo || []).includes(u.id)).length;
+      const completedCount = allTasks.filter(t => t.status === "completed" && (t.isCommonTask || (t.assignedTo || []).includes(u.id))).length;
+
       return `
       <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center;position:relative;border:1px solid var(--border-glass);" data-testid="user-card-${u.id}">
         ${isMe ? '<div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:700;color:var(--cyan);background:rgba(0,242,255,0.1);padding:4px 8px;border-radius:999px;">YOU</div>' : ""}
@@ -205,7 +217,12 @@ function renderUsers(users) {
 
         <div style="display:flex;width:100%;font-size:11px;color:var(--text-muted);margin-bottom:20px;background:var(--bg-input);padding:10px 0;border-radius:var(--radius-md);">
           <div style="flex:1;text-align:center;">
-            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${u.totalTasksCompleted || 0}</div>
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${assignedCount}</div>
+            <div>Assigned</div>
+          </div>
+          <div style="width:1px;background:var(--border-subtle);flex-shrink:0;"></div>
+          <div style="flex:1;text-align:center;">
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${completedCount}</div>
             <div>Completed</div>
           </div>
           <div style="width:1px;background:var(--border-subtle);flex-shrink:0;"></div>
