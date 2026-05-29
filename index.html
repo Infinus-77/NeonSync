@@ -4,670 +4,1917 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeonSync - Team Management & Collaboration</title>
-    <link rel="icon" type="image/png" href="NS_logo.png">
+  <title>NeonSync — Sync your team. Ship faster.</title>
+  <link rel="icon" type="image/png" href="NS_logo.png">
   <meta name="description" content="NeonSync brings together task management, real-time chat, role-based dashboards, and analytics for modern teams." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap"
-    rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Space+Grotesk:wght@400;700&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
-  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('neonsync-theme') || 'dark');</script>
+
   <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --bg-body: #0b0e14;
-      --bg-surface: #10131a;
-      --bg-panel: #161a21;
-      --blue: #00F2FF;
-      --purple: #BF00FF;
-      --lime: #39FF14;
-      --rose: #ff716c;
-      --amber: #FFB800;
-      --text-primary: #ecedf6;
-      --text-secondary: #a9abb3;
-      --text-muted: #626673;
-      --border-glass: rgba(255, 255, 255, 0.06);
-      --border-subtle: rgba(255, 255, 255, 0.04);
-      --gradient-brand: linear-gradient(135deg, #00F2FF 0%, #BF00FF 100%);
-      --gradient-cta: linear-gradient(135deg, #99f7ff 0%, #00f1fe 100%);
-      --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.25);
-    }
-
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: auto; }
     body {
       font-family: 'Manrope', 'Inter', system-ui, sans-serif;
-      background: var(--bg-body);
-      color: var(--text-primary);
-      min-height: 100vh;
+      background: #0b0e14;
+      color: #ecedf6;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
-    body::before {
-      content: '';
+    /* ── CSS VARIABLES ── */
+    :root {
+      --blue: #00F2FF;
+      --purple: #BF00FF;
+      --lime: #39FF14;
+      --bg-body: #0b0e14;
+      --bg-surface: #10131a;
+      --bg-panel: #161a21;
+      --text-primary: #ecedf6;
+      --text-secondary: #a9abb3;
+      --text-muted: #626673;
+      --border-glass: rgba(255,255,255,0.06);
+      --border-subtle: rgba(255,255,255,0.04);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(-50% - 16px)); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-18px); }
+    }
+    @keyframes orbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(0,242,255,0.2); }
+      50% { box-shadow: 0 0 50px rgba(0,242,255,0.6); }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scroll-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+    @keyframes badge-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .paused { animation-play-state: paused !important; }
+    .char { display: inline-block; will-change: transform, opacity; }
+    .char-space { width: 0.3em; display: inline-block; }
+
+    /* ── NAV ── */
+    .nav-fixed {
       position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 45% at 15% 25%, rgba(0, 242, 255, 0.07) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 85% 15%, rgba(191, 0, 255, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse 40% 30% at 50% 85%, rgba(57, 255, 20, 0.03) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Nav */
-    nav {
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 48px;
-      height: 60px;
-      border-bottom: 1px solid var(--border-subtle);
-      background: rgba(11, 14, 20, 0.8);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      height: 64px;
+      mix-blend-mode: difference;
     }
-
     .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 9px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       text-decoration: none;
     }
-
-    .nav-logo-icon {
-      width: 30px;
-      height: 30px;
-      background: url('NS_logo.png');
-      background-size: cover;
-      background-position: center;
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 12px rgba(0, 242, 255, 0.3);
-    }
-    .nav-logo-icon i { display: none; }
-
-    .nav-logo h1 {
-      font-family: 'Stack Sans Notch', sans-serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.02em;
-    }
-
-    .nav-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .btn {
+    .nav-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 7px 16px;
-      border-radius: 9px;
-      font-size: 13px;
+      padding: 6px 16px;
+      border: 1px solid rgba(0,242,255,0.35);
+      border-radius: 9999px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 11px;
       font-weight: 600;
+      color: var(--blue);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 700px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: var(--bg-body);
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 25%, rgba(0,242,255,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 45% at 85% 15%, rgba(191,0,255,0.06) 0%, transparent 50%);
+      z-index: 0;
+    }
+    .hero-dots {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.5;
+      z-index: 0;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Orbit ring */
+    .orbit-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 500px; height: 500px;
+      margin-top: -250px;
+      margin-left: -250px;
+      z-index: 1;
+      animation: orbit 25s linear infinite;
+      pointer-events: none;
+    }
+
+    /* Data pods */
+    .data-pod {
+      position: absolute;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px 24px;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .data-pod-label {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 4px;
+    }
+    .data-pod-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .pod-1 { top: 14%; right: 8%; }
+    .pod-2 { top: 45%; left: 4%; }
+    .pod-3 { bottom: 15%; right: 12%; }
+
+    /* Hero Badge */
+    .hero-online-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border: 1px solid rgba(0,242,255,0.3);
+      background: rgba(0,242,255,0.08);
+      border-radius: 9999px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      animation: fadeInDown 0.6s ease both;
+    }
+    .hero-online-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 8px var(--blue);
+      animation: badge-pulse 2s ease-in-out infinite;
+    }
+
+    /* Hero Title */
+    .hero-title-line {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 0.85;
+      text-transform: uppercase;
+    }
+    .hero-title-solid { color: white; }
+    .hero-title-outline {
+      color: transparent;
+      -webkit-text-stroke: 2px rgba(0,242,255,0.9);
+    }
+    .hero-subtext {
+      font-size: 18px;
+      color: var(--text-secondary);
+      font-weight: 300;
+      max-width: 480px;
+      line-height: 1.65;
+      margin-top: 32px;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-launch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, #99f7ff 0%, #00f1fe 100%);
+      color: #003538;
+      font-family: 'Manrope', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
       border: none;
+      border-radius: 12px;
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.18s ease;
-      font-family: 'Manrope', sans-serif;
-      white-space: nowrap;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 16px rgba(0,242,255,0.3);
     }
-
-    .btn-outline {
+    .btn-launch:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 32px rgba(0,242,255,0.45);
+    }
+    .btn-signin {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
       background: transparent;
-      border: 1px solid var(--border-glass);
-      color: var(--text-secondary);
-    }
-
-    .btn-outline:hover {
-      border-color: var(--blue);
       color: var(--blue);
-      background: rgba(0, 242, 255, 0.06);
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.08);
-    }
-
-    .btn-primary {
-      background: var(--gradient-cta);
-      color: #003538;
-      font-weight: 700;
-      box-shadow: 0 1px 6px rgba(0, 242, 255, 0.25);
-    }
-
-    .btn-primary:hover {
-      box-shadow: 0 4px 24px rgba(0, 242, 255, 0.3);
-      transform: translateY(-1px);
-    }
-
-    .btn-lg {
-      padding: 10px 22px;
+      font-family: 'Manrope', sans-serif;
       font-size: 14px;
-      border-radius: 10px;
+      font-weight: 600;
+      border: 1px solid rgba(0,242,255,0.35);
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+    .btn-signin:hover {
+      background: rgba(0,242,255,0.08);
+      border-color: var(--blue);
+      box-shadow: 0 0 20px rgba(0,242,255,0.15);
+    }
+    .scroll-indicator {
+      margin-top: 60px;
+      color: var(--blue);
+      font-size: 40px;
+      animation: scroll-bounce 2s ease-in-out infinite;
+      opacity: 0.7;
     }
 
-    /* Hero */
-    .hero {
-      flex: 1;
+    /* ── MASONRY FEATURES ── */
+    .features-masonry {
+      position: relative;
+      min-height: 150vh;
+      background: #050505;
+      padding: 120px 48px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 9999px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      margin-bottom: 24px;
+    }
+    .section-badge i { color: var(--blue); font-size: 16px; }
+    .masonry-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(3rem, 7vw, 6rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      margin-bottom: 64px;
+    }
+    .masonry-headline .cyan { color: var(--blue); }
+    .masonry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Feature Cards */
+    .feature-card-ag {
+      border-radius: 32px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .feature-card-ag:hover {
+      transform: scale(1.02);
+    }
+    .card-bg-img {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0.2;
+      z-index: 0;
+      transition: opacity 0.5s ease, transform 0.8s ease;
+      transform: scale(1.05);
+    }
+    .feature-card-ag:hover .card-bg-img {
+      opacity: 0.35;
+      transform: scale(1.12);
+    }
+    .feature-card-ag > *:not(.card-bg-img) {
+      position: relative;
+      z-index: 2;
+    }
+    .feature-card-ag .fc-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .feature-card-ag .fc-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 12px;
+    }
+    .feature-card-ag .fc-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+    .fc-cyan {
+      background: linear-gradient(180deg, rgba(0,242,255,0.06) 0%, transparent 70%);
+      border: 1px solid rgba(0,242,255,0.2);
+    }
+    .fc-cyan:hover { border-color: rgba(0,242,255,0.5); }
+    .fc-purple {
+      background: linear-gradient(180deg, rgba(191,0,255,0.06) 0%, transparent 70%);
+      border: 1px solid rgba(191,0,255,0.2);
+    }
+    .fc-purple:hover { border-color: rgba(191,0,255,0.5); }
+    .fc-lime {
+      background: linear-gradient(180deg, rgba(57,255,20,0.06) 0%, transparent 70%);
+      border: 1px solid rgba(57,255,20,0.2);
+    }
+    .fc-lime:hover { border-color: rgba(57,255,20,0.5); }
+
+    /* Fake bar chart */
+    .fake-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 120px;
+      margin: 24px 0;
+    }
+    .fake-bar {
+      width: 18px;
+      border-radius: 4px;
+      background: rgba(57,255,20,0.4);
+      transition: height 0.4s ease;
+    }
+    .fc-lime:hover .fake-bar { height: 100% !important; }
+
+    /* Quote card */
+    .quote-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 32px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .quote-card > *:not(.card-bg-img) {
+      position: relative;
+      z-index: 2;
+    }
+    .quote-card .quote-icon { font-size: 32px; color: var(--blue); }
+    .quote-card .quote-text {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 17px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: white;
+      line-height: 1.5;
+    }
+
+    /* Heatmap */
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 8px);
+      grid-template-rows: repeat(7, 8px);
+      gap: 3px;
+      margin-top: 20px;
+    }
+    .heatmap-cell {
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      background: var(--blue);
+    }
+
+    /* Role pills */
+    .role-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 9999px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .masonry-col-3 { padding-top: 160px; }
+
+    /* ── HORIZONTAL SCROLL ── */
+    .h-scroll-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+    .h-scroll-track {
+      display: flex;
+      width: 400vw;
+      height: 100vh;
+      flex-wrap: nowrap;
+    }
+    .h-panel {
+      width: 100vw;
+      height: 100vh;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .h-panel-inner {
+      max-width: 1100px;
+      padding: 0 48px;
+      width: 100%;
+    }
+
+    /* Panel 1 */
+    .panel-1 { background: #ffffff; color: #0b0e14; }
+    .panel-1-badge {
+      display: inline-flex;
+      padding: 8px 20px;
+      background: #0b0e14;
+      color: white;
+      border-radius: 9999px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      animation: badge-pulse 3s ease-in-out infinite;
+    }
+    .panel-1-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15vw;
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+    .panel-1-title .italic-cyan {
+      font-style: italic;
+      color: var(--blue);
+    }
+
+    /* Panel 2 */
+    .panel-2 { background: #f4f4f4; color: #0b0e14; }
+    .slide-2-text {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      font-weight: 700;
+      max-width: 900px;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    /* Panel 3 */
+    .panel-3 { background: #0b0e14; color: white; }
+    .panel-3-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      max-width: 1100px;
+      align-items: center;
+    }
+    .panel-3-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(4rem, 8vw, 8rem);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+    .panel-3-right {
+      border-left: 1px solid rgba(255,255,255,0.15);
+      padding-left: 48px;
+    }
+    .panel-3-right p {
+      font-size: 20px;
+      color: var(--text-secondary);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    /* Panel 4 */
+    .panel-4 { background: var(--purple); }
+    .panel-4-text {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12vw;
+      font-weight: 900;
+      color: white;
+      mix-blend-mode: overlay;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 0.9;
+    }
+
+    /* ── BENTO GRID ── */
+    .bento-section {
+      background: #050505;
+      padding: 120px 48px;
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+    }
+    .bento-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto 56px;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .bento-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 5rem);
+      font-weight: 900;
+      color: white;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(3, auto);
+      gap: 24px;
+      max-width: 1280px;
+      margin: 0 auto;
+      perspective: 1200px;
+    }
+    .bento-item {
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+      min-height: 180px;
+    }
+
+    /* Bento cards */
+    .bento-super-admin {
+      grid-column: span 2;
+      grid-row: span 2;
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+    }
+    .bento-super-admin::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,242,255,0.1) 0%, rgba(191,0,255,0.1) 100%);
+      pointer-events: none;
+    }
+    .bento-super-admin .watermark {
+      position: absolute;
+      bottom: -20px; right: -20px;
+      font-size: 200px;
+      color: rgba(255,255,255,0.03);
+      pointer-events: none;
+    }
+    .bento-super-admin .card-content { position: relative; z-index: 2; }
+    .bento-super-admin .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 16px;
+    }
+    .perk-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .perk-line i { color: var(--blue); font-size: 14px; }
+
+    .bento-cyan-card {
+      background: var(--blue);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #003538;
+      transition: background 0.2s ease;
+    }
+    .bento-cyan-card:hover { background: #33f5ff; }
+    .bento-cyan-card i { font-size: 36px; }
+    .bento-cyan-card .bento-card-label {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .bento-admin-card {
+      grid-row: span 2;
+      background: #1a1a1a;
+      padding: 32px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .bento-admin-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bento-admin-top i {
+      color: var(--text-secondary);
+      font-size: 28px;
+      transition: color 0.2s;
+    }
+    .bento-admin-card:hover .bento-admin-top i { color: var(--blue); }
+    .bento-admin-label {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 14px;
+      color: var(--blue);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .bento-admin-desc {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .bento-core-card {
+      background: rgba(0,242,255,0.04);
+      border: 1px solid rgba(0,242,255,0.2);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 72px 24px;
+      padding: 24px;
     }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 13px;
-      background: rgba(0, 242, 255, 0.06);
-      border: 1px solid rgba(0, 242, 255, 0.18);
-      border-radius: 9999px;
-      font-size: 11.5px;
-      font-weight: 600;
+    .bento-core-label {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
       color: var(--blue);
-      margin-bottom: 24px;
-      animation: fadeInDown 0.5s ease both;
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.06);
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
     }
-
-    .hero-title {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: clamp(32px, 5.5vw, 64px);
-      font-weight: 700;
-      line-height: 1.06;
-      letter-spacing: -0.03em;
-      margin-bottom: 18px;
-      color: var(--text-primary);
-      animation: fadeInUp 0.5s ease 0.1s both;
-    }
-
-    .hero-title .gradient {
-      background: var(--gradient-brand);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-subtitle {
-      font-size: 16px;
-      color: var(--text-secondary);
-      max-width: 500px;
-      line-height: 1.65;
-      margin-bottom: 32px;
-      animation: fadeInUp 0.5s ease 0.2s both;
-    }
-
-    .hero-cta {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      animation: fadeInUp 0.5s ease 0.3s both;
-    }
-
-    /* Features */
-    .features {
-      padding: 72px 48px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .features-title {
-      text-align: center;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 36px;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-    }
-
-    .features-title span {
-      background: var(--gradient-brand);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 14px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .feature-card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-glass);
-      border-radius: 12px;
-      padding: 20px;
-      transition: all 0.25s ease;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .feature-card:hover {
-      border-color: rgba(0, 242, 255, 0.2);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md), 0 0 25px rgba(0, 242, 255, 0.04);
-    }
-
-    .feature-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
-
-    .feature-icon.cyan {
-      background: rgba(0, 242, 255, 0.10);
-      color: var(--blue);
-      box-shadow: 0 0 10px rgba(0, 242, 255, 0.10);
-    }
-
-    .feature-icon.purple {
-      background: rgba(191, 0, 255, 0.10);
-      color: var(--purple);
-      box-shadow: 0 0 10px rgba(191, 0, 255, 0.10);
-    }
-
-    .feature-icon.pink {
-      background: rgba(255, 113, 108, 0.10);
-      color: var(--rose);
-    }
-
-    .feature-icon.green {
-      background: rgba(57, 255, 20, 0.10);
-      color: var(--lime);
-      box-shadow: 0 0 10px rgba(57, 255, 20, 0.08);
-    }
-
-    .feature-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: var(--text-primary);
-    }
-
-    .feature-desc {
-      font-size: 12.5px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-
-    /* Roles */
-    .roles {
-      padding: 56px 48px;
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      background: var(--bg-surface);
-      border-top: 1px solid var(--border-subtle);
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .roles-title {
+    .bento-core-title {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 24px;
       font-weight: 700;
-      margin-bottom: 32px;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
+      color: white;
     }
 
-    .roles-grid {
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      max-width: 840px;
-      margin: 0 auto;
-    }
-
-    .role-card {
-      flex: 1;
-      min-width: 200px;
-      max-width: 260px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border-glass);
-      border-radius: 12px;
-      padding: 20px 18px;
-      transition: all 0.25s ease;
-      box-shadow: var(--shadow-sm);
-      text-align: left;
-    }
-
-    .role-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .role-card.super-admin {
-      border-top: 2px solid var(--rose);
-      box-shadow: 0 -4px 20px rgba(255, 113, 108, 0.05);
-    }
-
-    .role-card.admin {
-      border-top: 2px solid var(--blue);
-      box-shadow: 0 -4px 20px rgba(0, 242, 255, 0.05);
-    }
-
-    .role-card.member {
-      border-top: 2px solid var(--lime);
-      box-shadow: 0 -4px 20px rgba(57, 255, 20, 0.05);
-    }
-
-    .role-badge {
-      display: inline-flex;
-      padding: 2px 9px;
-      border-radius: 9999px;
-      font-size: 10px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      letter-spacing: 0.04em;
-    }
-
-    .role-badge.super-admin {
-      background: rgba(255, 113, 108, 0.10);
-      color: var(--rose);
-      border: 1px solid rgba(255, 113, 108, 0.22);
-    }
-
-    .role-badge.admin {
-      background: rgba(0, 242, 255, 0.10);
-      color: var(--blue);
-      border: 1px solid rgba(0, 242, 255, 0.22);
-    }
-
-    .role-badge.member {
-      background: rgba(57, 255, 20, 0.10);
-      color: var(--lime);
-      border: 1px solid rgba(57, 255, 20, 0.22);
-    }
-
-    .role-name {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: var(--text-primary);
-    }
-
-    .role-perms {
-      list-style: none;
-    }
-
-    .role-perms li {
-      font-size: 12px;
-      color: var(--text-secondary);
-      padding: 3px 0;
+    .bento-member-card {
+      grid-column: span 4;
+      background: #111;
+      padding: 32px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 32px;
+      transition: background 0.2s ease;
     }
-
-    .role-perms li::before {
-      content: '';
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--text-muted);
+    .bento-member-card:hover { background: #151515; }
+    .bento-member-icon-wrap {
+      width: 80px; height: 80px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
     }
+    .bento-member-icon-wrap i { font-size: 32px; color: var(--blue); }
+    .bento-member-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+    }
+    .bento-member-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      font-weight: 300;
+    }
 
-    /* Footer */
-    footer {
-      padding: 24px 48px;
-      border-top: 1px solid var(--border-subtle);
+    /* ── CAROUSEL ── */
+    .carousel-section {
+      background: #050505;
+      padding: 120px 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+    }
+    .carousel-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(2.5rem, 5vw, 5rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
       text-align: center;
+      letter-spacing: 0.2em;
+      margin-bottom: 64px;
+      padding: 0 24px;
+    }
+    .marquee-track {
+      display: flex;
+      gap: 32px;
+      width: max-content;
+      animation: marquee 30s linear infinite;
+      flex-wrap: nowrap;
+      padding: 20px 0;
+    }
+    .carousel-card {
+      width: 300px;
+      height: 375px;
+      border-radius: 32px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #111;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+    }
+    .carousel-card:hover { transform: scale(1.04); }
+    .carousel-card-inner {
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      opacity: 0.75;
+      transition: opacity 0.5s ease;
+    }
+    .carousel-card:hover .carousel-card-inner { opacity: 1; }
+    .carousel-icon-circle {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .carousel-icon-circle i { font-size: 40px; }
+    .carousel-card-gradient {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+      pointer-events: none;
+    }
+    .carousel-card-label {
+      position: absolute;
+      bottom: 32px;
+      left: 0; right: 0;
+      text-align: center;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: white;
+      z-index: 2;
+    }
+    /* hover overlay */
+    .carousel-hover-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: 32px;
+      backdrop-filter: blur(4px);
+      z-index: 5;
+    }
+    .carousel-card:hover .carousel-hover-overlay { opacity: 1; }
+    .view-data-pill {
+      padding: 10px 24px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 9999px;
+      font-family: 'Space Grotesk', monospace;
       font-size: 12px;
-      color: var(--text-muted);
+      font-weight: 600;
+      color: white;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    /* ── BLOG CARDS ── */
+    .blog-card {
+      width: 320px;
+      height: 450px;
+      border-radius: 40px;
+      flex-shrink: 0;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+      background: #18181b;
+      border: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+      cursor: pointer;
+    }
+    .blog-card-img {
+      border-radius: 40px;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.8;
+      transition: opacity 0.7s ease, transform 0.7s ease;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .blog-card:hover .blog-card-img {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    .blog-card-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 40px;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.6) 0%,
+        transparent 40%,
+        transparent 60%,
+        rgba(0,0,0,0.6) 100%
+      );
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 2;
+      box-sizing: border-box;
+    }
+    .blog-card-tag {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(161,161,170,1);
+      opacity: 0.8;
+      transition: opacity 0.3s, color 0.3s;
+    }
+    .blog-card:hover .blog-card-tag {
+      opacity: 1;
+      color: white;
+    }
+    .blog-card-title {
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      max-width: 200px;
+      margin-top: 8px;
+      transform-origin: left center;
+      transition: transform 0.3s ease;
+    }
+    .blog-card:hover .blog-card-title {
+      transform: scale(1.05);
+    }
+    .blog-card-desc-box {
+      position: absolute;
+      bottom: 80px;
+      right: -20px;
+      width: 260px;
+      background: rgba(15, 15, 20, 0.95);
+      border: 1px solid rgba(0, 242, 255, 0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 20px rgba(0, 242, 255, 0.15);
+      backdrop-filter: blur(16px);
+      border-radius: 16px;
+      padding: 16px;
+      color: rgba(255,255,255,0.9);
+      font-size: 13px;
+      line-height: 1.5;
+      font-family: system-ui, sans-serif;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px) scale(0.95);
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 10;
+    }
+    .blog-card.show-desc .blog-card-desc-box {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+    .blog-card-desc-box::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      right: 48px;
+      width: 10px;
+      height: 10px;
+      background: rgba(15, 15, 20, 0.95);
+      border-bottom: 1px solid rgba(0, 242, 255, 0.3);
+      border-right: 1px solid rgba(0, 242, 255, 0.3);
+      transform: rotate(45deg);
+    }
+    .blog-card-bottom {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .blog-card-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      cursor: pointer;
+    }
+    .blog-card-btn svg {
+      transition: transform 0.4s ease;
+    }
+    .blog-card:hover .blog-card-btn,
+    .blog-card.show-desc .blog-card-btn {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .blog-card.show-desc .blog-card-btn svg {
+      transform: rotate(180deg);
+    }
+
+    /* ── MODAL ── */
+    .feature-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .feature-modal-overlay.active { display: flex; }
+    .feature-modal {
+      background: #111;
+      border-radius: 32px;
+      border: 1px solid rgba(255,255,255,0.08);
+      max-width: 700px;
+      width: 100%;
+      padding: 48px;
+      position: relative;
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+    .modal-icon-wrap {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .modal-icon-wrap i { font-size: 52px; }
+    .modal-content { flex: 1; }
+    .modal-feature-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .modal-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+    .modal-data-field {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 8px;
+    }
+    .modal-data-field span { color: white; font-weight: 600; }
+    .modal-close {
+      position: absolute;
+      top: 24px; right: 32px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: white; }
+
+    /* ── FOOTER ── */
+    .ag-footer {
+      background: #060812;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 120px 32px 80px;
+      border-top: 1px solid rgba(191,0,255,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .ag-footer::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 120%;
+      height: 60%;
+      background: radial-gradient(ellipse at center top, rgba(191,0,255,0.12), transparent 70%);
+      pointer-events: none;
+    }
+    .footer-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       position: relative;
       z-index: 1;
+      margin-bottom: 64px;
+    }
+    .footer-orbit {
+      position: relative;
+      width: 70px; height: 70px;
+      margin-bottom: 32px;
+    }
+    .footer-orbit .orbit-outer {
+      position: absolute;
+      inset: 0;
+      animation: orbit 10s linear infinite;
+    }
+    .footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border: 1px solid rgba(0,242,255,0.3);
+      background: rgba(0,242,255,0.08);
+      border-radius: 9999px;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--blue);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .footer-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(4rem, 11vw, 10rem);
+      font-weight: 900;
+      line-height: 0.82;
+      text-transform: uppercase;
+      letter-spacing: -0.04em;
+      text-align: center;
+      color: white;
+      padding-bottom: 24px;
+    }
+    .footer-headline .cyan { color: var(--blue); }
+    .footer-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+      margin-top: 64px;
+    }
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+    .footer-links a {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 13px;
+      color: rgba(0,242,255,0.65);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--blue); }
+    .footer-copy {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.15);
     }
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(14px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .masonry-grid { grid-template-columns: repeat(2, 1fr); }
+      .masonry-col-3 { padding-top: 0; }
+      .bento-grid { grid-template-columns: repeat(2, 1fr); }
+      .bento-super-admin { grid-column: span 2; grid-row: span 1; }
+      .bento-admin-card { grid-row: span 1; }
+      .panel-3-grid { grid-template-columns: 1fr; gap: 40px; }
+      .panel-3-right { border-left: none; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 32px; }
     }
-
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-6px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     @media (max-width: 768px) {
-      nav {
-        padding: 0 16px;
+      .nav-fixed { padding: 0 20px; }
+      .features-masonry { padding: 80px 20px; }
+      .masonry-grid { grid-template-columns: 1fr; }
+      .bento-section { padding: 80px 20px; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .bento-super-admin { grid-column: span 1; }
+      .bento-member-card { grid-column: span 1; flex-direction: column; text-align: center; }
+      .bento-member-icon-wrap { margin: 0 auto; }
+      
+      /* Hero responsiveness */
+      .hero-title-line { font-size: clamp(2.2rem, 9vw, 4.5rem); }
+      .data-pod { display: none; }
+      .orbit-ring { width: 320px; height: 320px; margin-top: -160px; margin-left: -160px; }
+      
+      /* Horizontal scroll panels */
+      .panel-1-title { font-size: 15vw; }
+      .panel-3-title { font-size: clamp(2.5rem, 8vw, 5rem); }
+      .h-panel-inner { padding: 0 24px; }
+      
+      /* Description Tooltip Containment */
+      .blog-card-desc-box {
+        right: 16px;
+        left: 16px;
+        width: auto;
+        bottom: 80px;
+        transform: translateY(10px) scale(0.98);
       }
-
-      .hero {
-        padding: 52px 16px;
+      .blog-card.show-desc .blog-card-desc-box {
+        transform: translateY(0) scale(1);
       }
-
-      .features,
-      .roles {
-        padding: 48px 16px;
+      .blog-card-desc-box::after {
+        right: 28px;
       }
-
-      footer {
-        padding: 20px 16px;
+      
+      /* Modal */
+      .feature-modal { flex-direction: column; align-items: center; text-align: center; padding: 32px; }
+      .modal-icon-wrap { width: 100px; height: 100px; }
+      .modal-icon-wrap i { font-size: 36px; }
+      .modal-feature-name { font-size: 24px; }
+      
+      /* Footer */
+      .ag-footer {
+        height: auto;
+        min-height: auto;
+        padding: 64px 20px 48px;
       }
-
-      .nav-actions .btn-outline {
-        display: none;
+      .footer-headline {
+        font-size: clamp(2.5rem, 9vw, 5rem);
+        padding-bottom: 12px;
       }
-
-      .hero-subtitle {
-        font-size: 15px;
+      .footer-orbit {
+        margin-bottom: 24px;
+      }
+      .footer-badge {
+        margin-bottom: 24px;
+      }
+      .footer-bottom {
+        margin-top: 48px;
       }
     }
-
     @media (max-width: 480px) {
-      nav {
-        padding: 0 12px;
-      }
-
-      .hero {
-        padding: 40px 12px;
-      }
-
-      .hero-title {
-        font-size: 30px !important;
-      }
-
-      .features,
-      .roles {
-        padding: 36px 12px;
-      }
-
-      .features-title,
-      .roles-title {
-        font-size: 20px;
-      }
-
-      .roles-grid {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .role-card {
-        max-width: none;
-      }
+      .hero-cta { flex-direction: column; align-items: stretch; width: 100%; max-width: 280px; }
+      .hero-cta .btn-launch, .hero-cta .btn-signin { width: 100%; justify-content: center; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <nav>
-      <a href="/" class="nav-logo">
-        <div class="nav-logo-icon"><i class="ph ph-circles-four" style="color:white;font-size:15px"></i></div>
-        <h1>NeonSync</h1>
-      </a>
-      <div class="nav-actions">
-        <a href="login.html" class="btn btn-outline">Sign In</a>
-        <a href="login.html" class="btn btn-primary">
-          <i class="ph ph-rocket-launch"></i> Get Started
-        </a>
-      </div>
-    </nav>
 
-    <section class="hero">
-      <div class="hero-badge"><i class="ph ph-sparkle"></i> Real-time Team Collaboration</div>
-      <h1 class="hero-title">Sync your team.<br /><span class="gradient">Ship faster.</span></h1>
-      <p class="hero-subtitle">NeonSync brings together task management, real-time chat, role-based dashboards, and
-        analytics — all in a beautiful interface built for modern teams.</p>
+  <!-- NAV -->
+  <nav class="nav-fixed">
+    <a href="/" class="nav-logo">NEONSYNC</a>
+    <div class="nav-badge">SYS.V2 ↑</div>
+  </nav>
+
+  <!-- ═══════ SECTION 1: HERO ═══════ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-dots"></div>
+
+    <!-- Orbit Ring -->
+    <svg class="orbit-ring" viewBox="0 0 500 500" fill="none">
+      <circle cx="250" cy="250" r="248" stroke="rgba(0,242,255,0.15)" stroke-width="1" />
+    </svg>
+
+    <!-- Data Pods -->
+    <div class="data-pod pod-1" id="pod1">
+      <div class="data-pod-label">Tasks Synced</div>
+      <div class="data-pod-value" style="color:#00F2FF;">2,847</div>
+    </div>
+    <div class="data-pod pod-2" id="pod2">
+      <div class="data-pod-label">Uptime</div>
+      <div class="data-pod-value" style="color:#39FF14;">99.9%</div>
+    </div>
+    <div class="data-pod pod-3" id="pod3">
+      <div class="data-pod-label">Active Teams</div>
+      <div class="data-pod-value" style="color:#BF00FF;">318</div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="hero-content">
+      <div class="hero-online-badge">
+        <span class="dot"></span>
+        NeonSync System Online
+      </div>
+      <div class="hero-title-line hero-title-solid" data-split>Sync your team.</div>
+      <div class="hero-title-line hero-title-outline" data-split>Ship faster.</div>
+      <p class="hero-subtext">We didn't redesign collaboration. We removed the weight of it.</p>
       <div class="hero-cta">
-        <a href="login.html" class="btn btn-primary btn-lg"><i class="ph ph-rocket-launch"></i> Launch App</a>
-        <a href="login.html" class="btn btn-outline btn-lg"><i class="ph ph-sign-in"></i> Sign In</a>
+        <a href="login.html" class="btn-launch"><i class="ph ph-rocket-launch"></i> Launch App</a>
+        <a href="login.html" class="btn-signin"><i class="ph ph-sign-in"></i> Sign In</a>
       </div>
-    </section>
+      <div class="scroll-indicator">
+        <i class="ph ph-arrow-down-right"></i>
+      </div>
+    </div>
+  </section>
 
-    <section class="features">
-      <h2 class="features-title">Everything your team needs, <span>beautifully unified</span></h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon cyan"><i class="ph ph-check-square"></i></div>
-          <div class="feature-title">Task Management</div>
-          <div class="feature-desc">Full CRUD task system with priorities, deadlines, assignees, progress tracking,
-            tags, attachments, and remarks.</div>
+  <!-- ═══════ SECTION 2: FEATURES MASONRY ═══════ -->
+  <section class="features-masonry" id="features">
+    <div class="section-badge"><i class="ph ph-aperture"></i> 01 — Zero-G Features</div>
+    <h2 class="masonry-headline">Feature<br><span class="cyan">Payload</span></h2>
+
+    <div class="masonry-grid">
+      <!-- Column 1 -->
+      <div class="masonry-col-1">
+        <div class="feature-card-ag fc-cyan" style="height:520px; margin-bottom:32px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="card-bg-img" style="background-image:url('assets/task_management_bg.png');"></div>
+          <i class="ph ph-check-square fc-icon" style="color:#00F2FF;"></i>
+          <div>
+            <div class="fc-title">Task Management</div>
+            <div class="fc-desc">Full CRUD with priorities, deadlines, assignees, progress tracking, tags, and attachments.</div>
+          </div>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon purple"><i class="ph ph-chat-circle-dots"></i></div>
-          <div class="feature-title">Real-time Chat</div>
-          <div class="feature-desc">Global, role-based, and task-specific chat channels powered by Firebase Firestore
-            live listeners.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon pink"><i class="ph ph-chart-bar"></i></div>
-          <div class="feature-title">Analytics Dashboard</div>
-          <div class="feature-desc">Visual charts for task distribution, completion timelines, priority breakdown, and
-            team leaderboards.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon green"><i class="ph ph-user-circle"></i></div>
-          <div class="feature-title">GitHub-style Profiles</div>
-          <div class="feature-desc">User profiles with contribution heatmaps, task history timelines, skills, and
-            productivity scores.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon cyan"><i class="ph ph-bell"></i></div>
-          <div class="feature-title">Notification System</div>
-          <div class="feature-desc">Real-time notifications for task assignments, status changes, remarks, and deadline
-            alerts.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon purple"><i class="ph ph-shield"></i></div>
-          <div class="feature-title">Role-based Access</div>
-          <div class="feature-desc">Three-tier permission system: Super Admin, Admin, and Member — each with tailored
-            dashboards and controls.</div>
+        <div class="feature-card-ag fc-purple" style="height:360px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="card-bg-img" style="background-image:url('assets/realtime_chat_bg.png');"></div>
+          <i class="ph ph-chat-circle-dots fc-icon" style="color:#BF00FF;"></i>
+          <div>
+            <div class="fc-title">Real-time Chat</div>
+            <div class="fc-desc">Global, role-based, and task-specific channels powered by Firebase Firestore live listeners.</div>
+          </div>
         </div>
       </div>
-    </section>
 
-    <section class="roles">
-      <h2 class="roles-title">Built for teams of all sizes</h2>
-      <div class="roles-grid">
-        <div class="role-card super-admin">
-          <div class="role-badge super-admin">Super Admin</div>
-          <div class="role-name">Full Control</div>
-          <ul class="role-perms">
-            <li>Manage all users & roles</li>
-            <li>Create & delete any task</li>
-            <li>Access all analytics</li>
-            <li>All chat channels</li>
-            <li>System-wide oversight</li>
-          </ul>
+      <!-- Column 2 -->
+      <div class="masonry-col-2">
+        <div class="feature-card-ag fc-lime" style="height:460px; margin-bottom:32px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="card-bg-img" style="background-image:url('assets/analytics_bg.png');"></div>
+          <i class="ph ph-chart-bar fc-icon" style="color:#39FF14;"></i>
+          <div class="fake-bars">
+            <div class="fake-bar" style="height:60%;"></div>
+            <div class="fake-bar" style="height:85%;"></div>
+            <div class="fake-bar" style="height:45%;"></div>
+            <div class="fake-bar" style="height:70%;"></div>
+          </div>
+          <div>
+            <div class="fc-title">Analytics Dashboard</div>
+            <div class="fc-desc">Visual charts for task distribution, completion timelines, priority breakdown, and leaderboards.</div>
+          </div>
         </div>
-        <div class="role-card admin">
-          <div class="role-badge admin">Admin</div>
-          <div class="role-name">Team Manager</div>
-          <ul class="role-perms">
-            <li>Manage team members</li>
-            <li>Create & assign tasks</li>
-            <li>Team analytics</li>
-            <li>Admin chat channel</li>
-            <li>Role-based filtering</li>
-          </ul>
-        </div>
-        <div class="role-card member">
-          <div class="role-badge member">Member</div>
-          <div class="role-name">Contributor</div>
-          <ul class="role-perms">
-            <li>View assigned tasks</li>
-            <li>Update task progress</li>
-            <li>Add remarks</li>
-            <li>Global chat access</li>
-            <li>Personal profile & heatmap</li>
-          </ul>
+        <div class="quote-card" style="height:380px;">
+          <div class="card-bg-img" style="background-image:url('assets/quote_bg.png');"></div>
+          <i class="ph ph-fingerprint quote-icon"></i>
+          <div class="quote-text">"Teams don't fail from lack of tools. They fail from lack of clarity."</div>
         </div>
       </div>
-    </section>
 
-    <footer>
-      <p style="margin-top:5px">NeonSync &copy; 2026 — Team Management &amp; Collaboration Platform for Syntax Syndicate
-      </p>
-    </footer>
+      <!-- Column 3 -->
+      <div class="masonry-col-3">
+        <div class="feature-card-ag fc-purple" style="height:400px; margin-bottom:32px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="card-bg-img" style="background-image:url('assets/profiles_bg.png');"></div>
+          <i class="ph ph-user fc-icon" style="color:#BF00FF;"></i>
+          <div class="heatmap-grid" id="heatmap"></div>
+          <div>
+            <div class="fc-title">GitHub-style Profiles</div>
+            <div class="fc-desc">Contribution heatmaps, task history timelines, skills, and productivity scores.</div>
+          </div>
+        </div>
+        <div class="feature-card-ag" style="height:500px; display:flex; flex-direction:column; justify-content:space-between; background:linear-gradient(180deg, rgba(0,242,255,0.04) 0%, transparent 50%); border:1px solid rgba(255,255,255,0.1);">
+          <div class="card-bg-img" style="background-image:url('assets/role_access_bg.png');"></div>
+          <i class="ph ph-shield fc-icon" style="color:#00F2FF;"></i>
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top:auto;">
+            <div class="role-pill" style="background:rgba(0,242,255,0.1); border:1px solid rgba(0,242,255,0.3); color:#00F2FF;">
+              <i class="ph ph-crown"></i> Super Admin
+            </div>
+            <div class="role-pill" style="background:rgba(191,0,255,0.1); border:1px solid rgba(191,0,255,0.3); color:#BF00FF;">
+              <i class="ph ph-user-gear"></i> Admin
+            </div>
+            <div class="role-pill" style="background:rgba(57,255,20,0.1); border:1px solid rgba(57,255,20,0.3); color:#39FF14;">
+              <i class="ph ph-user"></i> Member
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div class="fc-title">Role-based Access</div>
+            <div class="fc-desc">Three-tier permission system with tailored dashboards and controls.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 3: HORIZONTAL SCROLL ═══════ -->
+  <section class="h-scroll-wrap" id="hscroll">
+    <div class="h-scroll-track" id="hscroll-track">
+      <!-- Panel 1 -->
+      <div class="h-panel panel-1">
+        <div class="h-panel-inner" style="text-align:center;">
+          <div class="panel-1-badge">Gravity Neutralized</div>
+          <div class="panel-1-title">ZERO<br><span class="italic-cyan">WEIGHT</span></div>
+        </div>
+      </div>
+      <!-- Panel 2 -->
+      <div class="h-panel panel-2">
+        <div class="h-panel-inner" style="text-align:center; display:flex; align-items:center; justify-content:center;">
+          <div class="slide-2-text">NeonSync strips away the overhead of coordination — tasks flow, chats route, roles enforce themselves.</div>
+        </div>
+      </div>
+      <!-- Panel 3 -->
+      <div class="h-panel panel-3">
+        <div class="h-panel-inner">
+          <div class="panel-3-grid">
+            <div class="slide-3-el">
+              <div class="panel-3-title">Team<br><span style="color:#00F2FF;">Velocity</span></div>
+            </div>
+            <div class="panel-3-right slide-3-el">
+              <p>By mapping your workflow to live data streams, NeonSync eliminates the latency between decision and action. Every role sees exactly what they need.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Panel 4 -->
+      <div class="h-panel panel-4">
+        <div class="h-panel-inner" style="text-align:center;">
+          <div class="panel-4-text slide-4-text">LAUNCH<br>READY</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 4: BENTO GRID ═══════ -->
+  <section class="bento-section" id="bento">
+    <div class="bento-header">
+      <h2 class="bento-title">Role-Based<br>Architecture</h2>
+      <div class="section-badge" style="border-color:rgba(0,242,255,0.25);"><i class="ph ph-squares-four" style="color:#00F2FF;"></i> Modular Access</div>
+    </div>
+
+    <div class="bento-grid" id="bento-grid">
+      <!-- 1: Super Admin (2×2) -->
+      <div class="bento-item bento-super-admin">
+        <i class="ph ph-shield watermark"></i>
+        <div class="card-content">
+          <div class="card-title">Super Admin</div>
+          <div class="perk-line"><i class="ph ph-check"></i> Manage all users & roles</div>
+          <div class="perk-line"><i class="ph ph-check"></i> Create & delete any task</div>
+          <div class="perk-line"><i class="ph ph-check"></i> System-wide oversight</div>
+        </div>
+      </div>
+
+      <!-- 2: Cyan card (1×1) -->
+      <div class="bento-item bento-cyan-card">
+        <i class="ph ph-lightning"></i>
+        <div class="bento-card-label">Real-time</div>
+      </div>
+
+      <!-- 3: Admin (1×2) -->
+      <div class="bento-item bento-admin-card">
+        <div class="bento-admin-top">
+          <span class="bento-admin-label">Admin</span>
+          <i class="ph ph-users"></i>
+        </div>
+        <div>
+          <div style="font-family:'Space Grotesk',monospace;font-size:14px;color:#00F2FF;letter-spacing:0.06em;margin-bottom:12px;">TEAM MANAGER</div>
+          <div class="bento-admin-desc">Team-level controls with task creation, member management, and role-filtered analytics access.</div>
+        </div>
+      </div>
+
+      <!-- 4: CORE.NS -->
+      <div class="bento-item bento-core-card">
+        <div class="bento-core-label">NeonSync Asset</div>
+        <div class="bento-core-title">CORE.NS</div>
+      </div>
+
+      <!-- 5: Member Dashboard (2×1) -->
+      <div class="bento-item bento-member-card">
+        <div class="bento-member-icon-wrap">
+          <i class="ph ph-layout"></i>
+        </div>
+        <div>
+          <div class="bento-member-title">Member Dashboard</div>
+          <div class="bento-member-desc">Personal task view, heatmap profiles, and global chat access.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════ SECTION 5: CAROUSEL ═══════ -->
+  <section class="carousel-section" id="carousel">
+    <h2 class="carousel-title">Endless Loop</h2>
+    <div style="overflow:hidden;">
+      <div class="marquee-track" id="marquee-track">
+
+        <!-- Card 1: Task Management -->
+        <div class="blog-card">
+          <img src="assets/feat_tasks_1780032622899.png" class="blog-card-img" alt="Task Management">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">PRODUCTIVITY</div>
+              <div class="blog-card-title">Seamless Task Management</div>
+              <div class="blog-card-desc-box">Assign, track, and ship tasks with zero friction. Drag-and-drop kanban boards keep your team perfectly synced.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+
+        <!-- Card 2: Real-time Chat -->
+        <div class="blog-card">
+          <img src="assets/feat_chat_1780035118070.png" class="blog-card-img" alt="Real-time Chat">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">COLLABORATION</div>
+              <div class="blog-card-title">Real-time Team Chat</div>
+              <div class="blog-card-desc-box">Instant messaging built right into your workflow. Discuss blockers and share updates without switching context.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+
+        <!-- Card 3: Analytics Dashboard -->
+        <div class="blog-card">
+          <img src="assets/feat_analytics_1780035142781.png" class="blog-card-img" alt="Analytics Dashboard">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">INSIGHTS</div>
+              <div class="blog-card-title">Advanced Analytics</div>
+              <div class="blog-card-desc-box">Visualize your team's velocity and project health with deep, actionable metrics and interactive data dashboards.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+
+        <!-- Card 4: Developer Profiles -->
+        <div class="blog-card">
+          <img src="assets/feat_profiles_1780035197521.png" class="blog-card-img" alt="Developer Profiles">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">IDENTITY</div>
+              <div class="blog-card-title">Developer Profiles</div>
+              <div class="blog-card-desc-box">GitHub-style contribution heatmaps to showcase individual impact and track personal productivity over time.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+
+        <!-- Card 5: Smart Notifications -->
+        <div class="blog-card">
+          <img src="assets/feat_notifications_1780035236170.png" class="blog-card-img" alt="Smart Notifications">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">UPDATES</div>
+              <div class="blog-card-title">Smart Notifications</div>
+              <div class="blog-card-desc-box">Intelligent alerts that ping you only when it matters. Say goodbye to noise and focus entirely on deep work.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+
+        <!-- Card 6: Role-based Access -->
+        <div class="blog-card">
+          <img src="assets/feat_roles_1780035264591.png" class="blog-card-img" alt="Role-based Access">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">SECURITY</div>
+              <div class="blog-card-title">Role-based Access</div>
+              <div class="blog-card-desc-box">Granular permission controls for Admins, Managers, and Members. Ensure ironclad security across your org.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+
+        <!-- DUPLICATE SET FOR SEAMLESS LOOP -->
+        <div class="blog-card">
+          <img src="assets/feat_tasks_1780032622899.png" class="blog-card-img" alt="Task Management">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">PRODUCTIVITY</div>
+              <div class="blog-card-title">Seamless Task Management</div>
+              <div class="blog-card-desc-box">Assign, track, and ship tasks with zero friction. Drag-and-drop kanban boards keep your team perfectly synced.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+        <div class="blog-card">
+          <img src="assets/feat_chat_1780035118070.png" class="blog-card-img" alt="Real-time Chat">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">COLLABORATION</div>
+              <div class="blog-card-title">Real-time Team Chat</div>
+              <div class="blog-card-desc-box">Instant messaging built right into your workflow. Discuss blockers and share updates without switching context.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+        <div class="blog-card">
+          <img src="assets/feat_analytics_1780035142781.png" class="blog-card-img" alt="Analytics Dashboard">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">INSIGHTS</div>
+              <div class="blog-card-title">Advanced Analytics</div>
+              <div class="blog-card-desc-box">Visualize your team's velocity and project health with deep, actionable metrics and interactive data dashboards.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+        <div class="blog-card">
+          <img src="assets/feat_profiles_1780035197521.png" class="blog-card-img" alt="Developer Profiles">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">IDENTITY</div>
+              <div class="blog-card-title">Developer Profiles</div>
+              <div class="blog-card-desc-box">GitHub-style contribution heatmaps to showcase individual impact and track personal productivity over time.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+        <div class="blog-card">
+          <img src="assets/feat_notifications_1780035236170.png" class="blog-card-img" alt="Smart Notifications">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">UPDATES</div>
+              <div class="blog-card-title">Smart Notifications</div>
+              <div class="blog-card-desc-box">Intelligent alerts that ping you only when it matters. Say goodbye to noise and focus entirely on deep work.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+        <div class="blog-card">
+          <img src="assets/feat_roles_1780035264591.png" class="blog-card-img" alt="Role-based Access">
+          <div class="blog-card-overlay">
+            <div>
+              <div class="blog-card-tag">SECURITY</div>
+              <div class="blog-card-title">Role-based Access</div>
+              <div class="blog-card-desc-box">Granular permission controls for Admins, Managers, and Members. Ensure ironclad security across your org.</div>
+            </div>
+            <div class="blog-card-bottom"><div class="blog-card-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL -->
+  <div class="feature-modal-overlay" id="feature-modal">
+    <div class="feature-modal">
+      <button class="modal-close" id="modal-close">CLOSE ×</button>
+      <div class="modal-icon-wrap" id="modal-icon"></div>
+      <div class="modal-content">
+        <h3 class="modal-feature-name" id="modal-name"></h3>
+        <p class="modal-desc" id="modal-desc"></p>
+        <div class="modal-data-field">USERS IMPACTED: <span>ALL ROLES</span></div>
+        <div class="modal-data-field">STATUS: <span>ACTIVE</span></div>
+        <div class="modal-data-field" id="modal-access">ACCESS LEVEL: <span>ALL</span></div>
+      </div>
+    </div>
   </div>
 
-  <script type="module">
-    try {
-      const { auth, db } = await import("./firebase-config.js");
-      const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
-      const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (snap.exists()) window.location.href = "dashboard.html";
+
+  <!-- ═══════ SECTION 6: FOOTER ═══════ -->
+  <footer class="ag-footer">
+    <div class="footer-top">
+      <div class="footer-orbit">
+        <div class="orbit-outer">
+          <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+            <circle cx="35" cy="35" r="33" stroke="#00F2FF" stroke-width="1" opacity="0.6" />
+          </svg>
+        </div>
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="position:absolute;top:15px;left:15px;">
+          <circle cx="20" cy="20" r="18" stroke="#BF00FF" stroke-width="1" opacity="0.5" />
+        </svg>
+      </div>
+      <div class="footer-badge"><span class="dot" style="width:6px;height:6px;border-radius:50%;background:#00F2FF;box-shadow:0 0 8px #00F2FF;"></span> Connection Established</div>
+      <h2 class="footer-headline">Ship With<br><span class="cyan">Confidence</span></h2>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Docs</a>
+        <a href="#">System Status</a>
+      </div>
+      <div class="footer-copy">NeonSync &copy; 2026 — Syntax Syndicate</div>
+    </div>
+  </footer>
+
+  <!-- ═══════ SCRIPTS ═══════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+
+  <script>
+    // ── 1. Register GSAP Plugins ──
+    gsap.registerPlugin(ScrollTrigger);
+
+    // ── 2. Lenis Smooth Scroll ──
+    const lenis = new Lenis({
+      duration: 1.4,
+      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      smoothWheel: true
+    });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(time => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+
+    // ── 3. SplitTextReveal ──
+    document.querySelectorAll('[data-split]').forEach(el => {
+      const text = el.textContent;
+      el.textContent = '';
+      text.split('').forEach(char => {
+        if (char === ' ') {
+          const s = document.createElement('span');
+          s.className = 'char-space';
+          el.appendChild(s);
+        } else {
+          const s = document.createElement('span');
+          s.className = 'char';
+          s.textContent = char;
+          s.style.display = 'inline-block';
+          el.appendChild(s);
         }
       });
-    } catch (e) { }
+      const chars = el.querySelectorAll('.char');
+      gsap.fromTo(chars,
+        { opacity: 0, y: 80, rotateX: -90 },
+        {
+          opacity: 1, y: 0, rotateX: 0,
+          duration: 1.2,
+          stagger: 0.025,
+          ease: 'power4.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%'
+          }
+        }
+      );
+    });
+
+    // ── 4. Hero BG parallax ──
+    gsap.to('.hero-bg', {
+      yPercent: 50,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.hero',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true
+      }
+    });
+
+    // ── 5. Data pod floating ──
+    gsap.to('#pod1', { y: -15, duration: 4, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+    gsap.to('#pod2', { y: -12, duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.5 });
+    gsap.to('#pod3', { y: -18, duration: 6, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1 });
+
+    // ── 6. Masonry parallax ──
+    let mm = gsap.matchMedia();
+    mm.add("(min-width: 769px)", () => {
+      gsap.to('.masonry-col-1', {
+        y: -150, ease: 'none',
+        scrollTrigger: { trigger: '.features-masonry', start: 'top bottom', end: 'bottom top', scrub: true }
+      });
+      gsap.to('.masonry-col-2', {
+        y: 100, ease: 'none',
+        scrollTrigger: { trigger: '.features-masonry', start: 'top bottom', end: 'bottom top', scrub: true }
+      });
+      gsap.to('.masonry-col-3', {
+        y: -250, ease: 'none',
+        scrollTrigger: { trigger: '.features-masonry', start: 'top bottom', end: 'bottom top', scrub: true }
+      });
+    });
+
+    // ── 7. Horizontal Scroll ──
+    (function() {
+      const wrap = document.getElementById('hscroll');
+      const track = document.getElementById('hscroll-track');
+      const panels = gsap.utils.toArray('.h-panel');
+      const totalPanels = panels.length;
+
+      const hScrollTween = gsap.to(track, {
+        x: () => -(track.scrollWidth - window.innerWidth),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: wrap,
+          pin: true,
+          scrub: 1,
+          snap: 1 / (totalPanels - 1),
+          end: () => '+=' + (track.scrollWidth - window.innerWidth),
+          invalidateOnRefresh: true
+        }
+      });
+
+      // Removed containerAnimations to ensure content is always visible 
+      // instead of risking opacity: 0 if the scroll trigger fails.
+    })();
+
+    // ── 8. Bento grid entrance ──
+    // Removed opacity: 0 to guarantee the cards are never left invisible 
+    // if ScrollTrigger calculation misses the trigger point.
+    gsap.from('.bento-item', {
+      y: 60, scale: 0.95,
+      stagger: 0.1,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '#bento-grid',
+        start: 'top 85%'
+      }
+    });
+
+    // ── 9. Heatmap randomizer ──
+    (function() {
+      const grid = document.getElementById('heatmap');
+      for (let i = 0; i < 84; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        cell.style.opacity = (Math.random() * 0.8 + 0.1).toFixed(2);
+        grid.appendChild(cell);
+      }
+    })();
+
+    // ── 10. Carousel modal ──
+    const featureData = [
+      { name: 'Task Management', color: '#00F2FF', desc: 'Full CRUD task system with priorities, deadlines, assignees, progress tracking, tags, attachments, and remarks.', access: 'ALL ROLES',
+        svg: '<svg width="52" height="52" viewBox="0 0 256 256" fill="none"><rect x="40" y="40" width="176" height="176" rx="8" stroke="#00F2FF" stroke-width="16" fill="none"/><polyline points="88,128 112,152 168,96" stroke="#00F2FF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>' },
+      { name: 'Real-time Chat', color: '#BF00FF', desc: 'Global, role-based, and task-specific chat channels powered by Firebase Firestore live listeners.', access: 'ALL ROLES',
+        svg: '<svg width="52" height="52" viewBox="0 0 256 256" fill="none"><path d="M128,24A104,104,0,0,0,36.8,178l-8.5,29.7a16,16,0,0,0,20,20L78,219.2A104,104,0,1,0,128,24Z" stroke="#BF00FF" stroke-width="16" fill="none"/><circle cx="100" cy="128" r="12" fill="#BF00FF"/><circle cx="128" cy="128" r="12" fill="#BF00FF"/><circle cx="156" cy="128" r="12" fill="#BF00FF"/></svg>' },
+      { name: 'Analytics', color: '#39FF14', desc: 'Visual charts for task distribution, completion timelines, priority breakdowns, and team leaderboards.', access: 'ADMIN+',
+        svg: '<svg width="52" height="52" viewBox="0 0 256 256" fill="none"><rect x="56" y="128" width="40" height="80" rx="4" fill="#39FF14" opacity="0.8"/><rect x="108" y="88" width="40" height="120" rx="4" fill="#39FF14" opacity="0.8"/><rect x="160" y="48" width="40" height="160" rx="4" fill="#39FF14" opacity="0.8"/></svg>' },
+      { name: 'Profiles', color: '#00F2FF', desc: 'GitHub-style user profiles with contribution heatmaps, task history timelines, skills, and productivity scores.', access: 'ALL ROLES',
+        svg: '<svg width="52" height="52" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="96" r="48" stroke="#00F2FF" stroke-width="16" fill="none"/><path d="M32,216c0-44.2,43-80,96-80s96,35.8,96,80" stroke="#00F2FF" stroke-width="16" stroke-linecap="round" fill="none"/></svg>' },
+      { name: 'Notifications', color: '#BF00FF', desc: 'Real-time notifications for task assignments, status changes, remarks, and deadline alerts.', access: 'ALL ROLES',
+        svg: '<svg width="52" height="52" viewBox="0 0 256 256" fill="none"><path d="M56,104a72,72,0,0,1,144,0c0,36,8,64,24,80H32c16-16,24-44,24-80Z" stroke="#BF00FF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M96,192a32,32,0,0,0,64,0" stroke="#BF00FF" stroke-width="16" stroke-linecap="round" fill="none"/></svg>' },
+      { name: 'Role Access', color: '#39FF14', desc: 'Three-tier permission system: Super Admin, Admin, and Member — each with tailored dashboards and controls.', access: 'SUPER ADMIN',
+        svg: '<svg width="52" height="52" viewBox="0 0 256 256" fill="none"><path d="M40,114V56a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8v58c0,84-72,114-88,120C112,228,40,198,40,114Z" stroke="#39FF14" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/><polyline points="88,136 112,160 168,104" stroke="#39FF14" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>' }
+    ];
+
+    function hexToRgb(hex) {
+      var r = parseInt(hex.slice(1, 3), 16);
+      var g = parseInt(hex.slice(3, 5), 16);
+      var b = parseInt(hex.slice(5, 7), 16);
+      return r + ',' + g + ',' + b;
+    }
+
+    var fModal = document.getElementById('feature-modal');
+    var fModalIcon = document.getElementById('modal-icon');
+    var fModalName = document.getElementById('modal-name');
+    var fModalDesc = document.getElementById('modal-desc');
+    var fModalAccess = document.getElementById('modal-access');
+    var fModalClose = document.getElementById('modal-close');
+    var mTrack = document.getElementById('marquee-track');
+
+    function openFeatureModal(index) {
+      var f = featureData[index];
+      mTrack.classList.add('paused');
+      fModalIcon.innerHTML = f.svg;
+      fModalIcon.style.background = 'rgba(' + hexToRgb(f.color) + ',0.1)';
+      fModalIcon.style.boxShadow = '0 0 60px rgba(' + hexToRgb(f.color) + ',0.4)';
+      fModalName.textContent = f.name;
+      fModalName.style.color = f.color;
+      fModalDesc.textContent = f.desc;
+      fModalAccess.innerHTML = 'ACCESS LEVEL: <span>' + f.access + '</span>';
+      fModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeFeatureModal() {
+      fModal.classList.remove('active');
+      mTrack.classList.remove('paused');
+      document.body.style.overflow = '';
+    }
+
+    fModalClose.addEventListener('click', closeFeatureModal);
+    fModal.addEventListener('click', function(e) { if (e.target === fModal) closeFeatureModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFeatureModal(); });
+
+    // ── 11. Blog Card Expand ──
+    document.querySelectorAll('.blog-card-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = btn.closest('.blog-card');
+        card.classList.toggle('show-desc');
+      });
+    });
+
+    // ── 12. Auth redirect (existing) ──
+    (async function() {
+      try {
+        const { auth, db } = await import("./firebase-config.js");
+        const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if (snap.exists()) window.location.href = "dashboard.html";
+          }
+        });
+      } catch (e) { }
+    })();
   </script>
 </body>
 
