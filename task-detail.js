@@ -460,13 +460,13 @@ window.saveUserProgressOverride = async () => {
     closeModal("user-progress-modal");
     showToast("Progress updated successfully", "success");
     
-    // Log activity
-    await addDoc(collection(db, "tasks", taskId, "activity"), {
-      userId: currentUser.id,
-      action: "progress override",
-      details: `updated progress for ${document.getElementById("override-user-name").textContent} to ${pct}%`,
-      timestamp: serverTimestamp()
-    });
+    // Log activity using the standard helper methods
+    await addTaskLog(
+      "percentage_update",
+      "override",
+      `${pct}% (${document.getElementById("override-user-name").textContent})`
+    );
+    await writeActivityLog("percentage_update");
     
   } catch(e) {
     console.error(e);
