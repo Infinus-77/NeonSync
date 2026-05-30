@@ -85,14 +85,26 @@ async function loadProfile(targetUid) {
 }
 
 async function loadUserTasks(targetUid) {
-  const [assignedSnap, commonSnap] = await Promise.all([
-    getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("assignedTo", "array-contains", targetUid))),
-    getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("isCommonTask", "==", true)))
-  ]);
-  const tasksMap = new Map();
-  assignedSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
-  commonSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
-  return Array.from(tasksMap.values());
+  if (currentUser.role === "admin" || currentUser.role === "super_admin") {
+    const snap = await getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId)));
+    return snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(t => t.isCommonTask || (t.assignedTo && t.assignedTo.includes(targetUid)));
+  } else {
+    try {
+      const [assignedSnap, commonSnap] = await Promise.all([
+        getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("assignedTo", "array-contains", targetUid))),
+        getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("isCommonTask", "==", true)))
+      ]);
+      const tasksMap = new Map();
+      assignedSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
+      commonSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
+      return Array.from(tasksMap.values());
+    } catch (e) {
+      console.warn("Index missing for task queries.", e);
+      return [];
+    }
+  }
 }
 
 async function renderProfileHeader(u, isOwn) {
