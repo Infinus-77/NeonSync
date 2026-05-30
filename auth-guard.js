@@ -123,8 +123,11 @@ export function requireAuth(callback, allowedRoles = []) {
         }
       }
 
+      // Treat undefined/null/empty roles as 'member' by default
+      const effectiveRole = user.role || "member";
+
       // Role check
-      if (allowedRoles.length && !allowedRoles.includes(user.role)) {
+      if (allowedRoles.length && !allowedRoles.includes(effectiveRole)) {
         hideLoadingOverlay();
         window.location.href = "dashboard.html";
         return;

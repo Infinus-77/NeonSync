@@ -103,6 +103,12 @@ function loadUsers() {
 }
 
 function loadTasks() {
+  if (currentUser.role !== "admin" && currentUser.role !== "super_admin") {
+    // Members don't have permission to query all tasks, and we hide their task counts anyway
+    allTasks = [];
+    if (allUsers.length) filterUsers();
+    return;
+  }
   onSnapshot(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId)), (snap) => {
     allTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     if (allUsers.length) filterUsers();
