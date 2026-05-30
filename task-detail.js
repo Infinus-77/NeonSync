@@ -173,11 +173,16 @@ function renderTask(t) {
       const tagHref = canOverride ? "" : `href="profile.html?uid=${uid}"`;
       const clickAction = canOverride ? `onclick="window.openUserProgressModal('${uid}', '${(u?.displayName || "User").replace(/'/g, "\\'")}', ${uPct})"` : "";
       
-      return `<${tagType} ${tagHref} ${clickAction} style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);cursor:pointer;"
-      onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-glass)'" ${canOverride ? 'title="Click to update progress"' : ''}>
+      const isCompleted = uPct === 100;
+      const borderColor = isCompleted ? 'var(--green)' : 'var(--border-glass)';
+      const bgStyle = isCompleted ? 'background:rgba(0, 230, 118, 0.08);' : 'background:var(--bg-input);';
+      const textColor = isCompleted ? 'color:var(--green);' : 'color:var(--text-muted);';
+
+      return `<${tagType} ${tagHref} ${clickAction} style="display:flex;align-items:center;gap:6px;padding:4px 10px;${bgStyle}border:1px solid ${borderColor};border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);cursor:pointer;"
+      onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='${borderColor}'" ${canOverride ? 'title="Click to update progress"' : ''}>
       <div style="width:22px;height:22px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 22)}</div>
       <span style="font-weight:500;">${sanitizeHtml(u?.displayName || "Unknown")}</span>
-      <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;">${uPct}% - ${statusBadge(uStat).replace(/class="badge badge-[^"]*"/, 'style="display:inline;font-size:9px;padding:0;background:none;border:none;"')}</span>
+      <span style="font-size:10px;${textColor}display:flex;align-items:center;gap:4px;">${uPct}% - ${statusBadge(uStat).replace(/class="badge badge-[^"]*"/, `style="display:inline;font-size:9px;padding:0;background:none;border:none;${textColor}"`)}</span>
       </${tagType}>`;
     })
     .join("");

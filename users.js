@@ -68,19 +68,18 @@ requireAuth(
     }
     currentUser = user;
 
-    if (user.role !== "super_admin" && user.role !== "admin") {
-      window.location.href = "dashboard.html";
-      return;
+    if (user.role === "super_admin") {
+      document.getElementById("users-subtitle").textContent = "Manage all team members and roles";
+    } else if (user.role === "admin") {
+      document.getElementById("users-subtitle").textContent = "Manage your team members";
+    } else {
+      document.getElementById("users-subtitle").textContent = "View your team members";
+      document.getElementById("create-user-btn")?.remove();
     }
 
     renderSidebar("users", user);
     initNotifications(user.id);
     checkDeadlineAlerts(user);
-
-    document.getElementById("users-subtitle").textContent =
-      user.role === "super_admin"
-        ? "Manage all team members and roles"
-        : "Manage your team members";
 
     // Hide Super Admin role option for regular admins
     if (user.role === "admin") {
@@ -91,7 +90,7 @@ requireAuth(
     loadUsers();
     loadTasks();
   },
-  ["super_admin", "admin"],
+  ["super_admin", "admin", "member"],
 );
 
 function loadUsers() {
@@ -224,6 +223,7 @@ function renderUsers(users) {
         </div>
 
         <div style="display:flex;width:100%;font-size:11px;color:var(--text-muted);margin-bottom:20px;background:var(--bg-input);padding:10px 0;border-radius:var(--radius-md);">
+          ${currentUser.role !== "member" ? `
           <div style="flex:1;text-align:center;">
             <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${assignedCount}</div>
             <div>Assigned</div>
@@ -234,6 +234,7 @@ function renderUsers(users) {
             <div>Completed</div>
           </div>
           <div style="width:1px;background:var(--border-subtle);flex-shrink:0;"></div>
+          ` : ""}
           <div style="flex:1;text-align:center;">
             <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${u.lastActive ? timeAgo(u.lastActive).replace('ago','') : "---"}</div>
             <div>Active</div>

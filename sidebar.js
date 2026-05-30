@@ -55,8 +55,8 @@ export function renderSidebar(activeItem, user) {
     { id: "tasks",      label: "Tasks",       icon: "ph-check-square",    href: "tasks.html"     },
     { id: "calendar",   label: "Calendar (beta)",    icon: "ph-calendar",        href: "calendar.html"  },
     { id: "chat",       label: "Chat",        icon: "ph-chat-circle-dots",href: "chat.html"      },
+    { id: "users",     label: "Users",     icon: "ph-users",     href: "users.html"     },
     ...(isAdmin ? [
-      { id: "users",     label: "Users",     icon: "ph-users",     href: "users.html"     },
       { id: "analytics", label: "Analytics", icon: "ph-chart-bar", href: "analytics.html" },
     ] : []),
     ...(isSuperAdmin ? [
