@@ -196,7 +196,14 @@ function renderUsers(users) {
           (currentUser.role === "admin" && u.role === "member"));
 
       const assignedCount = allTasks.filter(t => t.isCommonTask || (t.assignedTo || []).includes(u.id)).length;
-      const completedCount = allTasks.filter(t => t.status === "completed" && (t.isCommonTask || (t.assignedTo || []).includes(u.id))).length;
+      const completedCount = allTasks.filter(t => {
+        if (t.isCommonTask) return t.status === "completed";
+        if ((t.assignedTo || []).includes(u.id)) {
+          const uStat = (t.userProgress && t.userProgress[u.id]?.status) || t.status || "pending";
+          return uStat === "completed";
+        }
+        return false;
+      }).length;
 
       return `
       <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center;position:relative;border:1px solid var(--border-glass);" data-testid="user-card-${u.id}">

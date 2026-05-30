@@ -150,20 +150,35 @@ function renderDashboard(tasks, user) {
     );
   }
 
+  // Helper to get effective status based on role
+  const getEffectiveStatus = (t) => {
+    if (user.role === "member" && (t.assignedTo || []).includes(user.id)) {
+      return (t.userProgress && t.userProgress[user.id]?.status) || t.status || "pending";
+    }
+    return t.status || "pending";
+  };
+  
+  window.getEffectivePct = (t) => {
+    if (user.role === "member" && (t.assignedTo || []).includes(user.id)) {
+      return (t.userProgress && t.userProgress[user.id]?.completionPercentage) ?? (t.completionPercentage || 0);
+    }
+    return t.completionPercentage || 0;
+  };
+
   // Stats — active matches "Active tag" logic: has assignees, not completed, not overdue
   const total = myTasks.length;
   const active = myTasks.filter((t) => {
     const assigneeList = t.assignedTo || [];
     if (assigneeList.length === 0) return false;
-    if (t.status === "completed") return false;
+    if (getEffectiveStatus(t) === "completed") return false;
     return true;
   }).length;
   const overdue = myTasks.filter((t) => {
-    if (!t.deadline || t.status === "completed") return false;
+    if (!t.deadline || getEffectiveStatus(t) === "completed") return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
     return d < now;
   }).length;
-  const completed = myTasks.filter((t) => t.status === "completed").length;
+  const completed = myTasks.filter((t) => getEffectiveStatus(t) === "completed").length;
 
   document.getElementById("stat-total").textContent = total;
   document.getElementById("stat-active").textContent = active;
@@ -200,8 +215,11 @@ function renderRecentTasks(tasks, now) {
           ? t.deadline.toDate()
           : new Date(t.deadline)
         : null;
-      const overdue = deadline && t.status !== "completed" && deadline < now;
-      const pct = t.completionPercentage || 0;
+      const effStatus = currentUser.role === "member" && (t.assignedTo || []).includes(currentUser.id) ? 
+            ((t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending") : 
+            (t.status || "pending");
+      const overdue = deadline && effStatus !== "completed" && deadline < now;
+      const pct = window.getEffectivePct ? window.getEffectivePct(t) : (t.completionPercentage || 0);
 
       return `
       <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;"
@@ -210,12 +228,12 @@ function renderRecentTasks(tasks, now) {
         onmouseover="this.style.background='var(--bg-panel-hover)'"
         onmouseout="this.style.background='transparent'">
         <div style="width:36px;height:36px;border-radius:var(--radius-md);background:${getPriorityBg(t.priority)};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <i class="ph ${getStatusIcon(t.status)}" style="font-size:16px;color:${getPriorityColor(t.priority)};"></i>
+          <i class="ph ${getStatusIcon(effStatus)}" style="font-size:16px;color:${getPriorityColor(t.priority)};"></i>
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sanitizeHtml(t.title)}</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:3px;">
-            ${statusBadge(overdue ? "overdue" : t.status || "pending")}
+            ${statusBadge(overdue ? "overdue" : effStatus)}
             <span style="font-size:10px;color:var(--text-muted);">${deadline ? formatDateTime(t.deadline) : "No deadline"}</span>
           </div>
           <div style="margin-top:5px;">${progressBar(pct)}</div>
@@ -233,7 +251,10 @@ function renderUpcomingDeadlines(tasks, now) {
 
   const upcoming = tasks
     .filter((t) => {
-      if (!t.deadline || t.status === "completed") return false;
+      const effStatus = currentUser.role === "member" && (t.assignedTo || []).includes(currentUser.id) ? 
+            ((t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending") : 
+            (t.status || "pending");
+      if (!t.deadline || effStatus === "completed") return false;
       const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
       return d >= now && d <= sevenDays;
     })

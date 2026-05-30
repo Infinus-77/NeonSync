@@ -233,6 +233,20 @@ window.applyFilters = () => {
   document.getElementById("tasks-loading-placeholder")?.remove();
   window._cancelTasksTimeout?.();
   let tasks = [...allTasks];
+  
+  const getEffectiveStatus = (t) => {
+    if ((currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id)) {
+        return (t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending";
+    }
+    return t.status || "pending";
+  };
+  
+  window.getEffectivePct = (t) => {
+    if ((currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id)) {
+        return (t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (t.completionPercentage || 0);
+    }
+    return t.completionPercentage || 0;
+  };
 
   if (currentFilter === "mine")
     tasks = tasks.filter((t) => t.assignedTo?.includes(currentUser.id));
@@ -255,14 +269,15 @@ window.applyFilters = () => {
     const now = new Date();
     if (status === "overdue") {
       tasks = tasks.filter((t) => {
-        if (!t.deadline || t.status === "completed") return false;
+        const effStatus = getEffectiveStatus(t);
+        if (!t.deadline || effStatus === "completed") return false;
         const d = t.deadline.toDate
           ? t.deadline.toDate()
           : new Date(t.deadline);
         return d < now;
       });
     } else {
-      tasks = tasks.filter((t) => t.status === status);
+      tasks = tasks.filter((t) => getEffectiveStatus(t) === status);
     }
   }
 
@@ -289,13 +304,18 @@ function renderTasks(tasks) {
           ? t.deadline.toDate()
           : new Date(t.deadline)
         : null;
-      const isOverdue = deadline && t.status !== "completed" && deadline < now;
-      const displayStatus = isOverdue ? "overdue" : t.status || "pending";
-      const pct = t.completionPercentage || 0;
+      const effStatus = (currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id) ? 
+            ((t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending") : 
+            (t.status || "pending");
+      const isOverdue = deadline && effStatus !== "completed" && deadline < now;
+      const displayStatus = isOverdue ? "overdue" : effStatus;
+      const pct = (currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id) ? 
+            ((t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (t.completionPercentage || 0)) : 
+            (t.completionPercentage || 0);
 
       // Active tag: task is active when it has assignees and is not completed/overdue
       const assigneeList = t.assignedTo || [];
-      const isActive = assigneeList.length > 0 && t.status !== "completed";
+      const isActive = assigneeList.length > 0 && effStatus !== "completed";
       const activeTag = isActive
         ? `<span style="
             font-size:10px;padding:2px 8px;
@@ -327,6 +347,7 @@ function renderTasks(tasks) {
         .map((uid) => {
           const name = assigneeMap[uid]?.displayName || "?";
           const userObj = assigneeMap[uid];
+          const uPct = t.userProgress && t.userProgress[uid] ? t.userProgress[uid].completionPercentage : (t.completionPercentage || 0);
           return `<div style="
         width:26px;height:26px;border-radius:50%;flex-shrink:0;
         background:var(--gradient-brand);
@@ -334,7 +355,7 @@ function renderTasks(tasks) {
         font-size:9px;font-weight:700;color:#000;
         margin-left:-6px;border:2px solid rgba(20,20,25,0.9);
         overflow:hidden;
-      " title="${sanitizeHtml(name)}">${avatarHTML(userObj, 26)}</div>`;
+      " title="${sanitizeHtml(name)} - ${uPct}%">${avatarHTML(userObj, 26)}</div>`;
         })
         .join("");
 

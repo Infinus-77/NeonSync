@@ -118,8 +118,11 @@ function renderTask(t) {
     ${t.isCommonTask ? '<span class="badge" style="background:rgba(139,92,246,0.14);color:var(--purple);border:1px solid rgba(139,92,246,0.30);">Common Task</span>' : ""}
   `;
 
+  const isAssignedInit = (t.assignedTo || []).includes(currentUser.id);
+  const myProgInit = isAssignedInit && t.userProgress && t.userProgress[currentUser.id] ? t.userProgress[currentUser.id] : null;
+  
   const statusSel = document.getElementById("status-select");
-  statusSel.value = t.status || "pending";
+  statusSel.value = myProgInit ? (myProgInit.status || "pending") : (t.status || "pending");
 
   if (currentUser.role === "member") {
     const flow = ["pending", "in-progress", "review", "completed"];
@@ -155,19 +158,27 @@ function renderTask(t) {
   document.getElementById("task-assignees").innerHTML = displayAssignees
     .map((uid) => {
       const u = allUsers[uid];
+      const uProg = (t.userProgress && t.userProgress[uid]) || {};
+      const uStat = uProg.status || t.status || "pending";
+      const uPct = uProg.completionPercentage ?? (t.completionPercentage || 0);
       return `<a href="profile.html?uid=${uid}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);"
       onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-glass)'">
       <div style="width:22px;height:22px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 22)}</div>
-      ${u?.displayName || uid}
+      <div style="display:flex;flex-direction:column;">
+        <span style="font-weight:500;">${u?.displayName || uid}</span>
+        <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;">${uPct}% - ${statusBadge(uStat).replace(/class="badge badge-[^"]*"/, 'style="display:inline;font-size:9px;padding:0;background:none;border:none;"')}</span>
+      </div>
     </a>`;
     })
     .join("");
 
-  const pct = t.completionPercentage || 0;
+  const isAssigned = (t.assignedTo || []).includes(currentUser.id);
+  const myProg = isAssigned && t.userProgress && t.userProgress[currentUser.id] ? t.userProgress[currentUser.id] : null;
+  const pct = myProg ? (myProg.completionPercentage || 0) : (t.completionPercentage || 0);
+  
   updateRing(pct);
   document.getElementById("completion-slider").value = pct;
 
-  const isAssigned = (t.assignedTo || []).includes(currentUser.id);
   if (isAssigned || currentUser.role !== "member") {
     document.getElementById("completion-control").style.display = "block";
   }
@@ -286,18 +297,45 @@ function renderAttachments(attachments) {
     .join("");
 }
 
-// ✅ FIX: Status update — writes activity log every time
+// Status update — writes activity log every time
 window.updateStatus = async (newStatus) => {
   if (!taskData) return;
-  const old = taskData.status;
+  const isAssigned = (taskData.assignedTo || []).includes(currentUser.id);
+  const myProg = isAssigned && taskData.userProgress && taskData.userProgress[currentUser.id] ? taskData.userProgress[currentUser.id] : null;
+  const old = myProg ? myProg.status : taskData.status;
   if (old === newStatus) return;
 
   try {
-    await updateDoc(doc(db, "tasks", taskId), {
-      status: newStatus,
-      updatedAt: serverTimestamp(),
-    });
-    await addTaskLog("status_change", old, newStatus);
+    let updates = { updatedAt: serverTimestamp() };
+    
+    if (isAssigned) {
+      updates[`userProgress.${currentUser.id}.status`] = newStatus;
+      updates[`userProgress.${currentUser.id}.updatedAt`] = serverTimestamp();
+      
+      // Compute aggregates
+      const assignees = taskData.assignedTo || [];
+      const userProgress = { ...taskData.userProgress };
+      if (!userProgress[currentUser.id]) userProgress[currentUser.id] = {};
+      userProgress[currentUser.id].status = newStatus;
+      
+      let allCompleted = assignees.length > 0;
+      for (const uid of assignees) {
+        if ((userProgress[uid]?.status || taskData.status || "pending") !== "completed") {
+          allCompleted = false;
+          break;
+        }
+      }
+      
+      updates.status = allCompleted ? "completed" : "in-progress";
+      // If someone marks review, maybe bump overall to review? Keep it simple for now: "completed" or "in-progress" unless original was pending.
+      if (!allCompleted && taskData.status === "pending" && newStatus !== "pending") updates.status = "in-progress";
+      
+    } else {
+      updates.status = newStatus;
+    }
+
+    await updateDoc(doc(db, "tasks", taskId), updates);
+    await addTaskLog("status_change", old || "pending", newStatus);
     await writeActivityLog("status_change"); // ✅ feeds heatmap
 
     if (taskData.createdBy !== currentUser.id) {
@@ -365,13 +403,47 @@ window.commitFromInput = async (val) => {
 window.saveCompletion = async () => {
   const pct = parseInt(document.getElementById("completion-slider").value);
   try {
-    const updates = { completionPercentage: pct, updatedAt: serverTimestamp() };
-    if (pct === 100) updates.status = "completed";
+    const isAssigned = (taskData.assignedTo || []).includes(currentUser.id);
+    let updates = { updatedAt: serverTimestamp() };
+    
+    if (isAssigned) {
+      updates[`userProgress.${currentUser.id}.completionPercentage`] = pct;
+      updates[`userProgress.${currentUser.id}.updatedAt`] = serverTimestamp();
+      
+      const newStatus = pct === 100 ? "completed" : "in-progress";
+      updates[`userProgress.${currentUser.id}.status`] = newStatus;
+      
+      // Compute aggregates
+      const assignees = taskData.assignedTo || [];
+      const userProgress = { ...taskData.userProgress };
+      if (!userProgress[currentUser.id]) userProgress[currentUser.id] = {};
+      userProgress[currentUser.id].completionPercentage = pct;
+      userProgress[currentUser.id].status = newStatus;
+      
+      let totalPct = 0;
+      let allCompleted = assignees.length > 0;
+      for (const uid of assignees) {
+        totalPct += userProgress[uid]?.completionPercentage ?? (taskData.completionPercentage || 0);
+        if ((userProgress[uid]?.status || taskData.status || "pending") !== "completed") {
+          allCompleted = false;
+        }
+      }
+      
+      updates.completionPercentage = assignees.length > 0 ? Math.round(totalPct / assignees.length) : pct;
+      updates.status = allCompleted ? "completed" : (taskData.status === "pending" && pct > 0 ? "in-progress" : taskData.status);
+      
+    } else {
+      updates.completionPercentage = pct;
+      if (pct === 100) updates.status = "completed";
+    }
 
     await updateDoc(doc(db, "tasks", taskId), updates);
+    
+    const oldPct = isAssigned && taskData.userProgress ? (taskData.userProgress[currentUser.id]?.completionPercentage || 0) : (taskData.completionPercentage || 0);
+    
     await addTaskLog(
       "percentage_update",
-      String(taskData?.completionPercentage || 0),
+      String(oldPct),
       String(pct),
     );
     await writeActivityLog("percentage_update"); // ✅ feeds heatmap
