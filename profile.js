@@ -59,12 +59,15 @@ async function loadProfile(targetUid) {
   }
 
   profileUser = { id: snap.id, ...snap.data() };
+  const isOwnProfile = targetUid === currentUser.id;
 
-  if (targetUid === currentUser.id) {
+  if (isOwnProfile) {
     updateDoc(doc(db, "users", targetUid), { lastActive: serverTimestamp() }).catch(() => {});
   }
 
-  renderProfileHeader(profileUser);
+  renderProfileHeader(profileUser, isOwnProfile).then(html => {
+    document.getElementById("profile-header-inner").innerHTML = html;
+  });
   renderCompanyCard(profileUser);
 
   // Load all analytics in parallel
@@ -92,31 +95,22 @@ async function loadUserTasks(targetUid) {
   return Array.from(tasksMap.values());
 }
 
-function renderProfileHeader(u) {
-  const isOwn = u.id === currentUser.id;
-  const canEdit = isOwn;
+async function renderProfileHeader(u, isOwn) {
+  const avatarHTML = u.photoURL
+    ? `<img src="${u.photoURL}" alt="${u.displayName || "User"}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='';"><span style="display:none;">${getInitials(u.displayName || u.name || "?")}</span>`
+    : `<span>${getInitials(u.displayName || u.name || "?")}</span>`;
 
-  document.getElementById("profile-header-inner").innerHTML = `
-    <div style="position:relative;flex-shrink:0;">
-      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;overflow:hidden;border:2px solid rgba(0,242,255,0.25);">
-        ${u.photoURL
-          ? `<img src="${u.photoURL}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><span style="display:none;">${getInitials(u.displayName || u.name || "?")}</span>`
-          : `<span>${getInitials(u.displayName || u.name || "?")}</span>`}
-      </div>
-      <div style="position:absolute;bottom:0;right:0;width:16px;height:16px;background:var(--green);border-radius:50%;border:2px solid var(--bg-body);"></div>
+  let html = `
+    <div class="avatar-large" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;overflow:hidden;border:2px solid rgba(0,242,255,0.25);">
+      ${avatarHTML}
     </div>
-    <div style="flex:1;min-width:0;">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;">${sanitizeHtml(u.displayName || u.name || "User")}</h2>
-        ${roleBadge(u.role || "member")}
+    <div class="profile-info-main" style="flex:1; min-width:200px; padding-left: 20px;">
+      <h2 style="margin-bottom:6px; font-size:24px; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">${sanitizeHtml(u.displayName || u.name || "Unknown User")}</h2>
+      <div style="color:var(--text-secondary); margin-bottom:12px; font-size:14px; display:flex; align-items:center; gap:6px;">
+        <i class="ph ph-envelope-simple"></i> ${sanitizeHtml(u.email || "No email")}
       </div>
-      <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${sanitizeHtml(u.email || "")}</div>
-      ${u.bio ? `<div style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.6;">${sanitizeHtml(u.bio)}</div>` : ""}
-      ${(u.skills || []).length ? `
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
-          ${u.skills.map((s) => `<span style="padding:3px 10px;background:rgba(0,242,255,0.08);border:1px solid rgba(0,242,255,0.18);border-radius:999px;font-size:11px;color:var(--cyan);">${sanitizeHtml(s)}</span>`).join("")}
-        </div>` : ""}
-      <div style="font-size:11px;color:var(--text-muted);margin-top:10px;display:flex;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex; flex-wrap:wrap; gap:12px; font-size:12px; color:var(--text-muted); align-items:center;">
+        ${u.role ? `<span class="tag-pill" style="margin:0; padding:2px 8px; border:1px solid var(--border-glass); border-radius:4px;"><i class="ph ph-shield"></i> ${u.role}</span>` : ""}
         ${u.createdAt ? `<span><i class="ph ph-calendar"></i> Joined ${new Date((u.createdAt.toDate?.() || u.createdAt)).toLocaleDateString("en-US",{month:"long",year:"numeric"})}</span>` : ""}
         ${u.lastActive ? `<span><i class="ph ph-clock"></i> Last active ${timeAgo(u.lastActive)}</span>` : ""}
       </div>
@@ -128,6 +122,7 @@ function renderProfileHeader(u) {
     </div>
     ` : ""}
   `;
+  return html;
 }
 
 async function renderCompanyCard(u) {
@@ -135,50 +130,52 @@ async function renderCompanyCard(u) {
   const inner = document.getElementById("company-details-inner");
   if (!card || !inner) return;
 
-  // Only show the company card if viewing own profile
-  if (u.id !== currentUser.id) {
-    card.style.display = "none";
-    return;
-  }
-
+  // Show the card for EVERY user profile now, as requested.
   card.style.display = "flex";
 
   // Fetch company details
   let companyData = null;
   if (u.companyId) {
-    const snap = await getDoc(doc(db, "companies", u.companyId));
-    if (snap.exists()) {
-      companyData = snap.data();
+    try {
+      const snap = await getDoc(doc(db, "companies", u.companyId));
+      if (snap.exists()) {
+        companyData = snap.data();
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 
-  const isAdmin = u.role === "admin" || u.role === "super_admin";
-
-  let html = `<div style="margin-top:8px;">`;
-  if (companyData) {
-    html += `<div><strong>Name:</strong> ${sanitizeHtml(companyData.name || "Unknown")}</div>`;
-    html += `<div><strong>ID:</strong> ${sanitizeHtml(u.companyId)}</div>`;
+  let html = `<div style="display:flex; gap: 16px; align-items: center;">`;
+  
+  // Render logo if available
+  if (companyData && companyData.logoUrl) {
+    html += `<div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: var(--bg-input);">
+               <img src="${sanitizeHtml(companyData.logoUrl)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='';">
+               <div style="display:none; width: 100%; height: 100%; align-items: center; justify-content: center; font-size: 24px; color: var(--cyan);"><i class="ph ph-buildings"></i></div>
+             </div>`;
   } else {
-    html += `<div><strong>ID:</strong> ${sanitizeHtml(u.companyId || "None")}</div>`;
+    html += `<div style="width: 50px; height: 50px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: var(--bg-input); display:flex; align-items: center; justify-content: center; font-size: 24px; color: var(--cyan);">
+               <i class="ph ph-buildings"></i>
+             </div>`;
   }
 
-  if (isAdmin && u.companyId) {
-    html += `
-      <div style="margin-top:12px; display:flex; align-items:center; gap:10px;">
-        <div style="background:var(--bg-input); padding:8px 12px; border-radius:6px; border:1px solid var(--border-glass); font-family:monospace; font-weight:bold; color:var(--cyan); letter-spacing:1px; flex:1; max-width:200px; text-align:center;" id="company-code-display">
-          ${sanitizeHtml(u.companyId)}
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="copyCompanyCode('${sanitizeHtml(u.companyId)}')">
-          <i class="ph ph-copy"></i> Copy Code
-        </button>
-      </div>
-      <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">
-        Share this code with employees so they can join your company workspace.
-      </div>
-    `;
+  html += `<div style="flex: 1; font-size: 14px; color: var(--text-secondary);">`;
+  
+  if (companyData) {
+    html += `<div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">${sanitizeHtml(companyData.name || "Unknown")}</div>`;
+    if (companyData.industry) {
+      html += `<div style="margin-bottom: 2px;"><strong>Industry:</strong> ${sanitizeHtml(companyData.industry)}</div>`;
+    }
+    if (companyData.website) {
+      html += `<div><strong>Website:</strong> <a href="${sanitizeHtml(companyData.website)}" target="_blank" style="color:var(--blue);text-decoration:none;">${sanitizeHtml(companyData.website)}</a></div>`;
+    }
+  } else {
+    html += `<div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Company ID: ${sanitizeHtml(u.companyId || "None")}</div>`;
+    html += `<div>No additional details provided.</div>`;
   }
-
-  html += `</div>`;
+  
+  html += `</div></div>`;
   inner.innerHTML = html;
 }
 
