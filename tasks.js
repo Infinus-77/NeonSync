@@ -236,14 +236,16 @@ window.applyFilters = () => {
   
   const getEffectiveStatus = (t) => {
     if ((currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id)) {
-        return (t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending";
+        const isLegacy = !t.userProgress;
+        return (t.userProgress && t.userProgress[currentUser.id]?.status) || (isLegacy ? (t.status || "pending") : "pending");
     }
     return t.status || "pending";
   };
   
   window.getEffectivePct = (t) => {
     if ((currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id)) {
-        return (t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (t.completionPercentage || 0);
+        const isLegacy = !t.userProgress;
+        return (t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (isLegacy ? (t.completionPercentage || 0) : 0);
     }
     return t.completionPercentage || 0;
   };
@@ -305,12 +307,12 @@ function renderTasks(tasks) {
           : new Date(t.deadline)
         : null;
       const effStatus = (currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id) ? 
-            ((t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending") : 
+            ((t.userProgress && t.userProgress[currentUser.id]?.status) || (!t.userProgress ? (t.status || "pending") : "pending")) : 
             (t.status || "pending");
       const isOverdue = deadline && effStatus !== "completed" && deadline < now;
       const displayStatus = isOverdue ? "overdue" : effStatus;
       const pct = (currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id) ? 
-            ((t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (t.completionPercentage || 0)) : 
+            ((t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (!t.userProgress ? (t.completionPercentage || 0) : 0)) : 
             (t.completionPercentage || 0);
 
       // Active tag: task is active when it has assignees and is not completed/overdue

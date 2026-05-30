@@ -314,13 +314,15 @@ window.updateStatus = async (newStatus) => {
       
       // Compute aggregates
       const assignees = taskData.assignedTo || [];
+      const isLegacy = !taskData.userProgress;
       const userProgress = { ...taskData.userProgress };
       if (!userProgress[currentUser.id]) userProgress[currentUser.id] = {};
       userProgress[currentUser.id].status = newStatus;
       
       let allCompleted = assignees.length > 0;
       for (const uid of assignees) {
-        if ((userProgress[uid]?.status || taskData.status || "pending") !== "completed") {
+        const fallbackStatus = isLegacy ? (taskData.status || "pending") : "pending";
+        if ((userProgress[uid]?.status || fallbackStatus) !== "completed") {
           allCompleted = false;
           break;
         }
@@ -415,6 +417,7 @@ window.saveCompletion = async () => {
       
       // Compute aggregates
       const assignees = taskData.assignedTo || [];
+      const isLegacy = !taskData.userProgress;
       const userProgress = { ...taskData.userProgress };
       if (!userProgress[currentUser.id]) userProgress[currentUser.id] = {};
       userProgress[currentUser.id].completionPercentage = pct;
@@ -423,8 +426,11 @@ window.saveCompletion = async () => {
       let totalPct = 0;
       let allCompleted = assignees.length > 0;
       for (const uid of assignees) {
-        totalPct += userProgress[uid]?.completionPercentage ?? (taskData.completionPercentage || 0);
-        if ((userProgress[uid]?.status || taskData.status || "pending") !== "completed") {
+        const fallbackPct = isLegacy ? (taskData.completionPercentage || 0) : 0;
+        const fallbackStatus = isLegacy ? (taskData.status || "pending") : "pending";
+        
+        totalPct += userProgress[uid]?.completionPercentage ?? fallbackPct;
+        if ((userProgress[uid]?.status || fallbackStatus) !== "completed") {
           allCompleted = false;
         }
       }

@@ -153,14 +153,16 @@ function renderDashboard(tasks, user) {
   // Helper to get effective status based on role
   const getEffectiveStatus = (t) => {
     if (user.role === "member" && (t.assignedTo || []).includes(user.id)) {
-      return (t.userProgress && t.userProgress[user.id]?.status) || t.status || "pending";
+      const isLegacy = !t.userProgress;
+      return (t.userProgress && t.userProgress[user.id]?.status) || (isLegacy ? (t.status || "pending") : "pending");
     }
     return t.status || "pending";
   };
   
   window.getEffectivePct = (t) => {
     if (user.role === "member" && (t.assignedTo || []).includes(user.id)) {
-      return (t.userProgress && t.userProgress[user.id]?.completionPercentage) ?? (t.completionPercentage || 0);
+      const isLegacy = !t.userProgress;
+      return (t.userProgress && t.userProgress[user.id]?.completionPercentage) ?? (isLegacy ? (t.completionPercentage || 0) : 0);
     }
     return t.completionPercentage || 0;
   };
@@ -216,7 +218,7 @@ function renderRecentTasks(tasks, now) {
           : new Date(t.deadline)
         : null;
       const effStatus = currentUser.role === "member" && (t.assignedTo || []).includes(currentUser.id) ? 
-            ((t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending") : 
+            ((t.userProgress && t.userProgress[currentUser.id]?.status) || (!t.userProgress ? (t.status || "pending") : "pending")) : 
             (t.status || "pending");
       const overdue = deadline && effStatus !== "completed" && deadline < now;
       const pct = window.getEffectivePct ? window.getEffectivePct(t) : (t.completionPercentage || 0);
@@ -252,7 +254,7 @@ function renderUpcomingDeadlines(tasks, now) {
   const upcoming = tasks
     .filter((t) => {
       const effStatus = currentUser.role === "member" && (t.assignedTo || []).includes(currentUser.id) ? 
-            ((t.userProgress && t.userProgress[currentUser.id]?.status) || t.status || "pending") : 
+            ((t.userProgress && t.userProgress[currentUser.id]?.status) || (!t.userProgress ? (t.status || "pending") : "pending")) : 
             (t.status || "pending");
       if (!t.deadline || effStatus === "completed") return false;
       const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
