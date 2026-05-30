@@ -7,6 +7,7 @@ import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   collection,
   query,
+  where,
   onSnapshot,
   doc,
   updateDoc,
@@ -94,16 +95,16 @@ requireAuth(
 );
 
 function loadUsers() {
-  const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+  const q = query(collection(db, "users"), where("companyId", "==", currentUser.companyId));
   onSnapshot(q, (snap) => {
-    allUsers = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    allUsers = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
     updateUserAnalytics();
     filterUsers();
   });
 }
 
 function loadTasks() {
-  onSnapshot(collection(db, "tasks"), (snap) => {
+  onSnapshot(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId)), (snap) => {
     allTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     if (allUsers.length) filterUsers();
   });

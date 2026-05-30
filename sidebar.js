@@ -6,8 +6,9 @@
  * Fix #13 — Event delegation for overlay/menu — works regardless of render timing
  * Fix #15 — aria-expanded synced, Escape key, overlay, mobile menu all use same fns
  */
-import { auth } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { showToast } from "./utils.js";
 
 // ─── Centralized sidebar state ────────────────────────────────────────────────
@@ -61,6 +62,7 @@ export function renderSidebar(activeItem, user) {
     ...(isSuperAdmin ? [
       { id: "ideas",     label: "Idea Library (beta)", icon: "ph-lightbulb", href: "ideas.html" },
     ] : []),
+    { id: "company", label: "Company Profile", icon: "ph-buildings", href: "company.html" },
     { id: "profile", label: "Profile", icon: "ph-user-circle", href: `profile.html?uid=${user.id}` },
   ];
 
@@ -69,14 +71,26 @@ export function renderSidebar(activeItem, user) {
     : `<span>${_initials(user.displayName || user.name)}</span>`;
 
   sidebar.innerHTML = `
-    <div class="sidebar-header">
-      <a href="dashboard.html" class="sidebar-logo" aria-label="NeonSync home">
+    <div class="sidebar-header" style="padding-bottom: 16px;">
+      <a href="dashboard.html" class="sidebar-logo" aria-label="NeonSync home" style="text-decoration:none;">
         <div class="sidebar-logo-icon"><i class="ph ph-circles-four"></i></div>
         <span class="sidebar-logo-text">NeonSync</span>
       </a>
       <button class="sidebar-close" id="sidebar-close-btn" aria-label="Close sidebar">
         <i class="ph ph-x"></i>
       </button>
+    </div>
+    
+    <div style="padding: 0 24px 16px 24px;">
+      <a href="company.html" style="display:flex; align-items:center; gap: 12px; width: 100%; padding: 10px 12px; background: var(--bg-input); border-radius: 8px; border: 1px solid var(--border-glass); text-decoration: none; transition: background 0.2s;">
+        <div id="sidebar-company-logo-icon" style="width: 28px; height: 28px; border-radius: 6px; overflow: hidden; display:flex; align-items:center; justify-content:center; background: var(--bg-panel); color: var(--cyan); font-size: 16px; flex-shrink: 0;">
+          <i class="ph ph-buildings"></i>
+        </div>
+        <div style="display:flex; flex-direction:column; overflow: hidden;">
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 2px;">Workspace</span>
+          <span id="sidebar-company-name" style="font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loading...</span>
+        </div>
+      </a>
     </div>
 
     <nav class="sidebar-nav" aria-label="Main navigation" style="margin-top: 16px;">
@@ -156,6 +170,28 @@ export function renderSidebar(activeItem, user) {
 // ─── Event binding (runs after each renderSidebar) ────────────────────────────
 
 function _bindSidebarEvents(user) {
+  // Fetch and display company name
+  if (user && user.companyId) {
+    const companyNameEl = document.getElementById("sidebar-company-name");
+    const logoIconEl = document.getElementById("sidebar-company-logo-icon");
+    if (companyNameEl) {
+      getDoc(doc(db, "companies", user.companyId)).then((snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          companyNameEl.textContent = data.name || user.companyId;
+          companyNameEl.title = data.name || user.companyId;
+          if (data.logoUrl && logoIconEl) {
+            logoIconEl.innerHTML = `<img src="${data.logoUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='';">
+                                    <i class="ph ph-buildings" style="display:none;"></i>`;
+          }
+        } else {
+          companyNameEl.textContent = user.companyId;
+          companyNameEl.title = user.companyId;
+        }
+      }).catch(err => console.error("Error fetching company name:", err));
+    }
+  }
+
   // Close button (inside sidebar — re-bound after every innerHTML replace)
   document.getElementById("sidebar-close-btn")
     ?.addEventListener("click", closeSidebar);

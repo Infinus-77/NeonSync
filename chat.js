@@ -49,7 +49,7 @@ requireAuth(async (user) => {
   checkDeadlineAlerts(user);
 
   // Load all users for display
-  const snap = await getDocs(collection(db, "users"));
+  const snap = await getDocs(query(collection(db, "users"), where("companyId", "==", user.companyId)));
   snap.docs.forEach((d) => {
     allUsers[d.id] = { id: d.id, ...d.data() };
   });
@@ -125,7 +125,7 @@ async function loadRooms(user) {
 
   // 2. Groups the user is a member of
   const groupSnap = await getDocs(
-    query(collection(db, "chats"), where("type", "==", "group")),
+    query(collection(db, "chats"), where("companyId", "==", user.companyId), where("type", "==", "group")),
   );
   groupSnap.docs.forEach((d) => {
     const data = d.data();
@@ -485,6 +485,7 @@ window.sendMessage = async () => {
   try {
     await addDoc(collection(db, "messages"), {
       chatId: activeChatId,
+      companyId: currentUser.companyId,
       senderId: currentUser.id,
       message: msg,
       timestamp: serverTimestamp(),
@@ -604,6 +605,7 @@ window.submitCreateGroup = async (e) => {
     const members = [currentUser.id, ...selectedGroupMembers];
     const ref = await addDoc(collection(db, "chats"), {
       type: "group",
+      companyId: currentUser.companyId,
       name,
       members,
       createdBy: currentUser.id,
@@ -767,15 +769,13 @@ window.submitAddMembers = async () => {
       members: arrayUnion(...addMemberSelected),
     });
     // Post system messages for each added member
-    const adderName = currentUser.displayName || "Admin";
     for (const uid of addMemberSelected) {
-      const addedName = allUsers[uid]?.displayName || "Someone";
       await addDoc(collection(db, "messages"), {
         chatId: activeChatId,
-        type: "system",
-        message: `${adderName} added ${addedName} to the group`,
-        timestamp: serverTimestamp(),
+        companyId: currentUser.companyId,
         senderId: "system",
+        message: `${allUsers[uid]?.displayName || "A member"} was added`,
+        timestamp: serverTimestamp(),
       });
     }
     showToast("Members added successfully!", "success");
@@ -865,11 +865,11 @@ async function submitRemoveMember() {
     await updateDoc(doc(db, "chats", activeChatId), {
       members: arrayRemove(removeMemberTargetId),
     });
-    const removerName = currentUser.displayName || "Admin";
     await addDoc(collection(db, "messages"), {
       chatId: activeChatId,
+      companyId: currentUser.companyId,
       type: "system",
-      message: `${removerName} removed ${removeMemberTargetName} from the group`,
+      message: `${removeMemberTargetName} was removed`,
       timestamp: serverTimestamp(),
       senderId: "system",
     });
@@ -898,6 +898,7 @@ window.submitExitGroup = async () => {
     const leaverName = currentUser.displayName || "Someone";
     await addDoc(collection(db, "messages"), {
       chatId: activeChatId,
+      companyId: currentUser.companyId,
       type: "system",
       message: `${leaverName} left the group`,
       timestamp: serverTimestamp(),

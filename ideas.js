@@ -10,6 +10,7 @@ import {
   doc,
   onSnapshot,
   query,
+  where,
   orderBy,
   serverTimestamp,
   getDocs,
@@ -35,7 +36,7 @@ async function boot(user) {
   bindUI();
 
   try {
-    const usersSnap = await getDocs(collection(db, "users"));
+    const usersSnap = await getDocs(query(collection(db, "users"), where("companyId", "==", user.companyId)));
     usersSnap.docs.forEach((d) => {
       allUsers[d.id] = { id: d.id, ...d.data() };
     });
@@ -48,9 +49,9 @@ async function boot(user) {
 
 // ─── Firestore Realtime Listener ──────────────────────────────────────────────
 function listenIdeas() {
-  const q = query(collection(db, "ideas"), orderBy("createdAt", "desc"));
+  const q = query(collection(db, "ideas"), where("companyId", "==", currentUser.companyId));
   unsubIdeas = onSnapshot(q, (snap) => {
-    allIdeas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    allIdeas = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
     renderIdeas();
     updateSubtitle();
   }, (err) => {
@@ -177,6 +178,7 @@ async function addIdea(data) {
       category: data.category,
       links: data.links || [],
       isStarred: false,
+      companyId: currentUser.companyId,
       createdBy: currentUser.id,
       creatorName: currentUser.displayName || currentUser.name || "Unknown",
       createdAt: serverTimestamp(),

@@ -65,6 +65,7 @@ async function loadProfile(targetUid) {
   }
 
   renderProfileHeader(profileUser);
+  renderCompanyCard(profileUser);
 
   // Load all analytics in parallel
   const tasks = await loadUserTasks(targetUid);
@@ -82,8 +83,8 @@ async function loadProfile(targetUid) {
 
 async function loadUserTasks(targetUid) {
   const [assignedSnap, commonSnap] = await Promise.all([
-    getDocs(query(collection(db, "tasks"), where("assignedTo", "array-contains", targetUid))),
-    getDocs(query(collection(db, "tasks"), where("isCommonTask", "==", true)))
+    getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("assignedTo", "array-contains", targetUid))),
+    getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("isCommonTask", "==", true)))
   ]);
   const tasksMap = new Map();
   assignedSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
@@ -129,6 +130,66 @@ function renderProfileHeader(u) {
   `;
 }
 
+async function renderCompanyCard(u) {
+  const card = document.getElementById("company-card");
+  const inner = document.getElementById("company-details-inner");
+  if (!card || !inner) return;
+
+  // Only show the company card if viewing own profile
+  if (u.id !== currentUser.id) {
+    card.style.display = "none";
+    return;
+  }
+
+  card.style.display = "flex";
+
+  // Fetch company details
+  let companyData = null;
+  if (u.companyId) {
+    const snap = await getDoc(doc(db, "companies", u.companyId));
+    if (snap.exists()) {
+      companyData = snap.data();
+    }
+  }
+
+  const isAdmin = u.role === "admin" || u.role === "super_admin";
+
+  let html = `<div style="margin-top:8px;">`;
+  if (companyData) {
+    html += `<div><strong>Name:</strong> ${sanitizeHtml(companyData.name || "Unknown")}</div>`;
+    html += `<div><strong>ID:</strong> ${sanitizeHtml(u.companyId)}</div>`;
+  } else {
+    html += `<div><strong>ID:</strong> ${sanitizeHtml(u.companyId || "None")}</div>`;
+  }
+
+  if (isAdmin && u.companyId) {
+    html += `
+      <div style="margin-top:12px; display:flex; align-items:center; gap:10px;">
+        <div style="background:var(--bg-input); padding:8px 12px; border-radius:6px; border:1px solid var(--border-glass); font-family:monospace; font-weight:bold; color:var(--cyan); letter-spacing:1px; flex:1; max-width:200px; text-align:center;" id="company-code-display">
+          ${sanitizeHtml(u.companyId)}
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="copyCompanyCode('${sanitizeHtml(u.companyId)}')">
+          <i class="ph ph-copy"></i> Copy Code
+        </button>
+      </div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">
+        Share this code with employees so they can join your company workspace.
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  inner.innerHTML = html;
+}
+
+window.copyCompanyCode = (code) => {
+  navigator.clipboard.writeText(code).then(() => {
+    showToast("Company code copied to clipboard!", "success");
+  }).catch(() => {
+    showToast("Failed to copy code", "error");
+  });
+};
+
 async function renderStats(targetUid, tasks, user) {
   const now = new Date();
   const completed = tasks.filter((t) => t.status === "completed").length;
@@ -167,7 +228,7 @@ async function renderHeatmap(targetUid) {
   el.innerHTML = "";
 
   const snap = await getDocs(
-    query(collection(db, "activityLogs"), where("userId", "==", targetUid))
+    query(collection(db, "activityLogs"), where("companyId", "==", currentUser.companyId), where("userId", "==", targetUid))
   );
 
   const dateMap = {};

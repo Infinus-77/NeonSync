@@ -99,12 +99,26 @@ async function handleRegister() {
   const name = document.getElementById("reg-name").value.trim();
   const email = document.getElementById("reg-email").value.trim();
   const password = document.getElementById("reg-password").value;
+  const mode = document.querySelector('input[name="company-mode"]:checked').value;
+  const companyCode = document.getElementById("reg-company-code").value.trim();
+  const companyName = document.getElementById("reg-company-name").value.trim();
+  
   const errEl = document.getElementById("register-error");
   const errText = document.getElementById("register-error-text");
   const btn = document.getElementById("register-btn");
 
   if (!name || !email || !password) {
     errText.textContent = "Please fill in all fields.";
+    errEl.classList.add("visible");
+    return;
+  }
+  if (mode === "join" && !companyCode) {
+    errText.textContent = "Please enter a Company Code.";
+    errEl.classList.add("visible");
+    return;
+  }
+  if (mode === "create" && !companyName) {
+    errText.textContent = "Please enter a New Company Name.";
     errEl.classList.add("visible");
     return;
   }
@@ -122,15 +136,40 @@ async function handleRegister() {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-    // First user becomes Super Admin
-    const q = query(collection(db, "users"), limit(1));
-    const usersSnap = await getDocs(q);
-    const role = usersSnap.empty ? "super_admin" : "member";
+    const mode = document.querySelector('input[name="company-mode"]:checked').value;
+    let companyId = "";
+    let role = "member";
+
+    if (mode === "create") {
+      const companyName = document.getElementById("reg-company-name").value.trim();
+      // Generate a unique 6-character code
+      companyId = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      await setDoc(doc(db, "companies", companyId), {
+        name: companyName,
+        code: companyId,
+        createdAt: serverTimestamp(),
+        createdBy: cred.user.uid,
+      });
+      role = "super_admin";
+    } else {
+      companyId = document.getElementById("reg-company-code").value.trim().toUpperCase();
+      // Verify company exists
+      const companySnap = await getDoc(doc(db, "companies", companyId));
+      if (!companySnap.exists()) {
+        throw new Error("Company code not found.");
+      }
+      // Check if this is the first user in the company (fallback)
+      const q = query(collection(db, "users"), where("companyId", "==", companyId), limit(1));
+      const usersSnap = await getDocs(q);
+      if (usersSnap.empty) role = "super_admin";
+    }
 
     await setDoc(doc(db, "users", cred.user.uid), {
       displayName: name,
       email,
       role,
+      companyId,
       bio: "",
       skills: [],
       photoURL: "",
@@ -221,14 +260,42 @@ async function handleGoogleSignIn() {
 
     if (!snap.exists()) {
       // First-time Google user — create profile
-      const q = query(collection(db, "users"), limit(1));
-      const usersSnap = await getDocs(q);
-      const role = usersSnap.empty ? "super_admin" : "member";
+      let companyId = "";
+      let role = "member";
+      
+      // We check if they were on the register tab to determine their intent
+      const isRegisterTab = document.getElementById("tc-register").classList.contains("active");
+      if (isRegisterTab) {
+        const mode = document.querySelector('input[name="company-mode"]:checked').value;
+        if (mode === "create") {
+          const companyName = document.getElementById("reg-company-name").value.trim() || "My Company";
+          companyId = Math.random().toString(36).substring(2, 8).toUpperCase();
+          await setDoc(doc(db, "companies", companyId), {
+            name: companyName,
+            code: companyId,
+            createdAt: serverTimestamp(),
+            createdBy: user.uid,
+          });
+          role = "super_admin";
+        } else {
+          companyId = document.getElementById("reg-company-code").value.trim().toUpperCase();
+          if (companyId) {
+             const companySnap = await getDoc(doc(db, "companies", companyId));
+             if (!companySnap.exists()) companyId = ""; // fallback to empty
+             else {
+               const q = query(collection(db, "users"), where("companyId", "==", companyId), limit(1));
+               const usersSnap = await getDocs(q);
+               if (usersSnap.empty) role = "super_admin";
+             }
+          }
+        }
+      }
 
       await setDoc(doc(db, "users", user.uid), {
         displayName: user.displayName || "Google User",
         email: user.email || "",
         role,
+        companyId,
         bio: "",
         skills: [],
         photoURL: user.photoURL || "",
@@ -263,6 +330,19 @@ async function handleGoogleSignIn() {
     });
   }
 }
+
+// Toggle join/create UI
+document.querySelectorAll('input[name="company-mode"]').forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    if (e.target.value === 'join') {
+      document.getElementById('join-company-group').style.display = 'block';
+      document.getElementById('create-company-group').style.display = 'none';
+    } else {
+      document.getElementById('join-company-group').style.display = 'none';
+      document.getElementById('create-company-group').style.display = 'block';
+    }
+  });
+});
 
 // ── All event bindings go here — after every function is defined
 document

@@ -117,7 +117,7 @@ requireAuth(async (user) => {
 
   // Load users for assignee display
   try {
-    const usersSnap = await getDocs(collection(db, "users"));
+    const usersSnap = await getDocs(query(collection(db, "users"), where("companyId", "==", user.companyId)));
     allUsers = usersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
     allUsers.forEach((u) => {
       assigneeMap[u.id] = u;
@@ -157,6 +157,7 @@ requireAuth(async (user) => {
     onSnapshot(
       query(
         collection(db, "tasks"),
+        where("companyId", "==", user.companyId),
         where("assignedTo", "array-contains", user.id),
       ),
       (snap) => {
@@ -167,7 +168,7 @@ requireAuth(async (user) => {
     );
 
     onSnapshot(
-      query(collection(db, "tasks"), where("isCommonTask", "==", true)),
+      query(collection(db, "tasks"), where("companyId", "==", user.companyId), where("isCommonTask", "==", true)),
       (snap) => {
         commonTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         mergeAndRender();
@@ -175,9 +176,9 @@ requireAuth(async (user) => {
       handleSnapshotError,
     );
   } else {
-    // Admin / Super Admin — listen to the full collection with no filters
+    // Admin / Super Admin — listen to the full collection scoped to company
     onSnapshot(
-      collection(db, "tasks"),
+      query(collection(db, "tasks"), where("companyId", "==", user.companyId)),
       (snap) => {
         window._cancelTasksTimeout?.();
         allTasks = sortByNewest(
@@ -559,6 +560,7 @@ window.submitTask = async (e) => {
         weight,
         assignedTo,
         createdBy: currentUser.id,
+        companyId: currentUser.companyId,
         deadline: Timestamp.fromDate(new Date(deadlineVal)),
         tags,
         referenceLinks: pendingReferenceLinks,
@@ -584,6 +586,7 @@ window.submitTask = async (e) => {
 
       await addDoc(collection(db, "activityLogs"), {
         userId: currentUser.id,
+        companyId: currentUser.companyId,
         date: new Date().toISOString().split("T")[0],
         activityCount: 1,
         type: "task_created",
@@ -702,6 +705,7 @@ async function logTaskAction(taskId, actionType, prev, next, desc) {
     await addDoc(collection(db, "taskLogs"), {
       taskId,
       updatedBy: currentUser?.id,
+      companyId: currentUser?.companyId,
       actionType,
       previousValue: prev,
       newValue: next,

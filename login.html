@@ -584,6 +584,40 @@
             ><span id="register-error-text"></span>
           </div>
 
+          <!-- Company Join/Create Toggle -->
+          <div class="company-toggle" style="display:flex; gap:10px; margin-bottom:15px;">
+            <label style="flex:1; cursor:pointer; font-size:13px; color:#ecedf6; display:flex; align-items:center; gap:6px;">
+              <input type="radio" name="company-mode" value="join" checked style="accent-color:#00f1fe;"> Join Company
+            </label>
+            <label style="flex:1; cursor:pointer; font-size:13px; color:#ecedf6; display:flex; align-items:center; gap:6px;">
+              <input type="radio" name="company-mode" value="create" style="accent-color:#00f1fe;"> Create Company
+            </label>
+          </div>
+
+          <!-- Join Company Field -->
+          <div class="form-group" id="join-company-group">
+            <label class="form-label">Company Code</label>
+            <input
+              type="text"
+              id="reg-company-code"
+              class="form-input"
+              placeholder="e.g. SYNTAX"
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Create Company Field -->
+          <div class="form-group" id="create-company-group" style="display:none;">
+            <label class="form-label">New Company Name</label>
+            <input
+              type="text"
+              id="reg-company-name"
+              class="form-input"
+              placeholder="e.g. Acme Corp"
+              autocomplete="organization"
+            />
+          </div>
+
           <div class="form-group">
             <label class="form-label">Full Name</label>
             <input

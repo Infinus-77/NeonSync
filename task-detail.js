@@ -57,7 +57,7 @@ requireAuth(async (user) => {
   initNotifications(user.id);
   checkDeadlineAlerts(user);
 
-  const usersSnap = await getDocs(collection(db, "users"));
+  const usersSnap = await getDocs(query(collection(db, "users"), where("companyId", "==", user.companyId)));
   usersSnap.docs.forEach((d) => {
     allUsers[d.id] = { id: d.id, ...d.data() };
   });
@@ -575,6 +575,7 @@ window.sendTaskMessage = async () => {
   try {
     await addDoc(collection(db, "messages"), {
       chatId: taskChatId,
+      companyId: currentUser.companyId,
       senderId: currentUser.id,
       message: msg,
       timestamp: serverTimestamp(),
@@ -650,6 +651,7 @@ async function writeActivityLog(type) {
   try {
     await addDoc(collection(db, "activityLogs"), {
       userId: currentUser.id,
+      companyId: currentUser.companyId,
       date: new Date().toISOString().split("T")[0],
       activityCount: 1,
       type,
@@ -663,7 +665,8 @@ async function addTaskLog(actionType, previousValue, newValue) {
   try {
     await addDoc(collection(db, "taskLogs"), {
       taskId,
-      updatedBy: currentUser.id,
+      companyId: currentUser?.companyId,
+      updatedBy: currentUser?.id,
       actionType,
       previousValue,
       newValue,

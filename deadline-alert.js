@@ -38,12 +38,13 @@ export async function checkDeadlineAlerts(user) {
       const assignedSnap = await getDocs(
         query(
           collection(db, "tasks"),
+          where("companyId", "==", user.companyId),
           where("assignedTo", "array-contains", user.id)
         )
       );
       // Common tasks
       const commonSnap = await getDocs(
-        query(collection(db, "tasks"), where("isCommonTask", "==", true))
+        query(collection(db, "tasks"), where("companyId", "==", user.companyId), where("isCommonTask", "==", true))
       );
 
       const seen = new Set();
@@ -55,7 +56,7 @@ export async function checkDeadlineAlerts(user) {
       });
     } else {
       // Admins see all tasks
-      const allSnap = await getDocs(collection(db, "tasks"));
+      const allSnap = await getDocs(query(collection(db, "tasks"), where("companyId", "==", user.companyId)));
       tasks = allSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
     }
 
@@ -79,6 +80,7 @@ export async function checkDeadlineAlerts(user) {
         try {
           await addDoc(collection(db, "notifications"), {
             userId: user.id,
+            companyId: user.companyId,
             type: "deadline_near",
             message: `⏰ Urgent: "${t.title}" is due in less than 24 hours!`,
             relatedTaskId: t.id,

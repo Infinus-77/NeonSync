@@ -5,7 +5,7 @@ import { renderSidebar } from "./sidebar.js";
 import { initNotifications } from "./notifications.js";
 import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
-  collection, query, getDocs, orderBy, limit,
+  collection, query, where, getDocs, orderBy, limit,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getInitials, showToast, timeAgo, sanitizeHtml } from "./utils.js";
 
@@ -39,13 +39,13 @@ requireAuth(async (user) => {
 
 async function fetchData() {
   const [tasksSnap, usersSnap, logsSnap] = await Promise.all([
-    getDocs(collection(db, "tasks")),
-    getDocs(collection(db, "users")),
-    getDocs(query(collection(db, "taskLogs"), orderBy("timestamp", "desc"), limit(200))),
+    getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId))),
+    getDocs(query(collection(db, "users"), where("companyId", "==", currentUser.companyId))),
+    getDocs(query(collection(db, "taskLogs"), where("companyId", "==", currentUser.companyId), limit(200))),
   ]);
   allTasks = tasksSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
   allUsers = usersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  allLogs = logsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  allLogs = logsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
 }
 
 window.loadAnalytics = () => renderAnalytics();

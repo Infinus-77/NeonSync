@@ -32,92 +32,93 @@ service cloud.firestore {
       return isAuthenticated() && currentUid() == userId;
     }
 
+    function getUserCompanyId() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userData.data.get('companyId', '');
+    }
+
+    function isSameCompany(docCompanyId) {
+      // Allow if user is in the same company, OR if doc is legacy (no companyId yet)
+      return isAuthenticated() && (getUserCompanyId() == docCompanyId || docCompanyId == '');
+    }
+
+    // ─── Companies ─────────────────────────────────────────────────────────────
+    match /companies/{companyId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSameCompany(companyId) && isSuperAdmin();
+    }
+
     // ─── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || (isAdmin() && (
-        request.resource.data.role == resource.data.role || 
-        resource.data.role != 'super_admin'
+      // Users can read their own profile, or other users in their company.
+      allow read: if isOwner(userId) || (isAuthenticated() && isSameCompany(resource.data.get('companyId', '')));
+      // Anyone can create their user profile (during registration).
+      allow create: if isAuthenticated();
+      allow update: if isOwner(userId) || (isSameCompany(resource.data.get('companyId', '')) && isAdmin() && (
+        request.resource.data.get('role', '') == resource.data.get('role', '') || 
+        resource.data.get('role', '') != 'super_admin'
       ));
-      allow delete: if isSuperAdmin() && (isOwner(userId) || resource.data.role != 'super_admin');
+      allow delete: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin() && (isOwner(userId) || resource.data.get('role', '') != 'super_admin');
     }
 
     // ─── Tasks ─────────────────────────────────────────────────────────────────
     match /tasks/{taskId} {
-      // Admins see everything.
-      // Members can only read tasks they are assigned to, or common tasks.
-      allow read: if isAdmin()
-        || (isAuthenticated() && (
+      allow read: if isSameCompany(resource.data.get('companyId', '')) && (
+        isAdmin() || (isAuthenticated() && (
           resource.data.get('isCommonTask', false) == true
           || currentUid() in resource.data.get('assignedTo', [])
-        ));
+        ))
+      );
 
-      allow create: if isAdmin();
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && isAdmin();
 
-      // Members can update tasks they are assigned to (progress, remarks, etc.)
-      allow update: if isAdmin()
-        || (isAuthenticated() && currentUid() in resource.data.get('assignedTo', []));
+      allow update: if isSameCompany(resource.data.get('companyId', '')) && (
+        isAdmin() || (isAuthenticated() && currentUid() in resource.data.get('assignedTo', []))
+      );
 
-      allow delete: if isSuperAdmin();
+      allow delete: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin();
     }
 
     // ─── Chats ─────────────────────────────────────────────────────────────────
     match /chats/{chatId} {
-      // Anyone authenticated can read chats they are a member of,
-      // or system/global chats. Super admins read everything.
-      allow read: if isSuperAdmin()
-        || isAdmin()
-        || (isAuthenticated() && (
-            resource.data.get('type', '') in ['global', 'role']
-            || currentUid() in resource.data.get('members', [])
-          ));
-      // Only admins and super_admins can create chat rooms/groups
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isSuperAdmin();
+      allow read: if isSameCompany(resource.data.get('companyId', '')) && (
+        isSuperAdmin() || isAdmin() || (isAuthenticated() && (
+          resource.data.get('type', '') in ['global', 'role'] || currentUid() in resource.data.get('members', [])
+        ))
+      );
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && isAdmin();
+      allow update: if isSameCompany(resource.data.get('companyId', '')) && isAdmin();
+      allow delete: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin();
     }
 
     // ─── Messages ──────────────────────────────────────────────────────────────
     match /messages/{messageId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
-        && request.resource.data.senderId == currentUid();
-      allow update, delete: if isSuperAdmin();
+      allow read: if isSameCompany(resource.data.get('companyId', ''));
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && request.resource.data.senderId == currentUid();
+      allow update, delete: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin();
     }
 
     // ─── Notifications ─────────────────────────────────────────────────────────
     match /notifications/{notifId} {
-      // Only the recipient can read their own notifications
-      allow read: if isAuthenticated()
-        && resource.data.userId == currentUid();
-
-      // Only admins can create cross-user notifications (task assignments, role changes).
-      // This prevents members from spamming other users' notification feeds.
-      allow create: if isAdmin();
-
-      // Only the recipient can mark notifications as read
-      allow update: if isAuthenticated()
-        && resource.data.userId == currentUid()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
-
-      allow delete: if isSuperAdmin()
-        || (isAuthenticated() && resource.data.userId == currentUid());
+      allow read: if isSameCompany(resource.data.get('companyId', '')) && resource.data.userId == currentUid();
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && isAdmin();
+      allow update: if isSameCompany(resource.data.get('companyId', '')) && resource.data.userId == currentUid() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+      allow delete: if isSameCompany(resource.data.get('companyId', '')) && (isSuperAdmin() || resource.data.userId == currentUid());
     }
 
     // ─── Task Logs (audit trail) ───────────────────────────────────────────────
     match /taskLogs/{logId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isSuperAdmin();
+      allow read: if isSameCompany(resource.data.get('companyId', ''));
+      allow create: if isSameCompany(request.resource.data.get('companyId', ''));
+      allow update, delete: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin();
     }
 
     // ─── Activity Logs (heatmap) ───────────────────────────────────────────────
     match /activityLogs/{logId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated()
-        && request.resource.data.userId == currentUid();
-      allow update, delete: if isSuperAdmin();
+      allow read: if isSameCompany(resource.data.get('companyId', ''));
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && request.resource.data.userId == currentUid();
+      allow update, delete: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin();
     }
 
     // ─── Typing indicators ─────────────────────────────────────────────────────
@@ -132,22 +133,20 @@ service cloud.firestore {
 
     // ─── Calendar Events ────────────────────────────────────────────────────────
     match /events/{eventId} {
-      allow read: if isAuthenticated() && (
+      allow read: if isSameCompany(resource.data.get('companyId', '')) && (
         resource.data.get('createdBy', '') == currentUid()
         || resource.data.get('visibility', 'private') == 'all'
         || (resource.data.get('visibility', 'private') == 'admin' && isAdmin())
       );
-      allow create: if isAuthenticated()
-        && request.resource.data.get('createdBy', '') == currentUid();
-      allow update: if isAuthenticated()
-        && (resource.data.get('createdBy', '') == currentUid() || isAdmin());
-      allow delete: if isAuthenticated()
-        && (resource.data.get('createdBy', '') == currentUid() || isAdmin());
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && request.resource.data.get('createdBy', '') == currentUid();
+      allow update: if isSameCompany(resource.data.get('companyId', '')) && (resource.data.get('createdBy', '') == currentUid() || isAdmin());
+      allow delete: if isSameCompany(resource.data.get('companyId', '')) && (resource.data.get('createdBy', '') == currentUid() || isAdmin());
     }
 
     // ─── Idea Library ──────────────────────────────────────────────────────────
     match /ideas/{ideaId} {
-      allow read, write: if isSuperAdmin();
+      allow read, write: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin();
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && isSuperAdmin();
     }
 
     // ─── Default deny ──────────────────────────────────────────────────────────

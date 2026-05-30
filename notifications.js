@@ -23,6 +23,7 @@ export function initNotifications(userId) {
 
   const q = query(
     collection(db, "notifications"),
+    where("companyId", "==", window.currentUser?.companyId),
     where("userId", "==", userId),
     limit(50),
   );
@@ -140,6 +141,7 @@ export async function createNotification(
   try {
     await addDoc(collection(db, "notifications"), {
       userId,
+      companyId: window.currentUser?.companyId,
       type,
       message,
       relatedTaskId,

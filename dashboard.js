@@ -72,8 +72,8 @@ requireAuth(async (user) => {
     document.getElementById("leaderboard-card").style.display = "block";
   }
 
-  // Load users
-  const usersSnap = await getDocs(collection(db, "users"));
+  // Load users scoped by companyId
+  const usersSnap = await getDocs(query(collection(db, "users"), where("companyId", "==", user.companyId)));
   allUsers = usersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
   allUsers.forEach((u) => {
     assigneeMap[u.id] = u;
@@ -103,6 +103,7 @@ requireAuth(async (user) => {
     onSnapshot(
       query(
         collection(db, "tasks"),
+        where("companyId", "==", user.companyId),
         where("assignedTo", "array-contains", user.id),
       ),
       (snap) => {
@@ -112,7 +113,7 @@ requireAuth(async (user) => {
     );
 
     onSnapshot(
-      query(collection(db, "tasks"), where("isCommonTask", "==", true)),
+      query(collection(db, "tasks"), where("companyId", "==", user.companyId), where("isCommonTask", "==", true)),
       (snap) => {
         commonTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         mergeAndRender();
@@ -120,7 +121,7 @@ requireAuth(async (user) => {
     );
   } else {
     onSnapshot(
-      collection(db, "tasks"),
+      query(collection(db, "tasks"), where("companyId", "==", user.companyId)),
       (snap) => {
         allTasks = snap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
@@ -679,6 +680,7 @@ window.submitCreateTask = async (e) => {
       status: "pending",
       assignedTo,
       createdBy: currentUser.id,
+      companyId: currentUser.companyId,
       deadline: Timestamp.fromDate(new Date(deadlineVal)),
       tags,
       isCommonTask: isCommon,
@@ -708,6 +710,7 @@ window.submitCreateTask = async (e) => {
     // Log activity
     await addDoc(collection(db, "activityLogs"), {
       userId: currentUser.id,
+      companyId: currentUser.companyId,
       date: new Date().toISOString().split("T")[0],
       activityCount: 1,
       type: "task_created",

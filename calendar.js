@@ -129,7 +129,7 @@ function loadTasks() {
     };
 
     onSnapshot(
-      query(collection(db, "tasks"), where("assignedTo", "array-contains", currentUser.id)),
+      query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("assignedTo", "array-contains", currentUser.id)),
       (snap) => {
         assignedTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         mergeAndRender();
@@ -137,7 +137,7 @@ function loadTasks() {
     );
 
     onSnapshot(
-      query(collection(db, "tasks"), where("isCommonTask", "==", true)),
+      query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("isCommonTask", "==", true)),
       (snap) => {
         commonTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         mergeAndRender();
@@ -146,7 +146,7 @@ function loadTasks() {
 
   } else {
     // Admin/SuperAdmin
-    q = collection(db, "tasks");
+    q = query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId));
     onSnapshot(q, (snap) => {
       allTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       refreshCalendarEvents();
@@ -170,10 +170,17 @@ function loadCustomEvents() {
     conditions.push(where("visibility", "==", "admin"));
   }
 
-  const q = query(collection(db, "events"), or(...conditions));
+  // NOTE: Firestore `or` queries combined with `where` across fields need composite indexes.
+  // We'll query by companyId, and filter visibility client-side.
+  const q = query(collection(db, "events"), where("companyId", "==", currentUser.companyId));
 
   onSnapshot(q, (snap) => {
-    allEvents = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    allEvents = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter(e => {
+      if (e.createdBy === currentUser.id) return true;
+      if (e.visibility === "all") return true;
+      if (isAdmin && e.visibility === "admin") return true;
+      return false;
+    });
     refreshCalendarEvents();
   }, (err) => {
     console.error("Custom events snapshot error:", err);
@@ -412,6 +419,7 @@ window.submitEvent = async (e) => {
     } else {
       await addDoc(collection(db, "events"), {
         ...eventData,
+        companyId: currentUser.companyId,
         createdBy: currentUser.id,
         createdAt: serverTimestamp()
       });
