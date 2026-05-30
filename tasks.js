@@ -349,7 +349,8 @@ function renderTasks(tasks) {
         .map((uid) => {
           const name = assigneeMap[uid]?.displayName || "?";
           const userObj = assigneeMap[uid];
-          const uPct = t.userProgress && t.userProgress[uid] ? t.userProgress[uid].completionPercentage : (t.completionPercentage || 0);
+          const isLegacy = !t.userProgress;
+          const uPct = t.userProgress && t.userProgress[uid] ? t.userProgress[uid].completionPercentage : (isLegacy ? (t.completionPercentage || 0) : 0);
           return `<div style="
         width:26px;height:26px;border-radius:50%;flex-shrink:0;
         background:var(--gradient-brand);

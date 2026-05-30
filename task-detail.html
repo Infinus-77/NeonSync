@@ -434,6 +434,39 @@
       </div>
     </div>
 
+    <!-- User Progress Override Modal -->
+    <div class="modal-overlay" id="user-progress-modal">
+      <div class="modal" style="max-width: 400px; text-align: center;">
+        <div class="modal-header">
+          <h3 class="modal-title">Update Progress for <span id="override-user-name"></span></h3>
+          <button class="modal-close" onclick="closeModal('user-progress-modal')">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+          <div class="completion-ring-wrap" style="flex-direction: column; align-items: center; gap: 20px;">
+            <div class="completion-ring-container">
+              <svg class="completion-ring" viewBox="0 0 120 120">
+                <circle class="completion-ring-bg" cx="60" cy="60" r="52" />
+                <circle class="completion-ring-fill" id="override-ring-fill" cx="60" cy="60" r="52"
+                  stroke-dasharray="326.73" stroke-dashoffset="326.73" />
+              </svg>
+              <div class="completion-ring-label" id="override-pct-label">0%</div>
+            </div>
+            <div class="completion-stepper" style="width: 100%;">
+              <input type="range" id="override-completion-input" class="form-range" min="0" max="100" value="0" step="5"
+                oninput="updateOverridePreview(this.value)" style="width: 100%; cursor: pointer;" />
+            </div>
+          </div>
+          <input type="hidden" id="override-user-id" value="" />
+        </div>
+        <div class="modal-footer" style="justify-content: center;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('user-progress-modal')">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="saveUserProgressOverride()">Save Progress</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toast-container" class="toast-container"></div>
 
     <script type="module" src="./task-detail.js"></script>

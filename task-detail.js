@@ -155,20 +155,30 @@ function renderTask(t) {
     return nameA.localeCompare(nameB);
   });
 
+  const canEdit =
+    currentUser.role === "super_admin" ||
+    currentUser.role === "admin" ||
+    t.createdBy === currentUser.id;
+
   document.getElementById("task-assignees").innerHTML = displayAssignees
     .map((uid) => {
       const u = allUsers[uid];
+      const isLegacy = !t.userProgress;
       const uProg = (t.userProgress && t.userProgress[uid]) || {};
-      const uStat = uProg.status || t.status || "pending";
-      const uPct = uProg.completionPercentage ?? (t.completionPercentage || 0);
-      return `<a href="profile.html?uid=${uid}" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);"
-      onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-glass)'">
+      const uStat = uProg.status || (isLegacy ? (t.status || "pending") : "pending");
+      const uPct = uProg.completionPercentage ?? (isLegacy ? (t.completionPercentage || 0) : 0);
+      
+      const canOverride = canEdit;
+      const tagType = canOverride ? "div" : "a";
+      const tagHref = canOverride ? "" : `href="profile.html?uid=${uid}"`;
+      const clickAction = canOverride ? `onclick="window.openUserProgressModal('${uid}', '${(u?.displayName || "User").replace(/'/g, "\\'")}', ${uPct})"` : "";
+      
+      return `<${tagType} ${tagHref} ${clickAction} style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-input);border:1px solid var(--border-glass);border-radius:999px;font-size:12px;text-decoration:none;color:var(--text-primary);transition:var(--transition);cursor:pointer;"
+      onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border-glass)'" ${canOverride ? 'title="Click to update progress"' : ''}>
       <div style="width:22px;height:22px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 22)}</div>
-      <div style="display:flex;flex-direction:column;">
-        <span style="font-weight:500;">${u?.displayName || uid}</span>
-        <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;">${uPct}% - ${statusBadge(uStat).replace(/class="badge badge-[^"]*"/, 'style="display:inline;font-size:9px;padding:0;background:none;border:none;"')}</span>
-      </div>
-    </a>`;
+      <span style="font-weight:500;">${sanitizeHtml(u?.displayName || "Unknown")}</span>
+      <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;">${uPct}% - ${statusBadge(uStat).replace(/class="badge badge-[^"]*"/, 'style="display:inline;font-size:9px;padding:0;background:none;border:none;"')}</span>
+      </${tagType}>`;
     })
     .join("");
 
@@ -194,10 +204,7 @@ function renderTask(t) {
     document.getElementById("completion-control").style.display = "block";
   }
 
-  const canEdit =
-    currentUser.role === "super_admin" ||
-    currentUser.role === "admin" ||
-    t.createdBy === currentUser.id;
+
   document.getElementById("edit-task-btn").style.display = canEdit
     ? "flex"
     : "none";
@@ -384,6 +391,88 @@ function updateRing(pct) {
   const input = document.getElementById("completion-input");
   if (input && document.activeElement !== input) input.value = pct;
 }
+
+window.updateOverridePreview = (val) => {
+  let pct = Math.max(0, Math.min(100, parseInt(val) || 0));
+  const circumference = 326.73;
+  const offset = circumference * (1 - pct / 100);
+  const ring = document.getElementById("override-ring-fill");
+  if (ring) {
+    ring.style.strokeDashoffset = offset;
+    if (pct >= 100) ring.style.stroke = "var(--green)";
+    else if (pct >= 50) ring.style.stroke = "var(--cyan)";
+    else if (pct >= 25) ring.style.stroke = "var(--amber)";
+    else ring.style.stroke = "var(--rose)";
+  }
+  document.getElementById("override-pct-label").textContent = `${pct}%`;
+};
+
+window.openUserProgressModal = (uid, name, pct) => {
+  document.getElementById("override-user-id").value = uid;
+  document.getElementById("override-user-name").textContent = name;
+  document.getElementById("override-completion-input").value = pct;
+  window.updateOverridePreview(pct);
+  openModal("user-progress-modal");
+};
+
+window.saveUserProgressOverride = async () => {
+  const uid = document.getElementById("override-user-id").value;
+  const pct = parseInt(document.getElementById("override-completion-input").value) || 0;
+  
+  try {
+    const isAssigned = (taskData.assignedTo || []).includes(uid);
+    if (!isAssigned) {
+      showToast("User is not assigned to this task", "error");
+      return;
+    }
+    
+    let updates = { updatedAt: serverTimestamp() };
+    updates[`userProgress.${uid}.completionPercentage`] = pct;
+    updates[`userProgress.${uid}.updatedAt`] = serverTimestamp();
+    
+    const newStatus = pct === 100 ? "completed" : "in-progress";
+    updates[`userProgress.${uid}.status`] = newStatus;
+    
+    // Compute aggregates
+    const assignees = taskData.assignedTo || [];
+    const isLegacy = !taskData.userProgress;
+    const userProgress = { ...taskData.userProgress };
+    if (!userProgress[uid]) userProgress[uid] = {};
+    userProgress[uid].completionPercentage = pct;
+    userProgress[uid].status = newStatus;
+    
+    let totalPct = 0;
+    let allCompleted = assignees.length > 0;
+    for (const id of assignees) {
+      const fallbackPct = isLegacy ? (taskData.completionPercentage || 0) : 0;
+      const fallbackStatus = isLegacy ? (taskData.status || "pending") : "pending";
+      
+      totalPct += userProgress[id]?.completionPercentage ?? fallbackPct;
+      if ((userProgress[id]?.status || fallbackStatus) !== "completed") {
+        allCompleted = false;
+      }
+    }
+    
+    updates.completionPercentage = assignees.length > 0 ? Math.round(totalPct / assignees.length) : pct;
+    updates.status = allCompleted ? "completed" : (taskData.status === "pending" && pct > 0 ? "in-progress" : taskData.status);
+    
+    await updateDoc(doc(db, "tasks", taskId), updates);
+    closeModal("user-progress-modal");
+    showToast("Progress updated successfully", "success");
+    
+    // Log activity
+    await addDoc(collection(db, "tasks", taskId, "activity"), {
+      userId: currentUser.id,
+      action: "progress override",
+      details: `updated progress for ${document.getElementById("override-user-name").textContent} to ${pct}%`,
+      timestamp: serverTimestamp()
+    });
+    
+  } catch(e) {
+    console.error(e);
+    showToast("Failed to update progress", "error");
+  }
+};
 
 function updateTotalRing(pct, status) {
   pct = Math.max(0, Math.min(100, pct));
