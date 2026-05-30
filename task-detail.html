@@ -193,19 +193,36 @@
               </div>
 
               <div id="completion-control" style="display: none">
-                <div class="text-sm text-muted" style="margin-bottom: 12px;">Completion</div>
-                <div class="completion-ring-wrap" style="flex-direction: column; align-items: center; gap: 14px;">
-                  <div class="completion-ring-container">
-                    <svg class="completion-ring" viewBox="0 0 120 120">
-                      <circle class="completion-ring-bg" cx="60" cy="60" r="52" />
-                      <circle class="completion-ring-fill" id="completion-ring-fill" cx="60" cy="60" r="52"
-                        stroke-dasharray="326.73" stroke-dashoffset="326.73" />
-                    </svg>
-                    <div class="completion-ring-label" id="completion-pct-label">0%</div>
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                  <!-- Personal Completion -->
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; flex: 1; min-width: 150px;">
+                    <div class="text-sm text-muted" style="margin-bottom: 4px;" id="personal-progress-title">Your Progress</div>
+                    <div class="completion-ring-container">
+                      <svg class="completion-ring" viewBox="0 0 120 120">
+                        <circle class="completion-ring-bg" cx="60" cy="60" r="52" />
+                        <circle class="completion-ring-fill" id="completion-ring-fill" cx="60" cy="60" r="52"
+                          stroke-dasharray="326.73" stroke-dashoffset="326.73" />
+                      </svg>
+                      <div class="completion-ring-label" id="completion-pct-label">0%</div>
+                    </div>
+                    <div class="completion-stepper" style="width: 100%; max-width: 160px;" id="personal-stepper-wrap">
+                      <input type="range" id="completion-input" class="form-range" min="0" max="100" value="0" step="5"
+                        oninput="previewFromInput(this.value)" onchange="commitFromInput(this.value)" style="width: 100%; cursor: pointer;" />
+                    </div>
                   </div>
-                  <div class="completion-stepper" style="width: 100%; max-width: 200px;">
-                    <input type="range" id="completion-input" class="form-range" min="0" max="100" value="0" step="5"
-                      oninput="previewFromInput(this.value)" onchange="commitFromInput(this.value)" style="width: 100%; cursor: pointer;" />
+
+                  <!-- Total Completion -->
+                  <div id="total-progress-section" style="display: flex; flex-direction: column; align-items: center; gap: 14px; flex: 1; min-width: 150px;">
+                    <div class="text-sm text-muted" style="margin-bottom: 4px;">Total Progress</div>
+                    <div class="completion-ring-container" style="transform: scale(0.9);">
+                      <svg class="completion-ring" viewBox="0 0 120 120">
+                        <circle class="completion-ring-bg" cx="60" cy="60" r="52" />
+                        <circle class="completion-ring-fill" id="total-ring-fill" cx="60" cy="60" r="52"
+                          stroke-dasharray="326.73" stroke-dashoffset="326.73" />
+                      </svg>
+                      <div class="completion-ring-label" id="total-pct-label" style="font-size: 20px;">0%</div>
+                    </div>
+                    <div class="text-sm text-muted" id="total-status-label" style="font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Pending</div>
                   </div>
                 </div>
                 <input type="hidden" id="completion-slider" value="0" />

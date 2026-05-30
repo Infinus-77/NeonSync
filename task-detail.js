@@ -178,6 +178,17 @@ function renderTask(t) {
   
   updateRing(pct);
   document.getElementById("completion-slider").value = pct;
+  
+  const totalSection = document.getElementById("total-progress-section");
+  const pTitle = document.getElementById("personal-progress-title");
+  if (isAssigned) {
+    if (totalSection) totalSection.style.display = "flex";
+    if (pTitle) pTitle.textContent = "Your Progress";
+    updateTotalRing(t.completionPercentage || 0, t.status);
+  } else {
+    if (totalSection) totalSection.style.display = "none";
+    if (pTitle) pTitle.textContent = "Progress";
+  }
 
   if (isAssigned || currentUser.role !== "member") {
     document.getElementById("completion-control").style.display = "block";
@@ -372,6 +383,30 @@ function updateRing(pct) {
   document.getElementById("completion-pct-label").textContent = `${pct}%`;
   const input = document.getElementById("completion-input");
   if (input && document.activeElement !== input) input.value = pct;
+}
+
+function updateTotalRing(pct, status) {
+  pct = Math.max(0, Math.min(100, pct));
+  const circumference = 326.73;
+  const offset = circumference * (1 - pct / 100);
+  const ring = document.getElementById("total-ring-fill");
+  if (ring) {
+    ring.style.strokeDashoffset = offset;
+    if (pct >= 100) ring.style.stroke = "var(--green)";
+    else if (pct >= 50) ring.style.stroke = "var(--cyan)";
+    else if (pct >= 25) ring.style.stroke = "var(--amber)";
+    else ring.style.stroke = "var(--rose)";
+  }
+  const label = document.getElementById("total-pct-label");
+  if (label) label.textContent = `${pct}%`;
+  
+  const statusLabel = document.getElementById("total-status-label");
+  if (statusLabel) {
+    statusLabel.textContent = status || "Pending";
+    if (status === "completed") statusLabel.style.color = "var(--green)";
+    else if (status === "in-progress") statusLabel.style.color = "var(--cyan)";
+    else statusLabel.style.color = "var(--text-muted)";
+  }
 }
 
 window.updateCompletionPreview = (val) => {
