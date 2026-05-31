@@ -7,7 +7,7 @@ import { initNotifications } from "./notifications.js";
 import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
   doc, getDoc, updateDoc, collection, query,
-  where, getDocs, serverTimestamp, limit, orderBy,
+  where, getDocs, serverTimestamp, limit, orderBy, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import {
   statusBadge, priorityBadge, formatDate, timeAgo,
@@ -70,40 +70,73 @@ async function loadProfile(targetUid) {
   });
   renderCompanyCard(profileUser);
 
-  // Load all analytics in parallel
-  const tasks = await loadUserTasks(targetUid);
-  await Promise.all([
-    renderStats(targetUid, tasks, profileUser),
-    renderHeatmap(targetUid),
-    renderStatusChart(tasks),
-    renderMonthlyChart(tasks),
-    renderPriorityPerformance(tasks),
-    renderTopTags(tasks),
-    renderTimeline(tasks),
-    renderRecentRemarks(targetUid, tasks),
-  ]);
+  // Load analytics
+  renderHeatmap(targetUid);
+  bindUserTasks(targetUid);
 }
 
-async function loadUserTasks(targetUid) {
+let unsubUserTasks1 = null;
+let unsubUserTasks2 = null;
+
+function bindUserTasks(targetUid) {
+  if (unsubUserTasks1) unsubUserTasks1();
+  if (unsubUserTasks2) unsubUserTasks2();
+
+  const updateCharts = (tasks) => {
+    renderStats(targetUid, tasks, profileUser);
+    renderStatusChart(tasks);
+    renderMonthlyChart(tasks);
+    renderPriorityPerformance(tasks);
+    renderTopTags(tasks);
+    renderTimeline(tasks);
+    renderRecentRemarks(targetUid, tasks);
+  };
+
   if (currentUser.role === "admin" || currentUser.role === "super_admin") {
-    const snap = await getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId)));
-    return snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(t => t.isCommonTask || (t.assignedTo && t.assignedTo.includes(targetUid)));
+    const q = query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId));
+    unsubUserTasks1 = onSnapshot(q, (snap) => {
+      const tasksArr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const filtered = tasksArr.filter(t => t.isCommonTask || (t.assignedTo && t.assignedTo.includes(targetUid)));
+      updateCharts(filtered);
+    }, (err) => {
+      console.warn("Error fetching tasks in real-time:", err);
+    });
   } else {
-    try {
-      const [assignedSnap, commonSnap] = await Promise.all([
-        getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("assignedTo", "array-contains", targetUid))),
-        getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("isCommonTask", "==", true)))
-      ]);
-      const tasksMap = new Map();
-      assignedSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
-      commonSnap.docs.forEach((d) => tasksMap.set(d.id, { id: d.id, ...d.data() }));
-      return Array.from(tasksMap.values());
-    } catch (e) {
-      console.warn("Index missing for task queries.", e);
-      return [];
-    }
+    let assignedTasks = [];
+    let commonTasks = [];
+    let assignedResolved = false;
+    let commonResolved = false;
+
+    const maybeUpdate = () => {
+      if (assignedResolved && commonResolved) {
+        const tasksMap = new Map();
+        assignedTasks.forEach(t => tasksMap.set(t.id, t));
+        commonTasks.forEach(t => tasksMap.set(t.id, t));
+        updateCharts(Array.from(tasksMap.values()));
+      }
+    };
+
+    const q1 = query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("assignedTo", "array-contains", targetUid));
+    unsubUserTasks1 = onSnapshot(q1, (snap) => {
+      assignedTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      assignedResolved = true;
+      maybeUpdate();
+    }, (err) => {
+      console.warn("Index missing for task queries.", err);
+      assignedResolved = true;
+      maybeUpdate();
+    });
+
+    const q2 = query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId), where("isCommonTask", "==", true));
+    unsubUserTasks2 = onSnapshot(q2, (snap) => {
+      commonTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      commonResolved = true;
+      maybeUpdate();
+    }, (err) => {
+      console.warn("Index missing for task queries.", err);
+      commonResolved = true;
+      maybeUpdate();
+    });
   }
 }
 
