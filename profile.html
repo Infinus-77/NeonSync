@@ -150,21 +150,21 @@
 
         <!-- Stats -->
         <div class="profile-stats-row">
-          <div class="stat-card animate-in">
+          <div class="stat-card animate-in" id="stat-card-assigned">
             <div class="stat-icon purple"><i class="ph ph-list-numbers"></i></div>
             <div class="stat-info">
               <div class="stat-value" id="stat-assigned">—</div>
               <div class="stat-label">Assigned</div>
             </div>
           </div>
-          <div class="stat-card animate-in" style="animation-delay:0.02s">
+          <div class="stat-card animate-in" id="stat-card-completed" style="animation-delay:0.02s">
             <div class="stat-icon green"><i class="ph ph-check-circle"></i></div>
             <div class="stat-info">
               <div class="stat-value" id="stat-completed">—</div>
               <div class="stat-label">Completed</div>
             </div>
           </div>
-          <div class="stat-card animate-in" style="animation-delay:0.05s">
+          <div class="stat-card animate-in" id="stat-card-active" style="animation-delay:0.05s">
             <div class="stat-icon cyan"><i class="ph ph-arrows-clockwise"></i></div>
             <div class="stat-info">
               <div class="stat-value" id="stat-active">—</div>
@@ -178,7 +178,7 @@
               <div class="stat-label">Success Rate</div>
             </div>
           </div>
-          <div class="stat-card animate-in" style="animation-delay:0.15s">
+          <div class="stat-card animate-in" id="stat-card-overdue" style="animation-delay:0.15s">
             <div class="stat-icon danger"><i class="ph ph-warning-circle"></i></div>
             <div class="stat-info">
               <div class="stat-value" id="stat-overdue">—</div>
@@ -222,8 +222,8 @@
         </div>
 
         <!-- Charts Row -->
-        <div class="grid-2 mb-4">
-          <div class="card animate-in" style="animation-delay:0.35s">
+        <div class="grid-2 mb-4" id="charts-row">
+          <div class="card animate-in" id="card-task-status" style="animation-delay:0.35s">
             <div class="section-header">
               <span class="section-title">Task Status Breakdown</span>
             </div>
@@ -231,7 +231,7 @@
               <canvas id="profile-chart-status"></canvas>
             </div>
           </div>
-          <div class="card animate-in" style="animation-delay:0.4s">
+          <div class="card animate-in" id="card-monthly-activity" style="animation-delay:0.4s">
             <div class="section-header">
               <span class="section-title">Monthly Activity</span>
               <span class="text-sm text-muted">Last 6 months</span>
@@ -252,7 +252,7 @@
               <div class="empty-state"><i class="ph ph-chart-bar"></i><p>No data yet</p></div>
             </div>
           </div>
-          <div class="card animate-in" style="animation-delay:0.5s">
+          <div class="card animate-in" id="card-top-tags" style="animation-delay:0.5s">
             <div class="section-header">
               <span class="section-title">Top Tags</span>
             </div>
@@ -263,8 +263,8 @@
         </div>
 
         <!-- Timeline + Remarks -->
-        <div class="grid-2">
-          <div class="card animate-in" style="animation-delay:0.55s">
+        <div class="grid-2" id="timeline-remarks-row">
+          <div class="card animate-in" id="card-task-timeline" style="animation-delay:0.55s">
             <div class="section-header">
               <span class="section-title">Task Timeline</span>
               <a href="tasks.html" style="font-size:12px;color:var(--cyan);">View all</a>
@@ -273,7 +273,7 @@
               <div class="empty-state"><i class="ph ph-list-checks"></i><p>No task history yet</p></div>
             </div>
           </div>
-          <div class="card animate-in" style="animation-delay:0.6s">
+          <div class="card animate-in" id="card-recent-remarks" style="animation-delay:0.6s">
             <div class="section-header">
               <span class="section-title">Recent Remarks</span>
             </div>

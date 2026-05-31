@@ -68,7 +68,19 @@ async function loadProfile(targetUid) {
   renderProfileHeader(profileUser, isOwnProfile).then(html => {
     document.getElementById("profile-header-inner").innerHTML = html;
   });
-  renderCompanyCard(profileUser);
+  renderCompanyCard(profileUser, isOwnProfile);
+
+  // Apply privacy restrictions for viewing other users
+  if (!isOwnProfile) {
+    document.getElementById("stat-card-assigned").style.display = "none";
+    document.getElementById("stat-card-completed").style.display = "none";
+    document.getElementById("stat-card-active").style.display = "none";
+    document.getElementById("stat-card-overdue").style.display = "none";
+    
+    document.getElementById("charts-row").style.display = "none";
+    document.getElementById("card-top-tags").style.display = "none";
+    document.getElementById("timeline-remarks-row").style.display = "none";
+  }
 
   // Load all analytics in parallel
   const tasks = await loadUserTasks(targetUid);
@@ -137,12 +149,11 @@ async function renderProfileHeader(u, isOwn) {
   return html;
 }
 
-async function renderCompanyCard(u) {
+async function renderCompanyCard(u, isOwnProfile = true) {
   const card = document.getElementById("company-card");
   const inner = document.getElementById("company-details-inner");
   if (!card || !inner) return;
 
-  // Show the card for EVERY user profile now, as requested.
   card.style.display = "flex";
 
   // Fetch company details
