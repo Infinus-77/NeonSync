@@ -438,22 +438,43 @@ window.saveUserProgressOverride = async () => {
     const newStatus = pct === 100 ? "completed" : "in-progress";
     updates[`userProgress.${uid}.status`] = newStatus;
     
-    // Compute aggregates
     const assignees = taskData.assignedTo || [];
-    const isLegacy = !taskData.userProgress;
-    const userProgress = { ...taskData.userProgress };
+    const isFirstTimeProgress = !taskData.userProgress;
+    const userProgress = { ...(taskData.userProgress || {}) };
+    
+    // If this is the very first time we are creating the userProgress map (e.g. migrating a legacy task),
+    // we MUST seed all current assignees with the task's overall legacy progress, 
+    // so they don't default to 0% in the future.
+    if (isFirstTimeProgress) {
+      const fallbackPct = taskData.completionPercentage || 0;
+      const fallbackStatus = taskData.status || "pending";
+      for (const id of assignees) {
+        userProgress[id] = { completionPercentage: fallbackPct, status: fallbackStatus };
+        updates[`userProgress.${id}.completionPercentage`] = fallbackPct;
+        updates[`userProgress.${id}.status`] = fallbackStatus;
+        updates[`userProgress.${id}.updatedAt`] = serverTimestamp();
+      }
+    }
+    
     if (!userProgress[uid]) userProgress[uid] = {};
     userProgress[uid].completionPercentage = pct;
     userProgress[uid].status = newStatus;
     
+    // Now explicitly overwrite the targeted user's progress in the database updates
+    updates[`userProgress.${uid}.completionPercentage`] = pct;
+    updates[`userProgress.${uid}.status`] = newStatus;
+    updates[`userProgress.${uid}.updatedAt`] = serverTimestamp();
+    
     let totalPct = 0;
     let allCompleted = assignees.length > 0;
+    
     for (const id of assignees) {
-      const fallbackPct = isLegacy ? (taskData.completionPercentage || 0) : 0;
-      const fallbackStatus = isLegacy ? (taskData.status || "pending") : "pending";
+      // If a user was somehow added later and still missing, default to 0
+      const currPct = userProgress[id]?.completionPercentage || 0;
+      const currStat = userProgress[id]?.status || "pending";
       
-      totalPct += userProgress[id]?.completionPercentage ?? fallbackPct;
-      if ((userProgress[id]?.status || fallbackStatus) !== "completed") {
+      totalPct += currPct;
+      if (currStat !== "completed") {
         allCompleted = false;
       }
     }
@@ -544,10 +565,21 @@ window.saveCompletion = async () => {
       const newStatus = pct === 100 ? "completed" : "in-progress";
       updates[`userProgress.${currentUser.id}.status`] = newStatus;
       
-      // Compute aggregates
       const assignees = taskData.assignedTo || [];
-      const isLegacy = !taskData.userProgress;
-      const userProgress = { ...taskData.userProgress };
+      const isFirstTimeProgress = !taskData.userProgress;
+      const userProgress = { ...(taskData.userProgress || {}) };
+      
+      if (isFirstTimeProgress) {
+        const fallbackPct = taskData.completionPercentage || 0;
+        const fallbackStatus = taskData.status || "pending";
+        for (const id of assignees) {
+          userProgress[id] = { completionPercentage: fallbackPct, status: fallbackStatus };
+          updates[`userProgress.${id}.completionPercentage`] = fallbackPct;
+          updates[`userProgress.${id}.status`] = fallbackStatus;
+          updates[`userProgress.${id}.updatedAt`] = serverTimestamp();
+        }
+      }
+      
       if (!userProgress[currentUser.id]) userProgress[currentUser.id] = {};
       userProgress[currentUser.id].completionPercentage = pct;
       userProgress[currentUser.id].status = newStatus;
@@ -555,11 +587,11 @@ window.saveCompletion = async () => {
       let totalPct = 0;
       let allCompleted = assignees.length > 0;
       for (const uid of assignees) {
-        const fallbackPct = isLegacy ? (taskData.completionPercentage || 0) : 0;
-        const fallbackStatus = isLegacy ? (taskData.status || "pending") : "pending";
+        const currPct = userProgress[uid]?.completionPercentage || 0;
+        const currStat = userProgress[uid]?.status || "pending";
         
-        totalPct += userProgress[uid]?.completionPercentage ?? fallbackPct;
-        if ((userProgress[uid]?.status || fallbackStatus) !== "completed") {
+        totalPct += currPct;
+        if (currStat !== "completed") {
           allCompleted = false;
         }
       }
