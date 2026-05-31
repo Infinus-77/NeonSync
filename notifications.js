@@ -21,9 +21,12 @@ let unsubNotifications = null;
 export function initNotifications(userId) {
   if (unsubNotifications) unsubNotifications();
 
+  const companyId = window.currentUser?.companyId;
+  if (!companyId) return;
+
   const q = query(
     collection(db, "notifications"),
-    where("companyId", "==", window.currentUser?.companyId),
+    where("companyId", "==", companyId),
     where("userId", "==", userId),
     limit(50),
   );

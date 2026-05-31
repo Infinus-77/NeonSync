@@ -119,7 +119,8 @@ export function requireAuth(callback, allowedRoles = []) {
           user.companyId = companyId;
         } catch (migErr) {
           console.error("Migration error:", migErr);
-          // Non-fatal — continue with the user as-is
+          // Non-fatal — continue with the user as-is, but set in memory to avoid crashing queries
+          user.companyId = "SYNTAX";
         }
       }
 
