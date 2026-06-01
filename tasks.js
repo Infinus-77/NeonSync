@@ -479,12 +479,60 @@ function renderTasks(tasks) {
 }
 
 // ─── Modal: open new task ─────────────────────────────────────────────────────
+window.saveTaskDraft = () => {
+  const taskId = document.getElementById("edit-task-id").value;
+  if (taskId) return; // Only save draft for new tasks
+  
+  const draft = {
+    title: document.getElementById("tf-title").value,
+    desc: document.getElementById("tf-desc").value,
+    priority: document.getElementById("tf-priority").value,
+    status: document.getElementById("tf-status").value,
+    weight: document.getElementById("tf-weight").value,
+    deadline: document.getElementById("tf-deadline").value,
+    tags: document.getElementById("tf-tags").value,
+    isCommon: document.getElementById("tf-common").checked,
+    selectedAssignees: [...selectedAssignees],
+    pendingReferenceLinks: [...pendingReferenceLinks]
+  };
+  localStorage.setItem("neonsync_task_draft", JSON.stringify(draft));
+};
+
 window.openTaskModal = () => {
   document.getElementById("edit-task-id").value = "";
   document.getElementById("task-modal-title").textContent = "Create New Task";
-  document.getElementById("task-form").reset();
-  selectedAssignees = [];
-  pendingReferenceLinks = [];
+  
+  const savedDraft = localStorage.getItem("neonsync_task_draft");
+  if (savedDraft) {
+    try {
+      const draft = JSON.parse(savedDraft);
+      document.getElementById("tf-title").value = draft.title || "";
+      document.getElementById("tf-desc").value = draft.desc || "";
+      document.getElementById("tf-priority").value = draft.priority || "medium";
+      document.getElementById("tf-status").value = draft.status || "pending";
+      document.getElementById("tf-weight").value = draft.weight || "3";
+      
+      const deadlineEl = document.getElementById("tf-deadline");
+      deadlineEl.value = draft.deadline || "";
+      if (deadlineEl._flatpickr && draft.deadline) {
+        deadlineEl._flatpickr.setDate(draft.deadline);
+      }
+      
+      document.getElementById("tf-tags").value = draft.tags || "";
+      document.getElementById("tf-common").checked = draft.isCommon || false;
+      selectedAssignees = draft.selectedAssignees || [];
+      pendingReferenceLinks = draft.pendingReferenceLinks || [];
+    } catch(e) {
+      document.getElementById("task-form").reset();
+      selectedAssignees = [];
+      pendingReferenceLinks = [];
+    }
+  } else {
+    document.getElementById("task-form").reset();
+    selectedAssignees = [];
+    pendingReferenceLinks = [];
+  }
+
   renderFormReferenceLinks();
   renderSelectedAssigneesEl();
   openModal("task-modal");
@@ -619,6 +667,7 @@ window.submitTask = async (e) => {
       });
 
       showToast("Task created!", "success");
+      localStorage.removeItem("neonsync_task_draft");
     }
 
     closeModal("task-modal");
@@ -699,6 +748,7 @@ window.selectAssignee = (uid) => {
   if (!selectedAssignees.includes(uid)) {
     selectedAssignees.push(uid);
     renderSelectedAssigneesEl();
+    if (window.saveTaskDraft) window.saveTaskDraft();
   }
   document.getElementById("tf-assign-search").value = "";
   document.getElementById("tf-assignee-results").style.display = "none";
@@ -707,6 +757,7 @@ window.selectAssignee = (uid) => {
 window.removeAssignee = (uid) => {
   selectedAssignees = selectedAssignees.filter((id) => id !== uid);
   renderSelectedAssigneesEl();
+  if (window.saveTaskDraft) window.saveTaskDraft();
 };
 
 function renderSelectedAssigneesEl() {
@@ -783,11 +834,13 @@ window.addFormReferenceLink = () => {
   document.getElementById("tf-ref-title").value = "";
   document.getElementById("tf-ref-url").value = "";
   renderFormReferenceLinks();
+  if (window.saveTaskDraft) window.saveTaskDraft();
 };
 
 window.removeFormReferenceLink = (index) => {
   pendingReferenceLinks.splice(index, 1);
   renderFormReferenceLinks();
+  if (window.saveTaskDraft) window.saveTaskDraft();
 };
 
 window.renderFormReferenceLinks = () => {
@@ -803,3 +856,9 @@ window.renderFormReferenceLinks = () => {
     </div>
   `).join("");
 };
+
+const taskForm = document.getElementById("task-form");
+if (taskForm) {
+  taskForm.addEventListener("input", window.saveTaskDraft);
+  taskForm.addEventListener("change", window.saveTaskDraft);
+}
