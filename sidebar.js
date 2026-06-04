@@ -57,6 +57,7 @@ export function renderSidebar(activeItem, user) {
     { id: "chat",       label: "Chat",        icon: "ph-chat-circle-dots",href: "chat.html"      },
     { id: "users",     label: "Users",     icon: "ph-users",     href: "users.html"     },
     ...(isAdmin ? [
+      { id: "capacity",  label: "Capacity",  icon: "ph-chart-polar", href: "capacity.html" },
       { id: "analytics", label: "Analytics", icon: "ph-chart-bar", href: "analytics.html" },
     ] : []),
     ...(isSuperAdmin ? [

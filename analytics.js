@@ -5,7 +5,7 @@ import { renderSidebar } from "./sidebar.js";
 import { initNotifications } from "./notifications.js";
 import { checkDeadlineAlerts } from "./deadline-alert.js";
 import {
-  collection, query, where, getDocs, orderBy, limit,
+  collection, query, where, getDocs, orderBy, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getInitials, showToast, timeAgo, sanitizeHtml } from "./utils.js";
 
@@ -33,26 +33,53 @@ requireAuth(async (user) => {
   initNotifications(user.id);
   checkDeadlineAlerts(user);
 
-  await fetchData();
-  renderAnalytics();
+  setupListeners();
 }, ["super_admin", "admin"]);
 
-async function fetchData() {
-  const [tasksSnap, usersSnap, logsSnap] = await Promise.all([
-    getDocs(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId))),
-    getDocs(query(collection(db, "users"), where("companyId", "==", currentUser.companyId))),
-    getDocs(query(collection(db, "taskLogs"), where("companyId", "==", currentUser.companyId), limit(200))),
-  ]);
-  allTasks = tasksSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  allUsers = usersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  allLogs = logsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
+let tasksLoaded = false;
+let usersLoaded = false;
+let logsLoaded = false;
+
+function setupListeners() {
+  onSnapshot(query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId)), (snap) => {
+    allTasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    tasksLoaded = true;
+    if (tasksLoaded && usersLoaded && logsLoaded) renderAnalytics();
+  });
+
+  onSnapshot(query(collection(db, "users"), where("companyId", "==", currentUser.companyId)), (snap) => {
+    allUsers = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    usersLoaded = true;
+    if (tasksLoaded && usersLoaded && logsLoaded) renderAnalytics();
+  });
+
+  onSnapshot(query(collection(db, "taskLogs"), where("companyId", "==", currentUser.companyId), limit(200)), (snap) => {
+    allLogs = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
+    logsLoaded = true;
+    if (tasksLoaded && usersLoaded && logsLoaded) renderAnalytics();
+  });
 }
 
 window.loadAnalytics = () => renderAnalytics();
 
 function renderAnalytics() {
-  const days = parseInt(document.getElementById("analytics-range")?.value || "30");
+  const rangeVal = document.getElementById("analytics-range")?.value || "30";
   const now = new Date();
+  
+  let days = 30;
+  if (rangeVal === "all") {
+    if (allTasks.length > 0) {
+      let oldest = now;
+      allTasks.forEach(t => {
+        const c = t.createdAt?.toDate?.();
+        if (c && c < oldest) oldest = c;
+      });
+      days = Math.max(7, Math.ceil((now - oldest) / (1000 * 60 * 60 * 24)));
+    }
+  } else {
+    days = parseInt(rangeVal) || 30;
+  }
+
   const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
   const tasks = allTasks.filter((t) => {
@@ -294,6 +321,10 @@ function renderTimeline(tasks, days) {
       ],
     },
     options: {
+      animation: {
+        duration: 1500,
+        easing: "easeOutQuart"
+      },
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: "index", intersect: false },
       plugins: {
@@ -301,8 +332,8 @@ function renderTimeline(tasks, days) {
         tooltip: { backgroundColor: "#1a1f2e", borderColor: "rgba(255,255,255,0.1)", borderWidth: 1, titleColor: "#ecedf6", bodyColor: "#a9abb3" },
       },
       scales: {
-        x: { ticks: { color: "#9ca3af", font: { size: 10 }, maxRotation: 45 }, grid: { color: "rgba(255,255,255,0.06)" } },
-        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(255,255,255,0.06)" }, beginAtZero: true },
+        x: { ticks: { color: "#9ca3af", font: { size: 10 }, maxRotation: 45 }, grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") } },
+        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") }, beginAtZero: true },
       },
     },
   });
@@ -331,6 +362,11 @@ function renderStatusPie(tasks, now) {
         borderWidth: 0, hoverOffset: 8 }],
     },
     options: {
+      animation: {
+        animateRotate: true,
+        duration: 1200,
+        easing: "easeOutBack"
+      },
       responsive: true, maintainAspectRatio: false, cutout: "58%",
       plugins: {
         legend: { position: "right", labels: { color: "#8888AA", font: { size: 11 }, boxWidth: 10, padding: 10 } },
@@ -369,11 +405,15 @@ function renderPriorityBar(tasks) {
       ],
     },
     options: {
+      animation: {
+        duration: 1200,
+        easing: "easeOutQuart"
+      },
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: "#8888AA", font: { size: 11 }, boxWidth: 10 } } },
       scales: {
         x: { ticks: { color: "#8888AA", font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: "rgba(255,255,255,0.06)" }, beginAtZero: true },
+        y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") }, beginAtZero: true },
       },
     },
   });
@@ -408,14 +448,18 @@ function renderDayOfWeekChart(tasks) {
       ],
     },
     options: {
+      animation: {
+        duration: 1500,
+        easing: "easeOutBack"
+      },
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: "#8888AA", font: { size: 11 }, boxWidth: 10 } } },
       scales: {
         r: {
-          ticks: { color: "#9ca3af", backdropColor: "transparent", stepSize: 1 },
-          grid: { color: "rgba(255,255,255,0.06)" },
+          ticks: { display: false, color: "#9ca3af", backdropColor: "transparent" },
+          grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") },
           pointLabels: { color: "#8888AA", font: { size: 11 } },
-          angleLines: { color: "rgba(255,255,255,0.06)" },
+          angleLines: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") },
         },
       },
     },
@@ -453,13 +497,17 @@ function renderAvgTimeChart(tasks) {
       }],
     },
     options: {
+      animation: {
+        duration: 1200,
+        easing: "easeOutQuart"
+      },
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color: "#8888AA", font: { size: 11 } }, grid: { display: false } },
         y: {
           ticks: { color: "#9ca3af", callback: (v) => `${v}d` },
-          grid: { color: "rgba(255,255,255,0.06)" }, beginAtZero: true,
+          grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") }, beginAtZero: true,
         },
       },
     },
@@ -707,3 +755,15 @@ function renderRecentActivity(logs, users) {
     `;
   }).join("");
 }
+
+// Watch for theme changes and redraw charts so grid colors match the current theme
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.attributeName === "data-theme") {
+      if (tasksLoaded && usersLoaded && logsLoaded) {
+        renderAnalytics();
+      }
+    }
+  });
+});
+observer.observe(document.documentElement, { attributes: true });

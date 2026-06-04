@@ -68,7 +68,8 @@ requireAuth(async (user) => {
   // Show create task button for non-members
   if (user.role !== "member") {
     document.getElementById("create-task-btn").style.display = "flex";
-    document.getElementById("charts-row").style.display = "grid";
+    document.getElementById("charts-row").style.display = "block";
+    document.getElementById("task-dist-card").style.display = "block";
     document.getElementById("leaderboard-card").style.display = "block";
   }
 
@@ -306,7 +307,7 @@ function renderCharts(tasks, now) {
   const isLight = document.documentElement.getAttribute("data-theme") === "light";
   const labelColor = isLight ? "#6b7280" : "#A1A1AA";
   const tickColor = isLight ? "#9ca3af" : "#52525B";
-  const gridColor = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const gridColor = isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)";
 
   const statusCounts = {
     pending: 0,
@@ -330,38 +331,48 @@ function renderCharts(tasks, now) {
   // Pie chart
   const pieCtx = document.getElementById("chart-pie")?.getContext("2d");
   if (pieCtx) {
-    if (pieChart) pieChart.destroy();
-    pieChart = new Chart(pieCtx, {
-      type: "doughnut",
-      data: {
-        labels: ["Pending", "In Progress", "Review", "Completed", "Overdue"],
-        datasets: [
-          {
-            data: Object.values(statusCounts),
-            backgroundColor: [
-              "#52525B",
-              "#00E5FF",
-              "#F59E0B",
-              "#22C55E",
-              "#EF4444",
-            ],
-            borderWidth: 0,
-            hoverOffset: 8,
+    if (pieChart) {
+      pieChart.data.datasets[0].data = Object.values(statusCounts);
+      pieChart.options.plugins.legend.labels.color = labelColor;
+      pieChart.update();
+    } else {
+      pieChart = new Chart(pieCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["Pending", "In Progress", "Review", "Completed", "Overdue"],
+          datasets: [
+            {
+              data: Object.values(statusCounts),
+              backgroundColor: [
+                "#52525B",
+                "#00E5FF",
+                "#F59E0B",
+                "#22C55E",
+                "#EF4444",
+              ],
+              borderWidth: 0,
+              hoverOffset: 8,
+            },
+          ],
+        },
+        options: {
+          animation: {
+            animateRotate: true,
+            duration: 1200,
+            easing: "easeOutBack"
           },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "65%",
-        plugins: {
-          legend: {
-            position: "right",
-            labels: { color: labelColor, font: { size: 11 }, boxWidth: 10 },
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "65%",
+          plugins: {
+            legend: {
+              position: "right",
+              labels: { color: labelColor, font: { size: 11 }, boxWidth: 10 },
+            },
           },
         },
-      },
-    });
+      });
+    }
   }
 
   // Line chart - last 14 days
@@ -390,54 +401,73 @@ function renderCharts(tasks, now) {
       );
     }
 
-    if (lineChart) lineChart.destroy();
-    lineChart = new Chart(lineCtx, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Created",
-            data: createdData,
-            borderColor: "#BD00FF",
-            backgroundColor: "rgba(189,0,255,0.08)",
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 5,
+    if (lineChart) {
+      lineChart.data.labels = labels;
+      lineChart.data.datasets[0].data = createdData;
+      lineChart.data.datasets[1].data = completedData;
+      
+      lineChart.options.scales.x.grid.color = gridColor;
+      lineChart.options.scales.y.grid.color = gridColor;
+      lineChart.options.scales.x.ticks.color = tickColor;
+      lineChart.options.scales.y.ticks.color = tickColor;
+      lineChart.options.plugins.legend.labels.color = labelColor;
+      
+      lineChart.update();
+    } else {
+      lineChart = new Chart(lineCtx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Created",
+              data: createdData,
+              borderColor: "#BD00FF",
+              backgroundColor: "rgba(189,0,255,0.08)",
+              tension: 0.4,
+              fill: true,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+            },
+            {
+              label: "Completed",
+              data: completedData,
+              borderColor: "#22C55E",
+              backgroundColor: "rgba(34,197,94,0.08)",
+              tension: 0.4,
+              fill: true,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+            },
+          ],
+        },
+        options: {
+          animation: {
+            duration: 1500,
+            easing: "easeOutQuart"
           },
-          {
-            label: "Completed",
-            data: completedData,
-            borderColor: "#22C55E",
-            backgroundColor: "rgba(34,197,94,0.08)",
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 5,
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              align: 'end',
+              labels: { color: labelColor, font: { size: 11 }, boxWidth: 10 },
+            },
           },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: { color: labelColor, font: { size: 11 }, boxWidth: 10 },
+          scales: {
+            x: {
+              ticks: { color: tickColor, font: { size: 10 }, maxRotation: 45 },
+              grid: { color: gridColor },
+            },
+            y: {
+              ticks: { color: tickColor, stepSize: 1 },
+              grid: { color: gridColor },
+            },
           },
         },
-        scales: {
-          x: {
-            ticks: { color: tickColor, font: { size: 10 }, maxRotation: 45 },
-            grid: { color: gridColor },
-          },
-          y: {
-            ticks: { color: tickColor, stepSize: 1 },
-            grid: { color: gridColor },
-          },
-        },
-      },
-    });
+      });
+    }
   }
 }
 
@@ -815,10 +845,19 @@ function renderSelectedDashAssignees() {
 // Modal helpers
 window.closeModal = (id) =>
   document.getElementById(id)?.classList.remove("active");
+
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("modal-overlay"))
     e.target.classList.remove("active");
 });
+
+// Watch for theme changes and redraw charts so grid colors match the current theme
+const themeObserver = new MutationObserver(() => {
+  if (window.currentUser && window.currentUser.role !== "member") {
+    renderCharts(allTasks, new Date());
+  }
+});
+themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
 // Initialize flatpickr for deadline input
 if (typeof flatpickr !== "undefined") {

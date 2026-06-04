@@ -30,7 +30,10 @@
       /* Dashboard charts row: collapses on tablet */
       @media (max-width: 767px) {
         #charts-row { grid-template-columns: 1fr !important; }
+        #main-grid-row { grid-template-columns: 1fr !important; }
+        .flex-row-responsive { flex-direction: column !important; }
       }
+      .flex-row-responsive { display: flex; gap: 24px; }
       /* Modal internal grid: stack on mobile */
       @media (max-width: 479px) {
         #create-task-form .grid-2,
@@ -149,18 +152,9 @@
           </div>
         </div>
 
-        <!-- Charts (Admin Only) -->
-        <div class="grid-2 mb-6" id="charts-row" style="display: none">
+        <!-- Admin Activity Timeline -->
+        <div class="mb-6" id="charts-row" style="display: none;">
           <div class="card animate-in" style="animation-delay: 0.2s">
-            <div class="section-header">
-              <span class="section-title">Task Distribution</span>
-            </div>
-            <div class="chart-container">
-              <canvas id="chart-pie"></canvas>
-            </div>
-          </div>
-
-          <div class="card animate-in" style="animation-delay: 0.25s">
             <div class="section-header">
               <span class="section-title">Activity Timeline</span>
             </div>
@@ -170,20 +164,37 @@
           </div>
         </div>
 
-        <!-- Main Grid -->
-        <div class="grid-2">
-          <!-- Recent Tasks -->
-          <div class="card animate-in" style="animation-delay: 0.3s">
+        <!-- Task Distribution & Upcoming Deadlines -->
+        <div class="mb-6 flex-row-responsive">
+          <div class="card animate-in" id="task-dist-card" style="animation-delay: 0.25s; display: none; flex: 1;">
+            <div class="section-header">
+              <span class="section-title">Task Distribution</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-pie"></canvas>
+            </div>
+          </div>
+
+          <div class="card animate-in" style="animation-delay: 0.35s; flex: 1;">
+            <div class="section-header">
+              <span class="section-title">Upcoming Deadlines</span>
+            </div>
+            <div id="upcoming-deadlines" data-testid="upcoming-deadlines">
+              <div class="empty-state">
+                <i class="ph ph-calendar"></i>
+                <p>No upcoming deadlines</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Tasks & Top Performers -->
+        <div class="mb-6 flex-row-responsive">
+          <div class="card animate-in" style="animation-delay: 0.3s; flex: 1;">
             <div class="section-header">
               <span class="section-title">Recent Tasks</span>
-              <a
-                href="tasks.html"
-                style="font-size: 12px; color: var(--cyan)"
-              >
-                View all
-              </a>
+              <a href="tasks.html" style="font-size: 12px; color: var(--cyan)">View all</a>
             </div>
-
             <div id="recent-tasks" data-testid="recent-tasks">
               <div class="empty-state">
                 <i class="ph ph-check-square"></i>
@@ -192,32 +203,11 @@
             </div>
           </div>
 
-          <!-- Deadlines + Leaderboard -->
-          <div>
-            <div class="card mb-4 animate-in" style="animation-delay: 0.35s">
-              <div class="section-header">
-                <span class="section-title">Upcoming Deadlines</span>
-              </div>
-
-              <div id="upcoming-deadlines" data-testid="upcoming-deadlines">
-                <div class="empty-state">
-                  <i class="ph ph-calendar"></i>
-                  <p>No upcoming deadlines</p>
-                </div>
-              </div>
+          <div class="card animate-in" id="leaderboard-card" style="animation-delay: 0.4s; display: none; flex: 1;">
+            <div class="section-header">
+              <span class="section-title">Top Performers</span>
             </div>
-
-            <div
-              class="card animate-in"
-              id="leaderboard-card"
-              style="animation-delay: 0.4s; display: none"
-            >
-              <div class="section-header">
-                <span class="section-title">Top Performers</span>
-              </div>
-
-              <div id="leaderboard-list" data-testid="leaderboard-list"></div>
-            </div>
+            <div id="leaderboard-list" data-testid="leaderboard-list"></div>
           </div>
         </div>
       </main>
