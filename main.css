@@ -1380,6 +1380,7 @@ textarea.form-input { resize: vertical; min-height: 72px; }
 .badge-super_admin { background: var(--purple-light);  color: var(--purple);  border: 1px solid rgba(216,115,255,0.2); }
 .badge-admin       { background: var(--blue-mid);      color: var(--blue);    border: 1px solid rgba(0,242,255,0.2); }
 .badge-member      { background: var(--green-light);   color: var(--green);   border: 1px solid rgba(57,255,20,0.2); }
+.badge-college_ambassador { background: var(--purple-light, rgba(147,112,219,0.1)); color: var(--purple, #b27fff); border: 1px solid rgba(147,112,219,0.2); }
 
 /* ═══════════════════════════════
    DATA TABLE

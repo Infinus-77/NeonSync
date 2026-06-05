@@ -124,7 +124,7 @@ function renderTask(t) {
   const statusSel = document.getElementById("status-select");
   statusSel.value = myProgInit ? (myProgInit.status || "pending") : (t.status || "pending");
 
-  if (currentUser.role === "member") {
+  if (currentUser.role === "member" || currentUser.role === "college_ambassador") {
     const flow = ["pending", "in-progress", "review", "completed"];
     const current = flow.indexOf(t.status);
     Array.from(statusSel.options).forEach((opt) => {
@@ -143,7 +143,7 @@ function renderTask(t) {
     : "No deadline";
 
   const displayAssignees = [...(t.assignedTo || [])];
-  const roleWeight = { super_admin: 1, admin: 2, member: 3 };
+  const roleWeight = { super_admin: 1, admin: 2, member: 3, college_ambassador: 3 };
   displayAssignees.sort((a, b) => {
     const roleA = allUsers[a]?.role || "member";
     const roleB = allUsers[b]?.role || "member";
@@ -205,7 +205,7 @@ function renderTask(t) {
     if (pTitle) pTitle.textContent = "Progress";
   }
 
-  if (isAssigned || currentUser.role !== "member") {
+  if (isAssigned || (currentUser.role !== "member" && currentUser.role !== "college_ambassador")) {
     document.getElementById("completion-control").style.display = "block";
   }
 

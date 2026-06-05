@@ -90,7 +90,7 @@ requireAuth(
     loadUsers();
     loadTasks();
   },
-  ["super_admin", "admin", "member"],
+  ["super_admin", "admin", "member", "college_ambassador"],
 );
 
 function loadUsers() {
@@ -155,7 +155,7 @@ window.filterUsers = () => {
 
   // Sorting logic
   if (sortOption === "role") {
-    const roleWeight = { super_admin: 1, admin: 2, member: 3 };
+    const roleWeight = { super_admin: 1, admin: 2, member: 3, college_ambassador: 3 };
     users.sort((a, b) => {
       const wA = roleWeight[a.role] || 4;
       const wB = roleWeight[b.role] || 4;
@@ -198,7 +198,7 @@ function renderUsers(users) {
       const canManage =
         !isMe &&
         ((currentUser.role === "super_admin" && u.role !== "super_admin") ||
-          (currentUser.role === "admin" && u.role === "member"));
+          (currentUser.role === "admin" && (u.role === "member" || u.role === "college_ambassador")));
 
       const assignedCount = allTasks.filter(t => t.isCommonTask || (t.assignedTo || []).includes(u.id)).length;
       const completedCount = allTasks.filter(t => {
@@ -229,7 +229,7 @@ function renderUsers(users) {
         </div>
 
         <div style="display:flex;width:100%;font-size:11px;color:var(--text-muted);margin-bottom:20px;background:var(--bg-input);padding:10px 0;border-radius:var(--radius-md);">
-          ${currentUser.role !== "member" ? `
+          ${currentUser.role !== "member" && currentUser.role !== "college_ambassador" ? `
           <div style="flex:1;text-align:center;">
             <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${assignedCount}</div>
             <div>Assigned</div>

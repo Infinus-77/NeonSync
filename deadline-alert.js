@@ -33,7 +33,7 @@ export async function checkDeadlineAlerts(user) {
     // Fetch tasks assigned to this user (or common tasks for members)
     let tasks = [];
 
-    if (user.role === "member") {
+    if (user.role === "member" || user.role === "college_ambassador") {
       // Assigned tasks
       const assignedSnap = await getDocs(
         query(

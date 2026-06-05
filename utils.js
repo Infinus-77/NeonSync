@@ -140,6 +140,7 @@ export function roleBadge(role) {
     super_admin: "Super Admin",
     admin: "Admin",
     member: "Member",
+    college_ambassador: "College Ambassador",
   };
   return `<span class=\"badge badge-${role}\">${labels[role] || role}</span>`;
 }

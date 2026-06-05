@@ -337,7 +337,7 @@ function _initials(name) {
 }
 
 function _formatRole(role) {
-  const map = { super_admin: "Super Admin", admin: "Admin", member: "Member" };
+  const map = { super_admin: "Super Admin", admin: "Admin", member: "Member", college_ambassador: "College Ambassador" };
   return map[role] || role || "Member";
 }
 

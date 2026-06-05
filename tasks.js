@@ -91,7 +91,7 @@ requireAuth(async (user) => {
   // Cancel timeout as soon as the first snapshot arrives
   window._cancelTasksTimeout = () => clearTimeout(loadTimeoutId);
 
-  if (user.role !== "member") {
+  if (user.role !== "member" && user.role !== "college_ambassador") {
     const newTaskBtn = document.getElementById("new-task-btn");
     const createdBtn = document.getElementById("filter-created-btn");
     if (newTaskBtn) newTaskBtn.style.display = "flex";
@@ -101,7 +101,7 @@ requireAuth(async (user) => {
   const subtitleEl = document.getElementById("tasks-subtitle");
   if (subtitleEl)
     subtitleEl.textContent =
-      user.role === "member"
+      user.role === "member" || user.role === "college_ambassador"
         ? "Your assigned tasks"
         : "Manage and assign tasks";
 
@@ -138,7 +138,7 @@ requireAuth(async (user) => {
         (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0),
     );
 
-  if (user.role === "member") {
+  if (user.role === "member" || user.role === "college_ambassador") {
     let assignedTasks = [];
     let commonTasks = [];
 
@@ -195,7 +195,7 @@ requireAuth(async (user) => {
 // ─── Overdue auto-detection (admin+ only) ────────────────────────────────────
 let _overdueRunning = false;
 async function autoMarkOverdue(tasks) {
-  if (!currentUser || currentUser.role === "member") return;
+  if (!currentUser || currentUser.role === "member" || currentUser.role === "college_ambassador") return;
   if (_overdueRunning) return;
   _overdueRunning = true;
   const now = new Date();
@@ -235,7 +235,7 @@ window.applyFilters = () => {
   let tasks = [...allTasks];
   
   const getEffectiveStatus = (t) => {
-    if ((currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id)) {
+    if ((currentFilter === "mine" || currentUser.role === "member" || currentUser.role === "college_ambassador") && (t.assignedTo || []).includes(currentUser.id)) {
         const isLegacy = !t.userProgress;
         return (t.userProgress && t.userProgress[currentUser.id]?.status) || (isLegacy ? (t.status || "pending") : "pending");
     }
@@ -243,7 +243,7 @@ window.applyFilters = () => {
   };
   
   window.getEffectivePct = (t) => {
-    if ((currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id)) {
+    if ((currentFilter === "mine" || currentUser.role === "member" || currentUser.role === "college_ambassador") && (t.assignedTo || []).includes(currentUser.id)) {
         const isLegacy = !t.userProgress;
         return (t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (isLegacy ? (t.completionPercentage || 0) : 0);
     }
@@ -306,12 +306,12 @@ function renderTasks(tasks) {
           ? t.deadline.toDate()
           : new Date(t.deadline)
         : null;
-      const effStatus = (currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id) ? 
+      const effStatus = (currentFilter === "mine" || currentUser.role === "member" || currentUser.role === "college_ambassador") && (t.assignedTo || []).includes(currentUser.id) ? 
             ((t.userProgress && t.userProgress[currentUser.id]?.status) || (!t.userProgress ? (t.status || "pending") : "pending")) : 
             (t.status || "pending");
       const isOverdue = deadline && effStatus !== "completed" && deadline < now;
       const displayStatus = isOverdue ? "overdue" : effStatus;
-      const pct = (currentFilter === "mine" || currentUser.role === "member") && (t.assignedTo || []).includes(currentUser.id) ? 
+      const pct = (currentFilter === "mine" || currentUser.role === "member" || currentUser.role === "college_ambassador") && (t.assignedTo || []).includes(currentUser.id) ? 
             ((t.userProgress && t.userProgress[currentUser.id]?.completionPercentage) ?? (!t.userProgress ? (t.completionPercentage || 0) : 0)) : 
             (t.completionPercentage || 0);
 
@@ -331,7 +331,7 @@ function renderTasks(tasks) {
 
       // Assignee avatars (max 3 shown + overflow count)
       const sortedAssignees = [...assigneeList];
-      const roleWeight = { super_admin: 1, admin: 2, member: 3 };
+      const roleWeight = { super_admin: 1, admin: 2, member: 3, college_ambassador: 3 };
       sortedAssignees.sort((a, b) => {
         const roleA = assigneeMap[a]?.role || "member";
         const roleB = assigneeMap[b]?.role || "member";
@@ -401,7 +401,7 @@ function renderTasks(tasks) {
 
       // Admin action buttons
       const adminBtns =
-        currentUser.role !== "member"
+        currentUser.role !== "member" && currentUser.role !== "college_ambassador"
           ? `<div style="display:flex;gap:6px;margin-top:4px;" onclick="event.stopPropagation()">
           <button class="btn btn-secondary btn-sm" style="flex:1;font-size:11px;justify-content:center;"
             onclick="openEditTask('${t.id}')" data-testid="edit-task-${t.id}">

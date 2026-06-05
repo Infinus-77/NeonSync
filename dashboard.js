@@ -66,7 +66,7 @@ requireAuth(async (user) => {
         : "Here's your personal task overview.";
 
   // Show create task button for non-members
-  if (user.role !== "member") {
+  if (user.role !== "member" && user.role !== "college_ambassador") {
     document.getElementById("create-task-btn").style.display = "flex";
     document.getElementById("charts-row").style.display = "block";
     document.getElementById("task-dist-card").style.display = "block";
@@ -82,7 +82,7 @@ requireAuth(async (user) => {
 
   // Real-time tasks listener — scoped by role so Firestore rules don't
   // silently drop tasks that a member is assigned to.
-  if (user.role === "member") {
+  if (user.role === "member" || user.role === "college_ambassador") {
     let assignedTasks = [];
     let commonTasks = [];
 
@@ -145,7 +145,7 @@ function renderDashboard(tasks, user) {
 
   // Filter tasks based on role
   let myTasks = tasks;
-  if (user.role === "member") {
+  if (user.role === "member" || user.role === "college_ambassador") {
     myTasks = tasks.filter(
       (t) => (t.assignedTo || []).includes(user.id) || t.isCommonTask,
     );
@@ -153,7 +153,7 @@ function renderDashboard(tasks, user) {
 
   // Helper to get effective status based on role
   const getEffectiveStatus = (t) => {
-    if (user.role === "member" && (t.assignedTo || []).includes(user.id)) {
+    if ((user.role === "member" || user.role === "college_ambassador") && (t.assignedTo || []).includes(user.id)) {
       const isLegacy = !t.userProgress;
       return (t.userProgress && t.userProgress[user.id]?.status) || (isLegacy ? (t.status || "pending") : "pending");
     }
@@ -161,7 +161,7 @@ function renderDashboard(tasks, user) {
   };
   
   window.getEffectivePct = (t) => {
-    if (user.role === "member" && (t.assignedTo || []).includes(user.id)) {
+    if ((user.role === "member" || user.role === "college_ambassador") && (t.assignedTo || []).includes(user.id)) {
       const isLegacy = !t.userProgress;
       return (t.userProgress && t.userProgress[user.id]?.completionPercentage) ?? (isLegacy ? (t.completionPercentage || 0) : 0);
     }
@@ -195,7 +195,7 @@ function renderDashboard(tasks, user) {
   renderUpcomingDeadlines(myTasks, now);
 
   // Charts and leaderboard for admins
-  if (user.role !== "member") {
+  if (user.role !== "member" && user.role !== "college_ambassador") {
     renderCharts(tasks, now);
     renderLeaderboard(tasks);
   }
@@ -218,7 +218,7 @@ function renderRecentTasks(tasks, now) {
           ? t.deadline.toDate()
           : new Date(t.deadline)
         : null;
-      const effStatus = currentUser.role === "member" && (t.assignedTo || []).includes(currentUser.id) ? 
+      const effStatus = (currentUser.role === "member" || currentUser.role === "college_ambassador") && (t.assignedTo || []).includes(currentUser.id) ? 
             ((t.userProgress && t.userProgress[currentUser.id]?.status) || (!t.userProgress ? (t.status || "pending") : "pending")) : 
             (t.status || "pending");
       const overdue = deadline && effStatus !== "completed" && deadline < now;
@@ -254,7 +254,7 @@ function renderUpcomingDeadlines(tasks, now) {
 
   const upcoming = tasks
     .filter((t) => {
-      const effStatus = currentUser.role === "member" && (t.assignedTo || []).includes(currentUser.id) ? 
+      const effStatus = (currentUser.role === "member" || currentUser.role === "college_ambassador") && (t.assignedTo || []).includes(currentUser.id) ? 
             ((t.userProgress && t.userProgress[currentUser.id]?.status) || (!t.userProgress ? (t.status || "pending") : "pending")) : 
             (t.status || "pending");
       if (!t.deadline || effStatus === "completed") return false;
@@ -853,7 +853,7 @@ document.addEventListener("click", (e) => {
 
 // Watch for theme changes and redraw charts so grid colors match the current theme
 const themeObserver = new MutationObserver(() => {
-  if (window.currentUser && window.currentUser.role !== "member") {
+  if (window.currentUser && window.currentUser.role !== "member" && window.currentUser.role !== "college_ambassador") {
     renderCharts(allTasks, new Date());
   }
 });

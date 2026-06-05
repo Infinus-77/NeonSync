@@ -110,7 +110,7 @@ function initCalendar() {
 
 function loadTasks() {
   let q;
-  if (currentUser.role === "member") {
+  if (currentUser.role === "member" || currentUser.role === "college_ambassador") {
     // Only fetch tasks assigned to them or common tasks
     // Since we need an OR query which firestore doesn't natively support easily with onSnapshot without composite indexes,
     // we'll listen to both and merge.
