@@ -159,10 +159,7 @@ async function handleRegister() {
       if (!companySnap.exists()) {
         throw new Error("Company code not found.");
       }
-      // Check if this is the first user in the company (fallback)
-      const q = query(collection(db, "users"), where("companyId", "==", companyId), limit(1));
-      const usersSnap = await getDocs(q);
-      if (usersSnap.empty) role = "super_admin";
+      role = "member";
     }
 
     await setDoc(doc(db, "users", cred.user.uid), {
@@ -243,6 +240,30 @@ const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 async function handleGoogleSignIn() {
+  const isRegisterTab = document.getElementById("tc-register").classList.contains("active");
+
+  // Validate company info if on register tab before opening Google popup
+  if (isRegisterTab) {
+    const mode = document.querySelector('input[name="company-mode"]:checked').value;
+    const companyCode = document.getElementById("reg-company-code").value.trim().toUpperCase();
+    const companyName = document.getElementById("reg-company-name").value.trim();
+    const errEl = document.getElementById("register-error");
+    const errText = document.getElementById("register-error-text");
+
+    if (mode === "join" && !companyCode) {
+      errText.textContent = "Please enter a Company Code before signing in with Google.";
+      errEl.classList.add("visible");
+      return;
+    }
+    if (mode === "create" && !companyName) {
+      errText.textContent = "Please enter a New Company Name before signing in with Google.";
+      errEl.classList.add("visible");
+      return;
+    }
+
+    errEl.classList.remove("visible");
+  }
+
   // Grab whichever Google button is currently visible to show loading
   const btns = document.querySelectorAll(".btn-google");
   btns.forEach((b) => {
@@ -263,8 +284,6 @@ async function handleGoogleSignIn() {
       let companyId = "";
       let role = "member";
       
-      // We check if they were on the register tab to determine their intent
-      const isRegisterTab = document.getElementById("tc-register").classList.contains("active");
       if (isRegisterTab) {
         const mode = document.querySelector('input[name="company-mode"]:checked').value;
         if (mode === "create") {
@@ -279,15 +298,12 @@ async function handleGoogleSignIn() {
           role = "super_admin";
         } else {
           companyId = document.getElementById("reg-company-code").value.trim().toUpperCase();
-          if (companyId) {
-             const companySnap = await getDoc(doc(db, "companies", companyId));
-             if (!companySnap.exists()) companyId = ""; // fallback to empty
-             else {
-               const q = query(collection(db, "users"), where("companyId", "==", companyId), limit(1));
-               const usersSnap = await getDocs(q);
-               if (usersSnap.empty) role = "super_admin";
-             }
+          // Verify company exists
+          const companySnap = await getDoc(doc(db, "companies", companyId));
+          if (!companySnap.exists()) {
+            throw new Error("Company code not found.");
           }
+          role = "member";
         }
       }
 
@@ -313,14 +329,19 @@ async function handleGoogleSignIn() {
     if (err.code !== "auth/popup-closed-by-user") {
       console.error("Google sign-in error:", err);
       // Show error on whichever tab is active
-      const signinErr = document.getElementById("signin-error");
-      const signinErrText = document.getElementById("signin-error-text");
-      if (signinErr && signinErrText) {
-        signinErrText.textContent =
-          err.code === "auth/account-exists-with-different-credential"
-            ? "An account already exists with this email using a different sign-in method."
-            : "Google sign-in failed. Please try again.";
-        signinErr.classList.add("visible");
+      const isRegisterTabErr = document.getElementById("tc-register").classList.contains("active");
+      const errEl = document.getElementById(isRegisterTabErr ? "register-error" : "signin-error");
+      const errText = document.getElementById(isRegisterTabErr ? "register-error-text" : "signin-error-text");
+      
+      if (errEl && errText) {
+        if (err.message === "Company code not found.") {
+          errText.textContent = "Company code not found. Please check your code and try again.";
+        } else if (err.code === "auth/account-exists-with-different-credential") {
+          errText.textContent = "An account already exists with this email using a different sign-in method.";
+        } else {
+          errText.textContent = "Google sign-in failed. Please try again.";
+        }
+        errEl.classList.add("visible");
       }
     }
     btns.forEach((b) => {
@@ -371,6 +392,63 @@ document
 });
 document.getElementById("reset-email").addEventListener("keydown", (e) => {
   if (e.key === "Enter") handlePasswordReset();
+});
+
+// Registration multi-step logic
+document.getElementById("btn-next-step").addEventListener("click", async () => {
+  const mode = document.querySelector('input[name="company-mode"]:checked').value;
+  const companyCode = document.getElementById("reg-company-code").value.trim().toUpperCase();
+  const companyName = document.getElementById("reg-company-name").value.trim();
+  const errEl = document.getElementById("register-error");
+  const errText = document.getElementById("register-error-text");
+  const btn = document.getElementById("btn-next-step");
+
+  if (mode === "join" && !companyCode) {
+    errText.textContent = "Please enter a Company Code.";
+    errEl.classList.add("visible");
+    return;
+  }
+  if (mode === "create" && !companyName) {
+    errText.textContent = "Please enter a New Company Name.";
+    errEl.classList.add("visible");
+    return;
+  }
+
+  errEl.classList.remove("visible");
+
+  if (mode === "join") {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-circle-notch" style="animation:spin 0.8s linear infinite;"></i> Verifying...';
+    try {
+      const companySnap = await getDoc(doc(db, "companies", companyCode));
+      if (!companySnap.exists()) {
+        errText.textContent = "Company code not found. Please check your code.";
+        errEl.classList.add("visible");
+        btn.disabled = false;
+        btn.innerHTML = 'Continue <i class="ph ph-arrow-right"></i>';
+        return;
+      }
+    } catch (err) {
+      console.error("Error checking company code:", err);
+      errText.textContent = "An error occurred while verifying the code.";
+      errEl.classList.add("visible");
+      btn.disabled = false;
+      btn.innerHTML = 'Continue <i class="ph ph-arrow-right"></i>';
+      return;
+    }
+    btn.disabled = false;
+    btn.innerHTML = 'Continue <i class="ph ph-arrow-right"></i>';
+  }
+
+  // Proceed to step 2
+  document.getElementById("reg-step-1").style.display = "none";
+  document.getElementById("reg-step-2").style.display = "block";
+});
+
+document.getElementById("btn-prev-step").addEventListener("click", () => {
+  document.getElementById("register-error").classList.remove("visible");
+  document.getElementById("reg-step-2").style.display = "none";
+  document.getElementById("reg-step-1").style.display = "block";
 });
 
 // Google sign-in buttons (one per tab)
