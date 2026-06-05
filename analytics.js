@@ -132,7 +132,7 @@ function renderKPIs(tasks, prevTasks, now) {
     return d < now;
   }).length;
   const rate = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
-  const members = allUsers.filter((u) => u.role !== "super_admin").length;
+  const members = allUsers.length;
   const activeMembers = allUsers.filter((u) => {
     if (!u.lastActive) return false;
     const d = u.lastActive.toDate ? u.lastActive.toDate() : new Date(u.lastActive);
@@ -141,9 +141,7 @@ function renderKPIs(tasks, prevTasks, now) {
 
   let totalTeamCapacity = 0;
   allUsers.forEach((u) => {
-    if (u.role !== "super_admin") {
-      totalTeamCapacity += (u.weeklyCapacity || 20);
-    }
+    totalTeamCapacity += (u.weeklyCapacity || 20);
   });
 
   let activePoints = 0;
@@ -237,7 +235,7 @@ function renderInsights(tasks, users, now) {
   }
 
   // Workload Insights
-  const members = users.filter(u => u.role !== "super_admin");
+  const members = users;
   const underUtilized = [];
   const overUtilized = [];
   
@@ -528,7 +526,6 @@ function renderLeaderboard(tasks, users) {
   });
 
   const sorted = users
-    .filter((u) => u.role !== "super_admin")
     .map((u) => ({ ...u, score: scores[u.id] || 0 }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 10);
@@ -605,7 +602,7 @@ function renderMemberProductivity(tasks, users, now) {
   const el = document.getElementById("member-productivity");
   if (!el) return;
 
-  const members = users.filter((u) => u.role !== "super_admin");
+  const members = users;
   if (!members.length) {
     el.innerHTML = '<div class="empty-state" style="padding:24px;"><i class="ph ph-users"></i><p>No members yet</p></div>';
     return;

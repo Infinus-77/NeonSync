@@ -54,7 +54,7 @@ function setupListeners() {
 
 function renderCapacityDashboard() {
   // 1. Process Data
-  const members = allUsers.filter(u => u.role !== "super_admin");
+  const members = allUsers;
   const memberStats = members.map(user => {
     const activeTasks = allTasks.filter(t => {
       // Must not be completed
