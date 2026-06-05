@@ -53,7 +53,7 @@ export function renderSidebar(activeItem, user) {
   const navItems = [
     { id: "dashboard",  label: "Dashboard",  icon: "ph-squares-four",    href: "dashboard.html" },
     { id: "tasks",      label: "Tasks",       icon: "ph-check-square",    href: "tasks.html"     },
-    { id: "calendar",   label: "Calendar (beta)",    icon: "ph-calendar",        href: "calendar.html"  },
+    { id: "calendar",   label: "Calendar",    icon: "ph-calendar",        href: "calendar.html"  },
     { id: "chat",       label: "Chat",        icon: "ph-chat-circle-dots",href: "chat.html"      },
     { id: "users",     label: "Users",     icon: "ph-users",     href: "users.html"     },
     ...(isAdmin ? [
@@ -61,7 +61,7 @@ export function renderSidebar(activeItem, user) {
       { id: "analytics", label: "Analytics", icon: "ph-chart-bar", href: "analytics.html" },
     ] : []),
     ...(isSuperAdmin ? [
-      { id: "ideas",     label: "Idea Library (beta)", icon: "ph-lightbulb", href: "ideas.html" },
+      { id: "ideas",     label: "Idea Library", icon: "ph-lightbulb", href: "ideas.html" },
     ] : []),
     { id: "company", label: "Company Profile", icon: "ph-buildings", href: "company.html" },
     { id: "profile", label: "Profile", icon: "ph-user-circle", href: `profile.html?uid=${user.id}` },

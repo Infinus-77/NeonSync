@@ -1,4 +1,4 @@
-// ideas.js — NeonSync Idea Library (beta)
+// ideas.js — NeonSync Idea Library
 // Superadmin-only CRUD for ideas with starring, search, and category filtering.
 
 import { auth, db } from "./firebase-config.js";

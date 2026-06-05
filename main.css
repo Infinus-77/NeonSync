@@ -2184,23 +2184,10 @@ input:-webkit-autofill:focus {
 }
 
 /* ═══════════════════════════════
-   IDEA LIBRARY (beta)
+   IDEA LIBRARY
 ═══════════════════════════════ */
 
-/* Beta tag */
-.beta-tag {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--amber);
-  background: var(--amber-light);
-  border: 1px solid rgba(255,184,0,0.2);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  vertical-align: middle;
-  margin-left: 6px;
-}
+
 
 /* Toolbar */
 .ideas-toolbar {
