@@ -60,7 +60,11 @@ function renderCapacityDashboard() {
       // Must not be completed
       if (t.status === "completed") return false;
       // Must be assigned to user, or be a common task
-      if ((t.assignedTo && t.assignedTo.includes(user.id)) || (t.isCommonTask && t.status === "pending")) return true;
+      if ((t.assignedTo && t.assignedTo.includes(user.id)) || (t.isCommonTask && t.status === "pending")) {
+        const uProg = t.userProgress && t.userProgress[user.id];
+        if (uProg && (uProg.status === "completed" || uProg.completionPercentage === 100)) return false;
+        return true;
+      }
       return false;
     });
 
@@ -221,7 +225,7 @@ function renderChart(memberStats) {
       scales: {
         x: { 
           stacked: true, 
-          ticks: { color: "#8888AA", font: { size: 11 } },
+          ticks: { color: "#8888AA", font: { size: 11 }, maxRotation: 90, minRotation: 90, autoSkip: false },
           grid: { display: false }
         },
         y: { 

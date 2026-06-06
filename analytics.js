@@ -244,7 +244,9 @@ function renderInsights(tasks, users, now) {
     const capacity = u.weeklyCapacity || 20;
     let activePoints = 0;
     assigned.forEach(t => {
-      if (t.status !== "completed") activePoints += (t.weight || 3);
+      const uProg = t.userProgress && t.userProgress[u.id];
+      const isPersonallyCompleted = uProg && (uProg.status === "completed" || uProg.completionPercentage === 100);
+      if (t.status !== "completed" && !isPersonallyCompleted) activePoints += (t.weight || 3);
     });
     const util = Math.round((activePoints / capacity) * 100);
     if (util < 30) underUtilized.push(u.displayName ? u.displayName.split(" ")[0] : "User");
@@ -330,7 +332,7 @@ function renderTimeline(tasks, days) {
         tooltip: { backgroundColor: "#1a1f2e", borderColor: "rgba(255,255,255,0.1)", borderWidth: 1, titleColor: "#ecedf6", bodyColor: "#a9abb3" },
       },
       scales: {
-        x: { ticks: { color: "#9ca3af", font: { size: 10 }, maxRotation: 45 }, grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") } },
+        x: { ticks: { color: "#9ca3af", font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }, grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") } },
         y: { ticks: { color: "#9ca3af", stepSize: 1 }, grid: { color: (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)") }, beginAtZero: true },
       },
     },
@@ -613,6 +615,8 @@ function renderMemberProductivity(tasks, users, now) {
     const completed = assigned.filter((t) => t.status === "completed").length;
     const active = assigned.filter((t) => {
       if (t.status === "completed") return false;
+      const uProg = t.userProgress && t.userProgress[u.id];
+      if (uProg && (uProg.status === "completed" || uProg.completionPercentage === 100)) return false;
       const d = t.deadline
         ? t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline)
         : null;
@@ -633,7 +637,9 @@ function renderMemberProductivity(tasks, users, now) {
     const capacity = u.weeklyCapacity || 20;
     let activePoints = 0;
     assigned.forEach((t) => {
-      if (t.status !== "completed") {
+      const uProg = t.userProgress && t.userProgress[u.id];
+      const isPersonallyCompleted = uProg && (uProg.status === "completed" || uProg.completionPercentage === 100);
+      if (t.status !== "completed" && !isPersonallyCompleted) {
         activePoints += (t.weight || 3);
       }
     });
