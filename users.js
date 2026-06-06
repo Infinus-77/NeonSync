@@ -200,9 +200,8 @@ function renderUsers(users) {
         ((currentUser.role === "super_admin" && u.role !== "super_admin") ||
           (currentUser.role === "admin" && (u.role === "member" || u.role === "college_ambassador")));
 
-      const assignedCount = allTasks.filter(t => t.isCommonTask || (t.assignedTo || []).includes(u.id)).length;
+      const assignedCount = allTasks.filter(t => (t.assignedTo || []).includes(u.id) || (t.isCommonTask && t.status === "pending")).length;
       const completedCount = allTasks.filter(t => {
-        if (t.isCommonTask) return t.status === "completed";
         if ((t.assignedTo || []).includes(u.id)) {
           const uStat = (t.userProgress && t.userProgress[u.id]?.status) || t.status || "pending";
           return uStat === "completed";

@@ -50,8 +50,12 @@ export async function checkDeadlineAlerts(user) {
       const seen = new Set();
       [...assignedSnap.docs, ...commonSnap.docs].forEach((d) => {
         if (!seen.has(d.id)) {
+          const t = { id: d.id, ...d.data() };
+          if (t.isCommonTask && t.status !== "pending" && !(t.assignedTo || []).includes(user.id)) {
+            return;
+          }
           seen.add(d.id);
-          tasks.push({ id: d.id, ...d.data() });
+          tasks.push(t);
         }
       });
     } else {

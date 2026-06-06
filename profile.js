@@ -96,7 +96,7 @@ function bindUserTasks(targetUid) {
     const q = query(collection(db, "tasks"), where("companyId", "==", currentUser.companyId));
     unsubUserTasks1 = onSnapshot(q, (snap) => {
       const tasksArr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const filtered = tasksArr.filter(t => t.isCommonTask || (t.assignedTo && t.assignedTo.includes(targetUid)));
+      const filtered = tasksArr.filter(t => (t.assignedTo && t.assignedTo.includes(targetUid)) || (t.isCommonTask && t.status === "pending"));
       updateCharts(filtered);
     }, (err) => {
       console.warn("Error fetching tasks in real-time:", err);
@@ -112,7 +112,10 @@ function bindUserTasks(targetUid) {
         const tasksMap = new Map();
         assignedTasks.forEach(t => tasksMap.set(t.id, t));
         commonTasks.forEach(t => tasksMap.set(t.id, t));
-        updateCharts(Array.from(tasksMap.values()));
+        const filteredTasks = Array.from(tasksMap.values()).filter(t => 
+          (t.assignedTo || []).includes(targetUid) || (t.isCommonTask && t.status === "pending")
+        );
+        updateCharts(filteredTasks);
       }
     };
 

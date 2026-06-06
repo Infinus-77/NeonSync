@@ -60,7 +60,7 @@ function renderCapacityDashboard() {
       // Must not be completed
       if (t.status === "completed") return false;
       // Must be assigned to user, or be a common task
-      if (t.isCommonTask || (t.assignedTo && t.assignedTo.includes(user.id))) return true;
+      if ((t.assignedTo && t.assignedTo.includes(user.id)) || (t.isCommonTask && t.status === "pending")) return true;
       return false;
     });
 

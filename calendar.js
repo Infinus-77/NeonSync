@@ -122,6 +122,9 @@ function loadTasks() {
       const seen = new Set();
       allTasks = [...assignedTasks, ...commonTasks].filter((t) => {
         if (seen.has(t.id)) return false;
+        if (t.isCommonTask && t.status !== "pending" && !(t.assignedTo || []).includes(currentUser.id)) {
+          return false;
+        }
         seen.add(t.id);
         return true;
       });

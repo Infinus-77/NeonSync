@@ -240,7 +240,7 @@ function renderInsights(tasks, users, now) {
   const overUtilized = [];
   
   members.forEach(u => {
-    const assigned = tasks.filter(t => t.isCommonTask || (t.assignedTo || []).includes(u.id));
+    const assigned = tasks.filter(t => (t.assignedTo || []).includes(u.id) || (t.isCommonTask && t.status === "pending"));
     const capacity = u.weeklyCapacity || 20;
     let activePoints = 0;
     assigned.forEach(t => {
@@ -609,7 +609,7 @@ function renderMemberProductivity(tasks, users, now) {
   }
 
   const memberStats = members.map((u) => {
-    const assigned = tasks.filter((t) => t.isCommonTask || (t.assignedTo || []).includes(u.id));
+    const assigned = tasks.filter((t) => (t.assignedTo || []).includes(u.id) || (t.isCommonTask && t.status === "pending"));
     const completed = assigned.filter((t) => t.status === "completed").length;
     const active = assigned.filter((t) => {
       if (t.status === "completed") return false;

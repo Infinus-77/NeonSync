@@ -90,6 +90,9 @@ requireAuth(async (user) => {
       const seen = new Set();
       allTasks = [...assignedTasks, ...commonTasks].filter((t) => {
         if (seen.has(t.id)) return false;
+        if (t.isCommonTask && t.status !== "pending" && !(t.assignedTo || []).includes(user.id)) {
+          return false;
+        }
         seen.add(t.id);
         return true;
       });
@@ -147,7 +150,7 @@ function renderDashboard(tasks, user) {
   let myTasks = tasks;
   if (user.role === "member" || user.role === "college_ambassador") {
     myTasks = tasks.filter(
-      (t) => (t.assignedTo || []).includes(user.id) || t.isCommonTask,
+      (t) => (t.assignedTo || []).includes(user.id) || (t.isCommonTask && t.status === "pending"),
     );
   }
 

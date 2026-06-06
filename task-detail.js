@@ -118,7 +118,7 @@ function renderTask(t) {
     ${t.isCommonTask ? '<span class="badge" style="background:rgba(139,92,246,0.14);color:var(--purple);border:1px solid rgba(139,92,246,0.30);">Common Task</span>' : ""}
   `;
 
-  const isAssignedInit = (t.assignedTo || []).includes(currentUser.id);
+  const isAssignedInit = (t.assignedTo || []).includes(currentUser.id) || (t.isCommonTask && t.status === "pending");
   const myProgInit = isAssignedInit && t.userProgress && t.userProgress[currentUser.id] ? t.userProgress[currentUser.id] : null;
   
   const statusSel = document.getElementById("status-select");
@@ -187,7 +187,7 @@ function renderTask(t) {
     })
     .join("");
 
-  const isAssigned = (t.assignedTo || []).includes(currentUser.id);
+  const isAssigned = (t.assignedTo || []).includes(currentUser.id) || (t.isCommonTask && t.status === "pending");
   const myProg = isAssigned && t.userProgress && t.userProgress[currentUser.id] ? t.userProgress[currentUser.id] : null;
   const pct = myProg ? (myProg.completionPercentage || 0) : (t.completionPercentage || 0);
   
@@ -323,13 +323,20 @@ function renderAttachments(attachments) {
 // Status update — writes activity log every time
 window.updateStatus = async (newStatus) => {
   if (!taskData) return;
-  const isAssigned = (taskData.assignedTo || []).includes(currentUser.id);
-  const myProg = isAssigned && taskData.userProgress && taskData.userProgress[currentUser.id] ? taskData.userProgress[currentUser.id] : null;
+  let isAssigned = (taskData.assignedTo || []).includes(currentUser.id);
+  const isCommonPending = !isAssigned && taskData.isCommonTask && taskData.status === "pending";
+  const myProg = (isAssigned || isCommonPending) && taskData.userProgress && taskData.userProgress[currentUser.id] ? taskData.userProgress[currentUser.id] : null;
   const old = myProg ? myProg.status : taskData.status;
   if (old === newStatus) return;
 
   try {
     let updates = { updatedAt: serverTimestamp() };
+    
+    if (isCommonPending) {
+      updates.assignedTo = arrayUnion(currentUser.id);
+      taskData.assignedTo = [...(taskData.assignedTo || []), currentUser.id];
+      isAssigned = true;
+    }
     
     if (isAssigned) {
       updates[`userProgress.${currentUser.id}.status`] = newStatus;
@@ -555,8 +562,15 @@ window.commitFromInput = async (val) => {
 window.saveCompletion = async () => {
   const pct = parseInt(document.getElementById("completion-slider").value);
   try {
-    const isAssigned = (taskData.assignedTo || []).includes(currentUser.id);
+    let isAssigned = (taskData.assignedTo || []).includes(currentUser.id);
+    const isCommonPending = !isAssigned && taskData.isCommonTask && taskData.status === "pending";
     let updates = { updatedAt: serverTimestamp() };
+    
+    if (isCommonPending) {
+      updates.assignedTo = arrayUnion(currentUser.id);
+      taskData.assignedTo = [...(taskData.assignedTo || []), currentUser.id];
+      isAssigned = true;
+    }
     
     if (isAssigned) {
       updates[`userProgress.${currentUser.id}.completionPercentage`] = pct;
