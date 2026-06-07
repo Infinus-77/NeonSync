@@ -487,7 +487,7 @@ window.saveUserProgressOverride = async () => {
     }
     
     updates.completionPercentage = assignees.length > 0 ? Math.round(totalPct / assignees.length) : pct;
-    updates.status = allCompleted ? "completed" : (taskData.status === "pending" && pct > 0 ? "in-progress" : taskData.status);
+    updates.status = allCompleted ? "completed" : (taskData.status === "completed" ? "in-progress" : (taskData.status === "pending" && pct > 0 ? "in-progress" : taskData.status));
     
     await updateDoc(doc(db, "tasks", taskId), updates);
     closeModal("user-progress-modal");
@@ -611,11 +611,12 @@ window.saveCompletion = async () => {
       }
       
       updates.completionPercentage = assignees.length > 0 ? Math.round(totalPct / assignees.length) : pct;
-      updates.status = allCompleted ? "completed" : (taskData.status === "pending" && pct > 0 ? "in-progress" : taskData.status);
+      updates.status = allCompleted ? "completed" : (taskData.status === "completed" ? "in-progress" : (taskData.status === "pending" && pct > 0 ? "in-progress" : taskData.status));
       
     } else {
       updates.completionPercentage = pct;
       if (pct === 100) updates.status = "completed";
+      else if (taskData.status === "completed" || (taskData.status === "pending" && pct > 0)) updates.status = "in-progress";
     }
 
     await updateDoc(doc(db, "tasks", taskId), updates);

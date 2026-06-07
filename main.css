@@ -2556,3 +2556,13 @@ input:-webkit-autofill:focus {
     pointer-events: auto;
   }
 }
+
+/* ═══════════════════════════════
+   COMPLETED TASKS
+═══════════════════════════════ */
+.task-completed {
+  background: rgba(16, 185, 129, 0.05) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+  overflow: hidden;
+  position: relative;
+}

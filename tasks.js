@@ -417,13 +417,15 @@ function renderTasks(tasks) {
         </div>`
           : "";
 
+      const isCompleted = effStatus === "completed";
+
       return `
-      <div class="task-card" onclick="window.location.href='task-detail.html?id=${t.id}'"
+      <div class="task-card ${isCompleted ? 'task-completed' : ''}" onclick="window.location.href='task-detail.html?id=${t.id}'"
         data-testid="task-card-${t.id}">
 
         <!-- Header: title + priority -->
-        <div class="task-card-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-          <div class="task-card-title" style="flex:1;">${sanitizeHtml(t.title)}</div>
+        <div class="task-card-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; position:relative; z-index:2;">
+          <div class="task-card-title" style="flex:1; ${isCompleted ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${sanitizeHtml(t.title)}</div>
           <div style="display:flex; align-items:center; gap:6px;" onclick="event.stopPropagation()">
             ${priorityBadge(t.priority || "medium")}
             <button class="btn-share-icon" onclick="shareTaskLinkFromCard(event, '${t.id}')" 
@@ -437,7 +439,7 @@ function renderTasks(tasks) {
         </div>
 
         <!-- Description snippet — flex:1 makes this grow to fill space, pushing footer down -->
-        <div style="flex:1;min-height:0;">
+        <div style="flex:1;min-height:0; position:relative; z-index:2;">
           ${
             t.description
               ? `<div style="font-size:12px;color:var(--text-muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${sanitizeHtml(t.description)}</div>`
@@ -446,14 +448,16 @@ function renderTasks(tasks) {
         </div>
 
         <!-- Status + tags -->
-        <div class="task-card-meta">
+        <div class="task-card-meta" style="position:relative; z-index:2; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
           ${statusBadge(displayStatus)}
           ${activeTag}
           ${tagChips}
+          ${isCompleted ? '<span style="color: #047857; display:flex; align-items:center; font-size:15px; margin-left:2px;" title="Completed"><i class="ph-fill ph-check-circle"></i></span>' : ''}
         </div>
 
         <!-- Progress bar -->
-        <div>
+        ${!isCompleted ? `
+        <div style="position:relative; z-index:2;">
           <div style="display:flex;justify-content:space-between;margin-bottom:5px;
             font-size:11px;color:var(--text-muted);">
             <span>Progress</span>
@@ -463,9 +467,10 @@ function renderTasks(tasks) {
             <div class="progress-bar-fill" style="width:${pct}%"></div>
           </div>
         </div>
+        ` : ''}
 
         <!-- Footer: deadline + avatars -->
-        <div class="task-card-footer">
+        <div class="task-card-footer" style="position:relative; z-index:2;">
           <div class="task-deadline ${isOverdue ? "overdue" : ""}">
             <i class="ph ph-calendar-blank"></i>
             ${deadlineStr}
