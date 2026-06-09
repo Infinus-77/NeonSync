@@ -200,6 +200,46 @@
 
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- View Idea Modal -->
+    <div class="modal-overlay" id="view-idea-modal">
+      <div class="modal idea-modal-body">
+        <div class="modal-header">
+          <span class="modal-title" id="view-idea-title" style="word-break: break-word;"></span>
+          <button class="modal-close" id="view-idea-close-btn">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <div style="padding-top: 8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
+            <span class="idea-category-pill" id="view-idea-category"></span>
+            <div style="display:flex; align-items:center; gap: 8px;" id="view-idea-meta"></div>
+          </div>
+
+          <div class="form-group">
+            <p id="view-idea-description" style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; word-break: break-word;"></p>
+          </div>
+
+          <div class="form-group" id="view-idea-links-container" style="display:none;">
+            <label class="form-label" style="margin-bottom: 8px;">
+              <i class="ph ph-link" style="margin-right:4px;"></i>
+              Reference Links
+            </label>
+            <div id="view-idea-links" class="idea-card-links"></div>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top:24px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+            <button type="button" class="btn btn-secondary" id="view-idea-delete-btn" style="color: var(--danger); border-color: rgba(239,68,68,0.2); background: rgba(239,68,68,0.05);">
+              <i class="ph ph-trash"></i> Delete
+            </button>
+            <button type="button" class="btn btn-primary" id="view-idea-edit-btn">
+              <i class="ph ph-pencil-simple"></i> Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="./ideas.js"></script>
 
   </body>

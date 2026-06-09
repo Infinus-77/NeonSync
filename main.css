@@ -2276,7 +2276,7 @@ input:-webkit-autofill:focus {
   flex-direction: column;
   gap: 10px;
   transition: transform 0.22s var(--ease-out), box-shadow 0.22s ease, border-color 0.22s ease;
-  cursor: default;
+  cursor: pointer;
 }
 .idea-card:hover {
   transform: translateY(-3px);
@@ -2357,7 +2357,7 @@ input:-webkit-autofill:focus {
   color: var(--text-secondary);
   line-height: 1.55;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -2381,43 +2381,7 @@ input:-webkit-autofill:focus {
   white-space: nowrap;
 }
 
-/* Card action buttons (edit/delete) */
-.idea-card-actions {
-  position: absolute;
-  top: 12px;
-  right: 50px;
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.18s ease;
-}
-.idea-card:hover .idea-card-actions {
-  opacity: 1;
-  pointer-events: auto;
-}
-.idea-action-btn {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: var(--bg-input);
-  color: var(--text-muted);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-.idea-action-btn.edit:hover {
-  background: var(--blue-light);
-  color: var(--blue);
-}
-.idea-action-btn.delete:hover {
-  background: var(--danger-light);
-  color: var(--danger);
-}
+
 
 /* Modal body */
 .idea-modal-body {
@@ -2551,10 +2515,7 @@ input:-webkit-autofill:focus {
   .ideas-grid {
     grid-template-columns: 1fr;
   }
-  .idea-card-actions {
-    opacity: 1;
-    pointer-events: auto;
-  }
+
 }
 
 /* ═══════════════════════════════

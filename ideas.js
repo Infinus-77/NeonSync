@@ -117,16 +117,6 @@ function buildCard(idea) {
         ? `<p class="idea-card-desc">${sanitizeHtml(idea.description)}</p>`
         : ""}
 
-      ${idea.links && idea.links.length > 0 ? `
-        <div class="idea-card-links">
-          ${idea.links.map((lnk) => `
-            <a href="${sanitizeHtml(lnk.url)}" target="_blank" rel="noopener noreferrer" class="idea-link-chip" title="${sanitizeHtml(lnk.url)}">
-              <i class="ph ph-arrow-square-out"></i>
-              ${sanitizeHtml(lnk.label || _extractDomain(lnk.url))}
-            </a>
-          `).join("")}
-        </div>` : ""}
-
       <div class="idea-card-footer">
         <span class="idea-card-meta">
           ${avatarEl}
@@ -136,15 +126,6 @@ function buildCard(idea) {
           <i class="ph ph-clock" style="font-size:12px;"></i>
           ${timeAgo(idea.createdAt)}
         </span>
-      </div>
-
-      <div class="idea-card-actions">
-        <button class="idea-action-btn edit" data-id="${idea.id}" title="Edit idea">
-          <i class="ph ph-pencil-simple"></i>
-        </button>
-        <button class="idea-action-btn delete" data-id="${idea.id}" title="Delete idea">
-          <i class="ph ph-trash"></i>
-        </button>
       </div>
     </div>`;
 }
@@ -280,10 +261,14 @@ function bindUI() {
   // Modal close
   document.getElementById("idea-modal-close-btn")?.addEventListener("click", closeModal);
   document.getElementById("idea-cancel-btn")?.addEventListener("click", closeModal);
+  document.getElementById("view-idea-close-btn")?.addEventListener("click", closeViewModal);
 
   // Click overlay to close
   document.getElementById("idea-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "idea-modal") closeModal();
+  });
+  document.getElementById("view-idea-modal")?.addEventListener("click", (e) => {
+    if (e.target.id === "view-idea-modal") closeViewModal();
   });
 
   // Form submit
@@ -327,11 +312,22 @@ function bindUI() {
 
   // Escape closes modal
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
+    if (e.key === "Escape") {
+      closeModal();
+      closeViewModal();
+    }
   });
 }
 
 function bindCardEvents() {
+  // Open view modal on click
+  document.querySelectorAll(".idea-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      const idea = allIdeas.find((i) => i.id === card.dataset.id);
+      if (idea) openViewModal(idea);
+    });
+  });
+
   // Star buttons
   document.querySelectorAll(".idea-star-btn").forEach((btn) => {
     btn.addEventListener("click", (e) => {
@@ -339,23 +335,70 @@ function bindCardEvents() {
       toggleStar(btn.dataset.id);
     });
   });
+}
 
-  // Edit buttons
-  document.querySelectorAll(".idea-action-btn.edit").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const idea = allIdeas.find((i) => i.id === btn.dataset.id);
-      if (idea) openModal(idea);
-    });
+// ─── View Modal Helpers ───────────────────────────────────────────────────────
+
+function openViewModal(idea) {
+  const overlay = document.getElementById("view-idea-modal");
+  if (!overlay) return;
+
+  document.getElementById("view-idea-title").textContent = idea.title || "";
+  
+  const catEl = document.getElementById("view-idea-category");
+  catEl.textContent = idea.category || "Other";
+  catEl.style.setProperty("--pill-color", getCategoryColor(idea.category));
+
+  const u = allUsers[idea.createdBy];
+  const avatarEl = `<div style="width:18px;height:18px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#000;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 18)}</div>`;
+  
+  document.getElementById("view-idea-meta").innerHTML = `
+    ${avatarEl}
+    <span style="font-size:12px; color:var(--text-muted);">${sanitizeHtml(idea.creatorName || "Unknown")}</span>
+    <span style="font-size:12px; color:var(--text-muted); margin-left:4px;"><i class="ph ph-clock"></i> ${timeAgo(idea.createdAt)}</span>
+  `;
+
+  document.getElementById("view-idea-description").textContent = idea.description || "";
+
+  const linksContainer = document.getElementById("view-idea-links-container");
+  const linksDiv = document.getElementById("view-idea-links");
+  if (idea.links && idea.links.length > 0) {
+    linksContainer.style.display = "block";
+    linksDiv.innerHTML = idea.links.map((lnk) => `
+      <a href="${sanitizeHtml(lnk.url)}" target="_blank" rel="noopener noreferrer" class="idea-link-chip" title="${sanitizeHtml(lnk.url)}">
+        <i class="ph ph-arrow-square-out"></i>
+        ${sanitizeHtml(lnk.label || _extractDomain(lnk.url))}
+      </a>
+    `).join("");
+  } else {
+    linksContainer.style.display = "none";
+    linksDiv.innerHTML = "";
+  }
+
+  const editBtn = document.getElementById("view-idea-edit-btn");
+  const deleteBtn = document.getElementById("view-idea-delete-btn");
+
+  // Remove old listeners by replacing nodes
+  const newEditBtn = editBtn.cloneNode(true);
+  editBtn.parentNode.replaceChild(newEditBtn, editBtn);
+  const newDeleteBtn = deleteBtn.cloneNode(true);
+  deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+
+  newEditBtn.addEventListener("click", () => {
+    closeViewModal();
+    openModal(idea);
   });
 
-  // Delete buttons
-  document.querySelectorAll(".idea-action-btn.delete").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      deleteIdea(btn.dataset.id);
-    });
+  newDeleteBtn.addEventListener("click", () => {
+    closeViewModal();
+    deleteIdea(idea.id);
   });
+
+  overlay.classList.add("active");
+}
+
+function closeViewModal() {
+  document.getElementById("view-idea-modal")?.classList.remove("active");
 }
 
 // ─── Link Row Helpers ─────────────────────────────────────────────────────────

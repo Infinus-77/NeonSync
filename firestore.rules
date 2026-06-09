@@ -20,12 +20,12 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return isAuthenticated() && getRole() == 'super_admin';
+      return isAuthenticated() && getRole() in ['super_admin', 'Super Admin', 'SUPER_ADMIN'];
     }
 
     // isAdmin() is true for both 'super_admin' and 'admin' roles.
     function isAdmin() {
-      return isAuthenticated() && getRole() in ['super_admin', 'admin'];
+      return isAuthenticated() && getRole() in ['super_admin', 'admin', 'Admin', 'Super Admin', 'SUPER_ADMIN', 'ADMIN'];
     }
 
     function isOwner(userId) {

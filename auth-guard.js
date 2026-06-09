@@ -125,7 +125,8 @@ export function requireAuth(callback, allowedRoles = []) {
       }
 
       // Treat undefined/null/empty roles as 'member' by default
-      const effectiveRole = user.role || "member";
+      const effectiveRole = (user.role || "member").toLowerCase();
+      user.role = effectiveRole; // Normalize the object so other scripts can rely on it being lowercase
 
       // Role check
       if (allowedRoles.length && !allowedRoles.includes(effectiveRole)) {
