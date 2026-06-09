@@ -123,10 +123,12 @@ function updateUserAnalytics() {
   let superAdmins = 0;
   let admins = 0;
   let members = 0;
+  let collegeAmbassadors = 0;
   
   allUsers.forEach(u => {
     if (u.role === 'super_admin') superAdmins++;
     else if (u.role === 'admin') admins++;
+    else if (u.role === 'college_ambassador') collegeAmbassadors++;
     else members++;
   });
   
@@ -134,6 +136,8 @@ function updateUserAnalytics() {
   document.getElementById("stat-super-admins").textContent = superAdmins;
   document.getElementById("stat-admins").textContent = admins;
   document.getElementById("stat-members").textContent = members;
+  const caEl = document.getElementById("stat-college-ambassadors");
+  if (caEl) caEl.textContent = collegeAmbassadors;
   
   container.style.display = "grid";
 }

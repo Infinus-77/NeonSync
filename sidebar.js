@@ -59,8 +59,6 @@ export function renderSidebar(activeItem, user) {
     ...(isAdmin ? [
       { id: "capacity",  label: "Capacity",  icon: "ph-chart-polar", href: "capacity.html" },
       { id: "analytics", label: "Analytics", icon: "ph-chart-bar", href: "analytics.html" },
-    ] : []),
-    ...(isSuperAdmin ? [
       { id: "ideas",     label: "Idea Library", icon: "ph-lightbulb", href: "ideas.html" },
     ] : []),
     { id: "company", label: "Company Profile", icon: "ph-buildings", href: "company.html" },

@@ -145,8 +145,8 @@ service cloud.firestore {
 
     // ─── Idea Library ──────────────────────────────────────────────────────────
     match /ideas/{ideaId} {
-      allow read, write: if isSameCompany(resource.data.get('companyId', '')) && isSuperAdmin();
-      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && isSuperAdmin();
+      allow read, write: if isSameCompany(resource.data.get('companyId', '')) && isAdmin();
+      allow create: if isSameCompany(request.resource.data.get('companyId', '')) && isAdmin();
     }
 
     // ─── Default deny ──────────────────────────────────────────────────────────

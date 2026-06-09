@@ -1,5 +1,5 @@
 // ideas.js — NeonSync Idea Library
-// Superadmin-only CRUD for ideas with starring, search, and category filtering.
+// Admin-only CRUD for ideas with starring, search, and category filtering.
 
 import { auth, db } from "./firebase-config.js";
 import {
@@ -28,7 +28,7 @@ let starFilterActive = false;
 let allUsers = {};
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
-requireAuth(boot, ["super_admin"]);
+requireAuth(boot, ["super_admin", "admin"]);
 
 async function boot(user) {
   currentUser = user;
