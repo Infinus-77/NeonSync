@@ -23,10 +23,14 @@
     <style>
 
 
-      /* Task detail page header: wrap on mobile */
+      /* Task detail page header: nowrap on desktop, wrap on mobile */
+      @media (min-width: 768px) {
+        .page-header { flex-wrap: nowrap !important; align-items: flex-start !important; }
+      }
       @media (max-width: 767px) {
+        .page-header { flex-wrap: wrap !important; }
         .page-header > div:first-child { flex-wrap: wrap; gap: 8px; }
-        #task-action-btns { flex-wrap: wrap; gap: 6px; }
+        #task-action-btns { flex-wrap: wrap; gap: 6px; margin-top: 0 !important; }
       }
 
       /* Edit modal: inline grid collapses on mobile */
@@ -69,17 +73,18 @@
       <div id="sidebar" class="sidebar"></div>
 
       <main class="main-content">
-        <div class="page-header">
-          <div style="display: flex; align-items: center; gap: 12px">
-            <a href="tasks.html" class="btn btn-secondary btn-sm">
+        <div class="page-header" style="flex-wrap: nowrap; align-items: flex-start;">
+          <div style="display: flex; align-items: flex-start; gap: 12px; min-width: 0; flex: 1;">
+            <a href="tasks.html" class="btn btn-secondary btn-sm" style="flex-shrink: 0; margin-top: 8px;">
               <i class="ph ph-arrow-left"></i> Back
             </a>
 
-            <div>
+            <div style="min-width: 0;">
               <h1
                 class="page-title"
                 id="task-title-display"
                 data-testid="task-title-display"
+                style="word-wrap: break-word; line-height: 1.2;"
               >
                 Loading...
               </h1>
@@ -87,7 +92,7 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 8px" id="task-action-btns">
+          <div style="display: flex; gap: 8px; flex-shrink: 0; margin-top: 8px; flex-wrap: wrap; justify-content: flex-end;" id="task-action-btns">
             <button
               class="btn btn-secondary btn-sm"
               id="share-task-btn"
@@ -103,6 +108,15 @@
               style="display: none"
             >
               <i class="ph ph-pencil"></i> Edit
+            </button>
+
+            <button
+              class="btn btn-secondary btn-sm"
+              id="toggle-close-task-btn"
+              onclick="toggleCloseTask()"
+              style="display: none"
+            >
+              <i class="ph ph-lock-key" id="toggle-close-icon"></i> <span id="toggle-close-text">Close Task</span>
             </button>
 
             <button

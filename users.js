@@ -159,10 +159,10 @@ window.filterUsers = () => {
 
   // Sorting logic
   if (sortOption === "role") {
-    const roleWeight = { super_admin: 1, admin: 2, member: 3, college_ambassador: 3 };
+    const roleWeight = { super_admin: 1, admin: 2, member: 3, college_ambassador: 4 };
     users.sort((a, b) => {
-      const wA = roleWeight[a.role] || 4;
-      const wB = roleWeight[b.role] || 4;
+      const wA = roleWeight[a.role] || 5;
+      const wB = roleWeight[b.role] || 5;
       if (wA !== wB) return wA - wB;
       return (a.displayName || "").localeCompare(b.displayName || "");
     });
@@ -175,7 +175,11 @@ window.filterUsers = () => {
   } else if (sortOption === "oldest") {
     users.sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
   } else if (sortOption === "active") {
-    users.sort((a, b) => (b.lastActive?.toMillis?.() ?? 0) - (a.lastActive?.toMillis?.() ?? 0));
+    users.sort((a, b) => {
+      const activeA = (a.lastActive?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0);
+      const activeB = (b.lastActive?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0);
+      return activeB - activeA;
+    });
   }
 
   // Always pin current user to the top
@@ -245,8 +249,8 @@ function renderUsers(users) {
           <div style="width:1px;background:var(--border-subtle);flex-shrink:0;"></div>
           ` : ""}
           <div style="flex:1;text-align:center;">
-            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${u.lastActive ? timeAgo(u.lastActive).replace('ago','') : "---"}</div>
-            <div>Active</div>
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${formatActiveTime(u.createdAt, u.lastActive)}</div>
+            <div>Time Active</div>
           </div>
         </div>
         
@@ -264,6 +268,23 @@ function renderUsers(users) {
       </div>`;
     })
     .join("");
+}
+
+// ─── Formatting Helpers ────────────────────────────────────────────────────────
+
+function formatActiveTime(createdAt, lastActive) {
+  if (!createdAt || !lastActive) return "---";
+  const c = createdAt.toMillis ? createdAt.toMillis() : new Date(createdAt).getTime();
+  const l = lastActive.toMillis ? lastActive.toMillis() : new Date(lastActive).getTime();
+  const ms = l - c;
+  if (ms < 0) return "0s";
+  const diff = Math.floor(ms / 1000);
+  if (diff < 60) return `${diff}s`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)}d`;
+  if (diff < 31536000) return `${Math.floor(diff / 2592000)}mo`;
+  return `${Math.floor(diff / 31536000)}y`;
 }
 
 // ─── FIX: Create user using secondary app - does NOT sign out current admin ───

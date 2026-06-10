@@ -119,15 +119,16 @@ function renderKPIs(tasks, prevTasks, now) {
     const assigneeList = t.assignedTo || [];
     if (assigneeList.length === 0) return false;
     if (t.status === "completed") return false;
+    if (t.isClosed) return false;
     return true;
   }).length;
   const overdue = tasks.filter((t) => {
-    if (!t.deadline || t.status === "completed") return false;
+    if (!t.deadline || t.status === "completed" || t.isClosed) return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
     return d < now;
   }).length;
   const prevOverdue = prevTasks.filter((t) => {
-    if (!t.deadline || t.status === "completed") return false;
+    if (!t.deadline || t.status === "completed" || t.isClosed) return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
     return d < now;
   }).length;
@@ -147,7 +148,7 @@ function renderKPIs(tasks, prevTasks, now) {
   let activePoints = 0;
   tasks.forEach((t) => {
     const assigneeList = t.assignedTo || [];
-    if (assigneeList.length > 0 && t.status !== "completed") {
+    if (assigneeList.length > 0 && t.status !== "completed" && !t.isClosed) {
       activePoints += (t.weight || 3);
     }
   });
@@ -202,13 +203,13 @@ function renderInsights(tasks, users, now) {
   const completed = tasks.filter((t) => t.status === "completed").length;
   const rate = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
   const overdue = tasks.filter((t) => {
-    if (!t.deadline || t.status === "completed") return false;
+    if (!t.deadline || t.status === "completed" || t.isClosed) return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
     return d < now;
   }).length;
-  const critical = tasks.filter((t) => t.priority === "critical" && t.status !== "completed").length;
-  const unassigned = tasks.filter((t) => !t.assignedTo?.length).length;
-  const review = tasks.filter((t) => t.status === "review").length;
+  const critical = tasks.filter((t) => t.priority === "critical" && t.status !== "completed" && !t.isClosed).length;
+  const unassigned = tasks.filter((t) => !t.assignedTo?.length && !t.isClosed).length;
+  const review = tasks.filter((t) => t.status === "review" && !t.isClosed).length;
 
   if (rate >= 80) {
     insights.push({ icon: "ph-trophy", color: "var(--green)", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)",
@@ -246,7 +247,7 @@ function renderInsights(tasks, users, now) {
     assigned.forEach(t => {
       const uProg = t.userProgress && t.userProgress[u.id];
       const isPersonallyCompleted = uProg && (uProg.status === "completed" || uProg.completionPercentage === 100);
-      if (t.status !== "completed" && !isPersonallyCompleted) activePoints += (t.weight || 3);
+      if (t.status !== "completed" && !isPersonallyCompleted && !t.isClosed) activePoints += (t.weight || 3);
     });
     const util = Math.round((activePoints / capacity) * 100);
     if (util < 30) underUtilized.push(u.displayName ? u.displayName.split(" ")[0] : "User");
@@ -340,8 +341,9 @@ function renderTimeline(tasks, days) {
 }
 
 function renderStatusPie(tasks, now) {
-  const counts = { pending: 0, "in-progress": 0, review: 0, completed: 0, overdue: 0 };
+  const counts = { pending: 0, "in-progress": 0, review: 0, completed: 0, overdue: 0, closed: 0 };
   tasks.forEach((t) => {
+    if (t.isClosed && t.status !== "completed") { counts.closed++; return; }
     if (t.deadline && t.status !== "completed") {
       const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
       if (d < now) { counts.overdue++; return; }
@@ -356,9 +358,9 @@ function renderStatusPie(tasks, now) {
   charts.pie = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Pending", "In Progress", "Review", "Completed", "Overdue"],
+      labels: ["Pending", "In Progress", "Review", "Completed", "Overdue", "Closed"],
       datasets: [{ data: Object.values(counts),
-        backgroundColor: ["#52525B", "#00DCFF", "#F5A30A", "#10b981", "#FF4560"],
+        backgroundColor: ["#52525B", "#00DCFF", "#F5A30A", "#10b981", "#FF4560", "#D873FF"],
         borderWidth: 0, hoverOffset: 8 }],
     },
     options: {
@@ -614,7 +616,7 @@ function renderMemberProductivity(tasks, users, now) {
     const assigned = tasks.filter((t) => (t.assignedTo || []).includes(u.id) || (t.isCommonTask && t.status === "pending"));
     const completed = assigned.filter((t) => t.status === "completed").length;
     const active = assigned.filter((t) => {
-      if (t.status === "completed") return false;
+      if (t.status === "completed" || t.isClosed) return false;
       const uProg = t.userProgress && t.userProgress[u.id];
       if (uProg && (uProg.status === "completed" || uProg.completionPercentage === 100)) return false;
       const d = t.deadline
@@ -624,7 +626,7 @@ function renderMemberProductivity(tasks, users, now) {
       return true;
     }).length;
     const overdue = assigned.filter((t) => {
-      if (!t.deadline || t.status === "completed") return false;
+      if (!t.deadline || t.status === "completed" || t.isClosed) return false;
       const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
       return d < now;
     }).length;
@@ -639,7 +641,7 @@ function renderMemberProductivity(tasks, users, now) {
     assigned.forEach((t) => {
       const uProg = t.userProgress && t.userProgress[u.id];
       const isPersonallyCompleted = uProg && (uProg.status === "completed" || uProg.completionPercentage === 100);
-      if (t.status !== "completed" && !isPersonallyCompleted) {
+      if (t.status !== "completed" && !isPersonallyCompleted && !t.isClosed) {
         activePoints += (t.weight || 3);
       }
     });

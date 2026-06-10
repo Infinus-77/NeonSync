@@ -116,6 +116,7 @@ function renderTask(t) {
     ${statusBadge(overdue ? "overdue" : t.status)}
     ${priorityBadge(t.priority || "medium")}
     ${t.isCommonTask ? '<span class="badge" style="background:rgba(139,92,246,0.14);color:var(--purple);border:1px solid rgba(139,92,246,0.30);">Common Task</span>' : ""}
+    ${t.isClosed ? '<span class="badge" style="background:var(--purple-light);color:var(--purple);border:1px solid rgba(216,115,255,0.30);display:flex;align-items:center;gap:4px;"><i class="ph-fill ph-lock-key"></i> Closed</span>' : ""}
   `;
 
   const isAssignedInit = (t.assignedTo || []).includes(currentUser.id) || (t.isCommonTask && t.status === "pending");
@@ -131,6 +132,8 @@ function renderTask(t) {
       opt.disabled = flow.indexOf(opt.value) < current;
     });
   }
+
+  statusSel.disabled = t.isClosed;
 
   const creator = allUsers[t.createdBy];
   document.getElementById("task-creator").textContent = creator
@@ -168,7 +171,7 @@ function renderTask(t) {
       const uStat = uProg.status || (isLegacy ? (t.status || "pending") : "pending");
       const uPct = uProg.completionPercentage ?? (isLegacy ? (t.completionPercentage || 0) : 0);
       
-      const canOverride = canEdit;
+      const canOverride = canEdit && !t.isClosed;
       const tagType = canOverride ? "div" : "a";
       const tagHref = canOverride ? "" : `href="profile.html?uid=${uid}"`;
       const clickAction = canOverride ? `onclick="window.openUserProgressModal('${uid}', '${(u?.displayName || "User").replace(/'/g, "\\'")}', ${uPct})"` : "";
@@ -210,11 +213,46 @@ function renderTask(t) {
   }
 
 
-  document.getElementById("edit-task-btn").style.display = canEdit
-    ? "flex"
-    : "none";
+  const canClose = currentUser.role === "super_admin" || currentUser.role === "admin";
+  const closeBtn = document.getElementById("toggle-close-task-btn");
+  if (closeBtn) {
+    closeBtn.style.display = canClose ? "flex" : "none";
+    if (t.isClosed) {
+      document.getElementById("toggle-close-text").textContent = "Reopen Task";
+      document.getElementById("toggle-close-icon").className = "ph ph-lock-key-open";
+    } else {
+      document.getElementById("toggle-close-text").textContent = "Close Task";
+      document.getElementById("toggle-close-icon").className = "ph ph-lock-key";
+    }
+  }
+
+  document.getElementById("edit-task-btn").style.display = (canEdit && !t.isClosed) ? "flex" : "none";
   document.getElementById("delete-task-btn").style.display =
     currentUser.role === "super_admin" ? "flex" : "none";
+  
+  // Disable inputs if closed
+  const completionSlider = document.getElementById("completion-input");
+  if (completionSlider) completionSlider.disabled = t.isClosed;
+  
+  const stepperWrap = document.getElementById("personal-stepper-wrap");
+  if (stepperWrap) {
+    stepperWrap.style.visibility = t.isClosed ? "hidden" : "visible";
+  }
+  
+  const remarkText = document.getElementById("remark-text");
+  if (remarkText) remarkText.disabled = t.isClosed;
+  
+  const remarkBtn = document.querySelector('button[onclick="addRemark()"]');
+  if (remarkBtn) remarkBtn.disabled = t.isClosed;
+  
+  const attachName = document.getElementById("attach-name");
+  if (attachName) attachName.disabled = t.isClosed;
+  
+  const attachUrl = document.getElementById("attach-url");
+  if (attachUrl) attachUrl.disabled = t.isClosed;
+  
+  const attachBtn = document.querySelector('button[onclick="addAttachment()"]');
+  if (attachBtn) attachBtn.disabled = t.isClosed;
   
 
   if ((t.tags || []).length) {
@@ -961,6 +999,23 @@ window.submitEditTask = async (e) => {
   const dl = document.getElementById("edit-deadline").value;
   const assignedTo = editSelectedUsers.length ? [...editSelectedUsers] : [currentUser.id];
 
+  // Recalculate completion percentage if assignees change
+  const userProgress = taskData.userProgress || {};
+  let totalPct = 0;
+  let allCompleted = assignedTo.length > 0;
+  for (const uid of assignedTo) {
+    const uPct = userProgress[uid]?.completionPercentage || 0;
+    const uStat = userProgress[uid]?.status || "pending";
+    totalPct += uPct;
+    if (uStat !== "completed") allCompleted = false;
+  }
+  const newCompletionPct = assignedTo.length > 0 ? Math.round(totalPct / assignedTo.length) : (taskData.completionPercentage || 0);
+  let newStatus = priority; // wait, priority is from 'edit-priority'
+  // Status logic: if everyone is 100%, force completed. If it was completed but people are removed/added and it's no longer 100%, force in-progress.
+  let finalStatus = taskData.status;
+  if (allCompleted) finalStatus = "completed";
+  else if (taskData.status === "completed" && newCompletionPct < 100) finalStatus = "in-progress";
+
   try {
     await updateDoc(doc(db, "tasks", taskId), {
       title,
@@ -968,6 +1023,8 @@ window.submitEditTask = async (e) => {
       priority,
       assignedTo,
       referenceLinks: pendingEditReferenceLinks,
+      completionPercentage: newCompletionPct,
+      status: finalStatus,
       ...(dl ? { deadline: Timestamp.fromDate(new Date(dl)) } : {}),
       updatedAt: serverTimestamp(),
     });
@@ -992,6 +1049,54 @@ window.deleteTask = async () => {
     setTimeout(() => (window.location.href = "tasks.html"), 1000);
   } catch (err) {
     showToast("Failed to delete", "error");
+  }
+};
+
+window.toggleCloseTask = async () => {
+  if (!taskData) return;
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+    showToast("Unauthorized", "error");
+    return;
+  }
+  
+  const isCurrentlyClosed = taskData.isClosed || false;
+  const newStatus = !isCurrentlyClosed;
+  const actionText = newStatus ? "Close" : "Reopen";
+  
+  const confirmed = await showConfirm(
+    `Are you sure you want to ${actionText.toLowerCase()} this task?`,
+    actionText
+  );
+  if (!confirmed) return;
+  
+  try {
+    await updateDoc(doc(db, "tasks", taskId), {
+      isClosed: newStatus,
+      updatedAt: serverTimestamp(),
+    });
+    
+    const logAction = newStatus ? "task_closed" : "task_reopened";
+    await addTaskLog(logAction, "", "");
+    await writeActivityLog(logAction);
+    
+    showToast(`Task ${newStatus ? 'closed' : 'reopened'} successfully`, "success");
+    
+    // Notify assignees and creator
+    const notifyUsers = new Set([...(taskData.assignedTo || [])]);
+    if (taskData.createdBy) notifyUsers.add(taskData.createdBy);
+    notifyUsers.delete(currentUser.id);
+    
+    for (const uid of notifyUsers) {
+      await createNotification(
+        uid,
+        "status_update",
+        `Task "${taskData.title}" was ${newStatus ? 'closed' : 'reopened'} by ${currentUser.displayName}`,
+        taskId
+      );
+    }
+  } catch (err) {
+    console.error("Toggle close task error:", err);
+    showToast(`Failed to ${actionText.toLowerCase()} task`, "error");
   }
 };
 

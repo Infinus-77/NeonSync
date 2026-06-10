@@ -57,8 +57,8 @@ function renderCapacityDashboard() {
   const members = allUsers;
   const memberStats = members.map(user => {
     const activeTasks = allTasks.filter(t => {
-      // Must not be completed
-      if (t.status === "completed") return false;
+      // Must not be completed or closed
+      if (t.status === "completed" || t.isClosed) return false;
       // Must be assigned to user, or be a common task
       if ((t.assignedTo && t.assignedTo.includes(user.id)) || (t.isCommonTask && t.status === "pending")) {
         const uProg = t.userProgress && t.userProgress[user.id];

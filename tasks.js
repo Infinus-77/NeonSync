@@ -410,7 +410,11 @@ function renderTasks(tasks) {
             onclick="openEditTask('${t.id}')" data-testid="edit-task-${t.id}">
             <i class="ph ph-pencil"></i> Edit
           </button>
-          <button class="btn btn-danger btn-sm" style="font-size:11px;"
+          <button class="btn btn-secondary btn-sm" style="font-size:11px; padding: 5px 10px; ${t.isClosed ? 'color: var(--purple); border-color: rgba(216,115,255,0.3); background: rgba(216,115,255,0.05);' : ''}" title="${t.isClosed ? 'Reopen Task' : 'Close Task'}"
+            onclick="toggleTaskCloseCard(event, '${t.id}', ${!!t.isClosed})" data-testid="close-task-${t.id}">
+            <i class="ph ${t.isClosed ? 'ph-lock-key-open' : 'ph-lock-key'}"></i>
+          </button>
+          <button class="btn btn-danger btn-sm" style="font-size:11px; padding: 5px 10px;"
             onclick="confirmDeleteTask('${t.id}')" data-testid="delete-task-${t.id}">
             <i class="ph ph-trash"></i>
           </button>
@@ -418,15 +422,17 @@ function renderTasks(tasks) {
           : "";
 
       const isCompleted = effStatus === "completed";
+      const isClosedIncomplete = t.isClosed && !isCompleted;
 
       return `
-      <div class="task-card ${isCompleted ? 'task-completed' : ''}" onclick="window.location.href='task-detail.html?id=${t.id}'"
+      <div class="task-card ${isCompleted ? 'task-completed' : ''} ${isClosedIncomplete ? 'task-closed-incomplete' : ''}" onclick="window.location.href='task-detail.html?id=${t.id}'"
         data-testid="task-card-${t.id}">
 
         <!-- Header: title + priority -->
         <div class="task-card-header" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; position:relative; z-index:2;">
-          <div class="task-card-title" style="flex:1; ${isCompleted ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${sanitizeHtml(t.title)}</div>
+          <div class="task-card-title" style="flex:1; ${(isCompleted || isClosedIncomplete) ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${sanitizeHtml(t.title)}</div>
           <div style="display:flex; align-items:center; gap:6px;" onclick="event.stopPropagation()">
+            ${t.isClosed ? '<span style="color: var(--purple); display:flex; align-items:center; font-size:16px;" title="Closed"><i class="ph-fill ph-lock-key"></i></span>' : ''}
             ${priorityBadge(t.priority || "medium")}
             <button class="btn-share-icon" onclick="shareTaskLinkFromCard(event, '${t.id}')" 
               title="Share task link"
@@ -453,6 +459,7 @@ function renderTasks(tasks) {
           ${activeTag}
           ${tagChips}
           ${isCompleted ? '<span style="color: #047857; display:flex; align-items:center; font-size:15px; margin-left:2px;" title="Completed"><i class="ph-fill ph-check-circle"></i></span>' : ''}
+          ${isClosedIncomplete ? '<span style="font-size:10px;padding:2px 8px;background:rgba(216,115,255,0.1);border:1px solid rgba(216,115,255,0.3);border-radius:999px;color:var(--purple);white-space:nowrap;">Closed w/o Completion</span>' : ''}
         </div>
 
         <!-- Progress bar -->
@@ -609,17 +616,35 @@ window.submitTask = async (e) => {
 
   try {
     if (taskId) {
+      // Recalculate completion percentage if assignees change
+      const snap = await getDoc(doc(db, "tasks", taskId));
+      const oldTask = snap.data() || {};
+      const userProgress = oldTask.userProgress || {};
+      let totalPct = 0;
+      let allCompleted = assignedTo.length > 0;
+      for (const uid of assignedTo) {
+        const uPct = userProgress[uid]?.completionPercentage || 0;
+        const uStat = userProgress[uid]?.status || "pending";
+        totalPct += uPct;
+        if (uStat !== "completed") allCompleted = false;
+      }
+      const newCompletionPct = assignedTo.length > 0 ? Math.round(totalPct / assignedTo.length) : (oldTask.completionPercentage || 0);
+      let finalStatus = status; // user explicitly set it in form
+      if (allCompleted) finalStatus = "completed";
+      else if (finalStatus === "completed" && newCompletionPct < 100) finalStatus = "in-progress";
+
       await updateDoc(doc(db, "tasks", taskId), {
         title,
         description: desc,
         priority,
-        status,
+        status: finalStatus,
         weight,
         tags,
         isCommonTask: isCommon,
         visibility: isCommon ? "global" : "team",
         assignedTo,
         referenceLinks: pendingReferenceLinks,
+        completionPercentage: newCompletionPct,
         deadline: Timestamp.fromDate(new Date(deadlineVal)),
         updatedAt: serverTimestamp(),
       });
@@ -702,6 +727,46 @@ window.confirmDeleteTask = async (taskId) => {
     } catch (err) {
       showToast("Failed to delete task", "error");
     }
+  }
+};
+
+window.toggleTaskCloseCard = async (e, taskId, isCurrentlyClosed) => {
+  e.stopPropagation();
+  if (currentUser.role !== "super_admin" && currentUser.role !== "admin") {
+    showToast("Unauthorized", "error");
+    return;
+  }
+  
+  const newStatus = !isCurrentlyClosed;
+  const actionText = newStatus ? "Close" : "Reopen";
+  
+  const confirmed = await showConfirm(
+    `Are you sure you want to ${actionText.toLowerCase()} this task?`,
+    actionText
+  );
+  if (!confirmed) return;
+  
+  try {
+    await updateDoc(doc(db, "tasks", taskId), {
+      isClosed: newStatus,
+      updatedAt: serverTimestamp()
+    });
+    
+    // Log the activity
+    await addDoc(collection(db, "taskLogs"), {
+      taskId: taskId,
+      companyId: currentUser.companyId,
+      updatedBy: currentUser.id,
+      actionType: "task_updated",
+      previousValue: isCurrentlyClosed ? "closed" : "open",
+      newValue: newStatus ? "closed" : "open",
+      timestamp: serverTimestamp(),
+    });
+    
+    showToast(`Task ${newStatus ? "closed" : "reopened"} successfully`, "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Failed to toggle task status", "error");
   }
 };
 

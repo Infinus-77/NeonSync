@@ -177,10 +177,11 @@ function renderDashboard(tasks, user) {
     const assigneeList = t.assignedTo || [];
     if (assigneeList.length === 0) return false;
     if (getEffectiveStatus(t) === "completed") return false;
+    if (t.isClosed) return false;
     return true;
   }).length;
   const overdue = myTasks.filter((t) => {
-    if (!t.deadline || getEffectiveStatus(t) === "completed") return false;
+    if (!t.deadline || getEffectiveStatus(t) === "completed" || t.isClosed) return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
     return d < now;
   }).length;
@@ -260,7 +261,7 @@ function renderUpcomingDeadlines(tasks, now) {
       const effStatus = (currentUser.role === "member" || currentUser.role === "college_ambassador") && (t.assignedTo || []).includes(currentUser.id) ? 
             ((t.userProgress && t.userProgress[currentUser.id]?.status) || (!t.userProgress ? (t.status || "pending") : "pending")) : 
             (t.status || "pending");
-      if (!t.deadline || effStatus === "completed") return false;
+      if (!t.deadline || effStatus === "completed" || t.isClosed) return false;
       const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
       return d >= now && d <= sevenDays;
     })
@@ -318,8 +319,13 @@ function renderCharts(tasks, now) {
     review: 0,
     completed: 0,
     overdue: 0,
+    closed: 0,
   };
   tasks.forEach((t) => {
+    if (t.isClosed && t.status !== "completed") {
+      statusCounts.closed++;
+      return;
+    }
     if (t.deadline && t.status !== "completed") {
       const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
       if (d < now) {
@@ -342,7 +348,7 @@ function renderCharts(tasks, now) {
       pieChart = new Chart(pieCtx, {
         type: "doughnut",
         data: {
-          labels: ["Pending", "In Progress", "Review", "Completed", "Overdue"],
+          labels: ["Pending", "In Progress", "Review", "Completed", "Overdue", "Closed"],
           datasets: [
             {
               data: Object.values(statusCounts),
@@ -352,6 +358,7 @@ function renderCharts(tasks, now) {
                 "#F59E0B",
                 "#22C55E",
                 "#EF4444",
+                "#D873FF",
               ],
               borderWidth: 0,
               hoverOffset: 8,
