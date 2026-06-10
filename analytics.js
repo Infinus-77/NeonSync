@@ -358,7 +358,7 @@ function renderStatusPie(tasks, now) {
   charts.pie = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Pending", "In Progress", "Review", "Completed", "Overdue", "Closed"],
+      labels: ["Pending", "In Progress", "Review", "Completed", "Overdue", "Closed w/o Completion"],
       datasets: [{ data: Object.values(counts),
         backgroundColor: ["#52525B", "#00DCFF", "#F5A30A", "#10b981", "#FF4560", "#D873FF"],
         borderWidth: 0, hoverOffset: 8 }],

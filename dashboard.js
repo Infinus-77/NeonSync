@@ -348,7 +348,7 @@ function renderCharts(tasks, now) {
       pieChart = new Chart(pieCtx, {
         type: "doughnut",
         data: {
-          labels: ["Pending", "In Progress", "Review", "Completed", "Overdue", "Closed"],
+          labels: ["Pending", "In Progress", "Review", "Completed", "Overdue", "Closed w/o Completion"],
           datasets: [
             {
               data: Object.values(statusCounts),
