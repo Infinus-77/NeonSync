@@ -203,7 +203,7 @@ async function autoMarkOverdue(tasks) {
   _overdueRunning = true;
   const now = new Date();
   const stale = tasks.filter((t) => {
-    if (!t.deadline || t.status === "completed" || t.status === "overdue")
+    if (!t.deadline || t.status === "completed" || t.status === "overdue" || t.isClosed)
       return false;
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
     return d < now;
@@ -275,14 +275,16 @@ window.applyFilters = () => {
     if (status === "overdue") {
       tasks = tasks.filter((t) => {
         const effStatus = getEffectiveStatus(t);
-        if (!t.deadline || effStatus === "completed") return false;
+        if (!t.deadline || effStatus === "completed" || t.isClosed) return false;
         const d = t.deadline.toDate
           ? t.deadline.toDate()
           : new Date(t.deadline);
         return d < now;
       });
+    } else if (status === "closed") {
+      tasks = tasks.filter((t) => t.isClosed && getEffectiveStatus(t) !== "completed");
     } else {
-      tasks = tasks.filter((t) => getEffectiveStatus(t) === status);
+      tasks = tasks.filter((t) => getEffectiveStatus(t) === status && !t.isClosed);
     }
   }
 
@@ -569,7 +571,8 @@ window.openEditTask = async (taskId) => {
 
   if (t.deadline) {
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
-    const dStr = d.toISOString().slice(0, 16);
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    const dStr = new Date(d - tzOffset).toISOString().slice(0, 16);
     document.getElementById("tf-deadline").value = dStr;
     if (document.getElementById("tf-deadline")._flatpickr) {
       document.getElementById("tf-deadline")._flatpickr.setDate(dStr);

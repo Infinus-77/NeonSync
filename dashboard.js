@@ -186,11 +186,13 @@ function renderDashboard(tasks, user) {
     return d < now;
   }).length;
   const completed = myTasks.filter((t) => getEffectiveStatus(t) === "completed").length;
+  const closed = myTasks.filter((t) => t.isClosed && getEffectiveStatus(t) !== "completed").length;
 
   document.getElementById("stat-total").textContent = total;
   document.getElementById("stat-active").textContent = active;
   document.getElementById("stat-overdue").textContent = overdue;
   document.getElementById("stat-completed").textContent = completed;
+  document.getElementById("stat-closed").textContent = closed;
 
   // Recent tasks (top 5)
   renderRecentTasks(myTasks.slice(0, 5), now);

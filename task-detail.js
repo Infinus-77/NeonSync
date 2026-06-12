@@ -978,7 +978,8 @@ window.openEditModal = () => {
     const d = taskData.deadline.toDate
       ? taskData.deadline.toDate()
       : new Date(taskData.deadline);
-    const dStr = d.toISOString().slice(0, 16);
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    const dStr = new Date(d - tzOffset).toISOString().slice(0, 16);
     document.getElementById("edit-deadline").value = dStr;
     if (document.getElementById("edit-deadline")._flatpickr) {
       document.getElementById("edit-deadline")._flatpickr.setDate(dStr);

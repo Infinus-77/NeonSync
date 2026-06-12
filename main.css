@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════
    NeonSync — Electric Precision Dark Design System
    Dark neon cyberpunk — Mobile-first, fully responsive, sidebar fixed
    ═══════════════════════════════════════════════════════════════════ */
@@ -1175,7 +1175,7 @@ textarea.form-input { resize: vertical; min-height: 72px; }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 18px;
   width: 100%;

@@ -14,6 +14,7 @@ import {
   orderBy,
   serverTimestamp,
   getDocs,
+  arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { requireAuth } from "./auth-guard.js";
@@ -97,7 +98,8 @@ function buildCard(idea) {
   const starClass = idea.isStarred ? "starred" : "";
   const starIcon = idea.isStarred ? "ph-fill ph-star" : "ph ph-star";
   const categoryColor = getCategoryColor(idea.category);
-  const u = allUsers[idea.createdBy];
+  const uId = idea.createdBy;
+  const u = allUsers[uId];
   const avatarEl = `<div style="width:18px;height:18px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#000;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 18)}</div>`;
 
   return `
@@ -174,12 +176,20 @@ async function addIdea(data) {
 
 async function updateIdea(id, data) {
   try {
+    const editLog = {
+      userId: currentUser.id,
+      userName: currentUser.displayName || currentUser.name || "Unknown",
+      timestamp: new Date().toISOString(),
+      action: "Edited idea details"
+    };
+
     await updateDoc(doc(db, "ideas", id), {
       title: data.title.trim(),
       description: (data.description || "").trim(),
       category: data.category,
       links: data.links || [],
       updatedAt: serverTimestamp(),
+      editLogs: arrayUnion(editLog)
     });
     showToast("Idea updated!", "success");
   } catch (err) {
@@ -349,12 +359,13 @@ function openViewModal(idea) {
   catEl.textContent = idea.category || "Other";
   catEl.style.setProperty("--pill-color", getCategoryColor(idea.category));
 
-  const u = allUsers[idea.createdBy];
+  const uId = idea.createdBy;
+  const u = allUsers[uId];
   const avatarEl = `<div style="width:18px;height:18px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#000;overflow:hidden;flex-shrink:0;">${avatarHTML(u, 18)}</div>`;
-  
+
   document.getElementById("view-idea-meta").innerHTML = `
     ${avatarEl}
-    <span style="font-size:12px; color:var(--text-muted);">${sanitizeHtml(idea.creatorName || "Unknown")}</span>
+    <span style="font-size:12px; color:var(--text-muted);">Created by ${sanitizeHtml(idea.creatorName || "Unknown")}</span>
     <span style="font-size:12px; color:var(--text-muted); margin-left:4px;"><i class="ph ph-clock"></i> ${timeAgo(idea.createdAt)}</span>
   `;
 
@@ -373,6 +384,24 @@ function openViewModal(idea) {
   } else {
     linksContainer.style.display = "none";
     linksDiv.innerHTML = "";
+  }
+
+  const historyContainer = document.getElementById("view-idea-history-container");
+  const historyDiv = document.getElementById("view-idea-history");
+  if (idea.editLogs && idea.editLogs.length > 0) {
+    historyContainer.style.display = "block";
+    historyDiv.innerHTML = [...idea.editLogs].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((log) => `
+      <div style="display:flex; gap:8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">
+        <i class="ph ph-pencil-simple" style="margin-top:2px; color:var(--purple);"></i>
+        <div>
+          <div style="color:var(--text-primary);">${sanitizeHtml(log.userName)} <span style="color:var(--text-muted);">edited this idea</span></div>
+          <div style="font-size:10px; color:var(--text-muted);">${timeAgo(log.timestamp)}</div>
+        </div>
+      </div>
+    `).join("");
+  } else {
+    historyContainer.style.display = "none";
+    historyDiv.innerHTML = "";
   }
 
   const editBtn = document.getElementById("view-idea-edit-btn");

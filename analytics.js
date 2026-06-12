@@ -132,6 +132,7 @@ function renderKPIs(tasks, prevTasks, now) {
     const d = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
     return d < now;
   }).length;
+  const closed = tasks.filter((t) => t.isClosed && t.status !== "completed").length;
   const rate = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
   const members = allUsers.length;
   const activeMembers = allUsers.filter((u) => {
@@ -165,6 +166,12 @@ function renderKPIs(tasks, prevTasks, now) {
   document.getElementById("a-active-sub").textContent = `${active} with Active tag`;
   document.getElementById("a-users").textContent = members;
   document.getElementById("a-users-sub").textContent = `${activeMembers} active this week`;
+
+  const closedEl = document.getElementById("a-closed");
+  if (closedEl) {
+    closedEl.textContent = closed;
+    document.getElementById("a-closed-sub").textContent = "Tasks closed prematurely";
+  }
 
   const utilEl = document.getElementById("a-utilization");
   if (utilEl) {

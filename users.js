@@ -193,6 +193,7 @@ window.filterUsers = () => {
 };
 
 function renderUsers(users) {
+  const sortOption = document.getElementById("sort-users")?.value || "role";
   const container = document.getElementById("users-grid");
   if (!users.length) {
     container.innerHTML =
@@ -249,8 +250,8 @@ function renderUsers(users) {
           <div style="width:1px;background:var(--border-subtle);flex-shrink:0;"></div>
           ` : ""}
           <div style="flex:1;text-align:center;">
-            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${formatActiveTime(u.createdAt, u.lastActive)}</div>
-            <div>Time Active</div>
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:2px;font-size:14px;">${sortOption === "active" ? formatActiveTime(u.createdAt, u.lastActive) : (u.lastActive ? timeAgo(u.lastActive) : "Never")}</div>
+            <div>${sortOption === "active" ? "Time Active" : "Last Active"}</div>
           </div>
         </div>
         
